@@ -10,11 +10,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/cms.css?v=2.0">
+<link rel="stylesheet" href="css/cms.css?v=2.0.1">
 <script defer src="js/cms-config.js?v=2.0"></script>
 <script defer src="js/cms-core.js?v=2.0"></script>
 <script defer src="js/cms-admin.js?v=2.0"></script>
-<script defer src="js/cms-studio.js?v=2.0"></script>
+<script defer src="js/cms-studio.js?v=2.0.1"></script>
 </head>
 <body>
 <header class="studio-header">
@@ -135,6 +135,11 @@
 <form id="memberAddForm" class="studio-member-form"><div><label for="memberEmail">기존 계정 이메일</label><input id="memberEmail" type="email" autocomplete="off" required placeholder="manager@example.com"></div>
 <button type="submit" id="memberAddButton" class="primary">최고관리자 추가 →</button></form>
 <div id="memberList" class="studio-member-list" aria-live="polite"></div>
+<div class="studio-backup"><span class="eyebrow">DATA / EXPORT</span>
+  <h3>Content archive.</h3><p>공개 및 비공개 게시글, 수정 이력, 설정과 운영 데이터를 JSON 파일로 내보냅니다. 관리자 이메일·임시글도 포함되니 안전하게 보관하세요.</p>
+  <button type="button" class="secondary" id="exportData">데이터 백업(JSON) 내려받기 ↗</button>
+  <small>첨부파일 자체와 Auth 계정은 백업에 포함되지 않습니다.</small>
+</div>
 </section>
 </section>
 <div id="studioMessage" class="studio-message" role="status" aria-live="polite" hidden></div>

@@ -22,6 +22,7 @@ Studio includes:
 - **People / Activities:** managed structured lists replace illustrative placeholders when populated
 - **Recruitment:** status, start/end date, audience, meeting details, application instructions; admin upload of blank PDF and optional editable DOCX application forms; public preview modal and download
 - **Access:** superadmin allowlist management via existing verified Supabase Auth email; maximum three enforced in serialized DB trigger
+- **Content export:** download JSON with posts, revisions, settings, people, sessions and superadmin list; does not include original media files or Auth credentials
 
 The published Research/Updates feed uses database RLS to expose **only published, nontrashed, released posts**. Existing demo reports stay labeled as SAMPLE and are hidden once actual public research is present. No real SFC report, official member bio, application form or dates have been fabricated.
 

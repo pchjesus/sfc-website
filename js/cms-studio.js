@@ -259,6 +259,34 @@
     }catch(e){toast("추가 실패: "+e.message+". Auth에 등록된 이메일인지 확인해 주세요.",true);}
     finally{buttonBusy(button,state.admins.length>=3);}
   });
+  async function readBackupTable(table){
+    const rows=[];
+    for(let start=0;start<10000;start+=1000){
+      const {data,error}=await client().from(table).select("*").range(start,start+999);
+      if(error)throw error;
+      rows.push(...(data||[]));
+      if((data||[]).length<1000)return rows;
+    }
+    throw Error(table+" 데이터가 10,000행을 초과합니다. 불완전한 백업 방지를 위해 중단했어요.");
+  }
+  $("exportData").addEventListener("click",async()=>{
+    if(!util().getUser())return;
+    const button=$("exportData");buttonBusy(button,true);
+    try{
+      const tables=["cms_posts","cms_post_revisions","cms_site_settings","cms_people","cms_sessions","cms_admins"];
+      const data={format:"sfc-cms-export-v1",exported_at:new Date().toISOString(),project:"sfc-website",tables:{}};
+      for(const table of tables)data.tables[table]=await readBackupTable(table);
+      const json=JSON.stringify(data,null,2);
+      const blob=new Blob([json],{type:"application/json;charset=utf-8"});
+      const url=URL.createObjectURL(blob);
+      const link=document.createElement("a");
+      link.href=url;link.download="sfc-content-backup-"+new Date().toISOString().slice(0,10)+".json";
+      document.body.append(link);link.click();link.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),10_000);
+      toast("데이터 백업 파일이 준비됐습니다. 관리자 전용 안전한 위치에 보관하세요.");
+    }catch(e){toast("백업 실패: "+(e.message||e),true);}
+    finally{buttonBusy(button,false);}
+  });
   async function openPane(pane){
     try{
       if(pane==="site"||pane==="recruitment")await fetchSettings();
