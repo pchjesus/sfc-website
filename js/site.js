@@ -1,8 +1,8 @@
 "use strict";
 document.documentElement.classList.add("js");
 const $=id=>document.getElementById(id);
-const pages=["home","about","research","activities","people","recruitment"];
-const navLabels=["HOME","ABOUT","RESEARCH","ACTIVITIES","PEOPLE","RECRUITMENT"];
+const pages=["home","about","research","activities","people","recruitment","updates"];
+const navLabels=["HOME","ABOUT","RESEARCH","ACTIVITIES","PEOPLE","RECRUITMENT","UPDATES"];
 const nav=$("navLinks");
 pages.forEach((name,i)=>{
   const button=document.createElement("button");
@@ -34,18 +34,22 @@ function renderRoute(){
   const route=decodeURIComponent(location.hash.slice(1)||"home");
   let target=route;
   const reportMatch=/^report-(\d+)$/.exec(route);
+  const postMatch=/^post-([0-9a-f-]{36})$/.exec(route);
   if(reportMatch){
     const index=Number(reportMatch[1]);
     if(reports[index]){fillReport(index);target="detail";}else target="research";
+  }else if(postMatch){
+    target="post";
+    window.SFC_PUBLIC?.show(postMatch[1]);
   }
-  if(!pages.includes(target)&&target!=="detail")target="home";
+  if(!pages.includes(target)&&target!=="detail"&&target!=="post")target="home";
   document.querySelectorAll(".view").forEach(section=>section.classList.toggle("active",section.id===target));
   document.querySelectorAll("#navLinks button").forEach(button=>{
-    const selected=button.dataset.page===(target==="detail"?"research":target);
+    const selected=button.dataset.page===(target==="detail"?"research":target==="post"?"updates":target);
     button.classList.toggle("active",selected);
     button.setAttribute("aria-current",selected?"page":"false");
   });
-  document.title=(target==="home"?"SFC":target==="detail"?"Research":target.charAt(0).toUpperCase()+target.slice(1))+" | Sangmyung Financial Club";
+  document.title=(target==="home"?"SFC":target==="detail"?"Research":target==="post"?"Updates":target.charAt(0).toUpperCase()+target.slice(1))+" | Sangmyung Financial Club";
   closeMenu();
   window.scrollTo({top:0,left:0,behavior:"instant"});
   revealOnScroll();

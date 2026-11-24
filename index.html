@@ -10,7 +10,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/site.css?v=1.2.1">
-<script defer src="js/site.js?v=1.2"></script>
+<link rel="stylesheet" href="css/cms-public.css?v=1.3">
+<script defer src="js/cms-config.js?v=1.3"></script>
+<script defer src="js/cms-core.js?v=1.3"></script>
+<script defer src="js/site.js?v=1.3"></script>
+<script defer src="js/cms-public.js?v=1.3"></script>
 </head>
 <body>
 <header class="site-header">
@@ -97,6 +101,7 @@
 <section class="view" id="research">
   <div class="wrap">
     <div class="page-head"><span class="eyebrow">PUBLICATIONS / ARCHIVE</span><h1>Research.</h1><p>기업분석과 리서치 결과를 모으는 곳. 현재 자료는 화면 구성을 위한 예시입니다.</p></div>
+    <div class="cms-live" id="liveResearch" hidden></div>
     <div class="report-toolbar">
       <div class="chips" id="reportFilters" role="group" aria-label="보고서 유형 선택"></div>
       <input class="report-search" id="searchReports" type="search" placeholder="보고서 검색" aria-label="리서치 보고서 검색">
@@ -155,6 +160,22 @@
     <p class="notice-inline" style="margin-bottom:70px">※ 선발 과정과 세부 일정은 최종 모집 공고에서 확정됩니다.</p>
   </div>
 </section>
+<!-- UPDATES / PUBLISHED ARTICLES -->
+<section class="view" id="updates">
+  <div class="wrap">
+    <div class="page-head"><span class="eyebrow">SFC / PUBLICATIONS & NEWS</span><h1>Updates.</h1><p>학회의 공지사항, 활동 기록과 실제 게시된 리서치를 확인하세요.</p></div>
+    <div class="cms-filters" id="updatesFilters" role="group" aria-label="게시글 유형 필터"></div>
+    <div class="cms-updates-list" id="updatesList" aria-live="polite"><p class="cms-empty">게시글을 불러오는 중입니다.</p></div>
+  </div>
+</section>
+<!-- PUBLIC POST DETAIL -->
+<section class="view" id="post">
+  <div class="wrap">
+    <a class="cms-post-back" href="#updates">← BACK TO UPDATES</a>
+    <header class="cms-post-head"><h1 id="cmsPostTitle">게시글을 불러오는 중입니다.</h1><p id="cmsPostMeta"></p></header>
+    <div class="cms-post-grid"><article class="cms-post-body" id="cmsPostBody"></article><aside class="cms-post-assets" id="cmsPostAssets"></aside></div>
+  </div>
+</section>
 <!-- REPORT DETAIL -->
 <section class="view" id="detail">
   <div class="wrap detail-shell">
@@ -204,8 +225,9 @@
 </section>
 </main>
 <footer class="site-footer">
-<div><strong>SFC.</strong><p>SANGMYUNG FINANCIAL CLUB<br>Independent Research · Sangmyung University</p></div>
-<small>© 2027 SFC · v1.2.1 PROTOTYPE / SAMPLE CONTENT</small>
+<div><strong>SFC.</strong><p>SANGMYUNG FINANCIAL CLUB<br>Independent Research · Sangmyung University</p>
+<nav class="cms-footer-links" aria-label="추가 페이지"><a href="#updates">UPDATES</a><a href="admin.html">ADMIN LOGIN</a></nav></div>
+<small>© 2027 SFC · v1.3 PROTOTYPE / SAMPLE CONTENT</small>
 </footer>
 </body>
 </html>
