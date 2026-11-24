@@ -18,12 +18,12 @@ The public site continues to work without Supabase; the private studio displays 
 - Safe, limited plain-text formatting (# headings, - bullets). All text is rendered with textContent, not arbitrary HTML.
 - Demo reports remain clearly separate from published SFC posts.
 
-**Not yet activated:** SFC does not have its own Supabase project or verified administrator yet. No database schema has been applied. Do not describe the CMS as live until provisioned, RLS-tested and sign-in-tested.
+**Backend linked (2026-11-24):** Dedicated SFC Supabase project `nnoicikkennbihjdoivt` (Seoul, ap-northeast-2) is `ACTIVE_HEALTHY`. Database schema and RLS are applied. Public GitHub Pages frontend is connected with its **publishable key only**. Security Advisor: no warnings. Anonymous role has SELECT only (INSERT/UPDATE/DELETE all denied); the first administrator has **not** been provisioned yet, so end-to-end authenticated publishing is still untested.
 
 ## Provisioning — requires a new dedicated project
 
-1. Create **a new, SFC-only Supabase project** in the organization you select (do not reuse another application's database). Choose an appropriate region and check pricing before accepting any charge.
-2. In Supabase's **SQL Editor**, execute the schema in [sql/sfc-cms.sql](sql/sfc-cms.sql). It enables RLS on every public CMS table and creates storage write policies.
+1. **Already complete:** SFC-only project created in Seoul, within the existing organization. Quoted project creation cost: $0/month. Check your actual usage and plan quotas separately.
+2. **Already complete:** [sql/sfc-cms.sql](sql/sfc-cms.sql) has been applied as Supabase migrations, with an additional read-policy optimization and author index. RLS is enabled on both CMS tables.
 3. In **Authentication > Providers**, turn off public user signups; create/invite the verified initial administrator in **Authentication > Users**. If email confirmation is required, complete it. Never hard-code a password.
 4. Copy the administrator's **actual auth.users UUID** from the Supabase dashboard and insert it in the SQL editor:
    ```sql
@@ -32,7 +32,7 @@ The public site continues to work without Supabase; the private studio displays 
    ```
    Future administrators must be explicitly approved via the same process. Do not expose a public registration form.
 5. In **Authentication > URL Configuration**, add `https://pchjesus.github.io/sfc-website/admin.html` as an allowed redirect URL (for password recovery). Set Site URL to the intended public origin/site.
-6. Set the new project HTTPS URL and **publishable key** (`sb_publishable_...`) in [js/cms-config.js](js/cms-config.js). These values are public by design. **Never put a secret / service_role key in frontend files, commits, or chat.**
+6. **Already complete:** the SFC HTTPS URL and **publishable key** (`sb_publishable_...`) are set in [js/cms-config.js](js/cms-config.js). These values are public by design. **Never put a secret / service_role key in frontend files, commits, or chat.**
 7. Visit `admin.html` and sign in with the approved account. Create a draft, edit it, publish it, then confirm that it appears publicly at `#updates` and disappears when unpublished.
 8. Before live rollout, test anonymous access to drafts (must be denied), anonymous insert/update/delete (denied), authenticated non-admin writes (denied), and admin write/read (allowed). Then run Supabase Security Advisors and resolve relevant notices.
 

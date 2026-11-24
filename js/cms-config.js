@@ -1,6 +1,6 @@
-/* SFC CMS — public settings only.
- * Activate after creating a separate SFC Supabase project and applying
- * sql/sfc-cms.sql. Use the project's publishable (sb_publishable_...) key.
+/* SFC CMS — public connection settings only.
+ * Dedicated Seoul Supabase project is connected and RLS is active.
+ * User account creation and administrator approval are still required.
  * NEVER put a service_role / secret key here.
  */
 window.SFC_CMS_CONFIG = Object.freeze({
