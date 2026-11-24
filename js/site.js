@@ -1,0 +1,248 @@
+"use strict";
+const $=id=>document.getElementById(id);
+const pages=["home","about","research","activities","people","recruitment"];
+const navLabels=["HOME","ABOUT","RESEARCH","ACTIVITIES","PEOPLE","RECRUITMENT"];
+const nav=$("navLinks");
+pages.forEach((name,i)=>{
+  const button=document.createElement("button");
+  button.type="button";
+  button.textContent=navLabels[i];
+  button.dataset.page=name;
+  button.addEventListener("click",()=>navigate(name));
+  nav.appendChild(button);
+});
+function closeMenu(){
+  nav.classList.remove("open");
+  $("scrim").classList.remove("open");
+  $("menuToggle").setAttribute("aria-expanded","false");
+  $("menuToggle").textContent="☰";
+  document.body.style.overflow="";
+}
+function toggleMenu(){
+  const opened=nav.classList.toggle("open");
+  $("scrim").classList.toggle("open",opened);
+  $("menuToggle").setAttribute("aria-expanded",String(opened));
+  $("menuToggle").textContent=opened?"×":"☰";
+  document.body.style.overflow=opened?"hidden":"";
+}
+function navigate(route){
+  if(location.hash.slice(1)!==route)history.pushState({route},"","#"+route);
+  renderRoute();
+}
+function renderRoute(){
+  const route=decodeURIComponent(location.hash.slice(1)||"home");
+  let target=route;
+  const reportMatch=/^report-(\d+)$/.exec(route);
+  if(reportMatch){
+    const index=Number(reportMatch[1]);
+    if(reports[index]){fillReport(index);target="detail";}else target="research";
+  }
+  if(!pages.includes(target)&&target!=="detail")target="home";
+  document.querySelectorAll(".view").forEach(section=>section.classList.toggle("active",section.id===target));
+  document.querySelectorAll("#navLinks button").forEach(button=>{
+    const selected=button.dataset.page===(target==="detail"?"research":target);
+    button.classList.toggle("active",selected);
+    button.setAttribute("aria-current",selected?"page":"false");
+  });
+  document.title=(target==="home"?"SFC":target==="detail"?"Research":target.charAt(0).toUpperCase()+target.slice(1))+" | Sangmyung Financial Club";
+  closeMenu();
+  window.scrollTo({top:0,left:0,behavior:"instant"});
+  revealOnScroll();
+}
+window.addEventListener("popstate",renderRoute);
+window.addEventListener("hashchange",renderRoute);
+$("menuToggle").addEventListener("click",toggleMenu);
+$("scrim").addEventListener("click",closeMenu);
+document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMenu()});
+/* Home photo slider */
+const slides=[
+  {heading:"See beyond<br>the numbers.",description:"기업의 숫자를 읽고, 가치의 근거를 찾다.",label:"DISCOVER SFC",route:"about",color:"#ed7857"},
+  {heading:"Research<br>with purpose.",description:"실제 기업을 분석하고, 가설을 검증합니다.",label:"EXPLORE RESEARCH",route:"research",color:"#bfdcf0"},
+  {heading:"Ideas become<br>insight.",description:"배움을 실전으로 연결하는 15주의 여정.",label:"OUR ACTIVITIES",route:"activities",color:"#e9e1a5"}
+];
+let currentSlide=0,heroInterval=null,slideSwitchTimeout=null;
+function setSlide(index){
+  if(index===currentSlide)return;
+  currentSlide=index;
+  const entry=slides[index],copy=$("heroCopy");
+  copy.classList.add("switching");
+  document.querySelectorAll(".hero-photo").forEach((photo,i)=>photo.classList.toggle("active",i===index));
+  document.querySelectorAll(".hero-controls button").forEach((button,i)=>{
+    button.classList.toggle("active",i===index);
+    button.setAttribute("aria-pressed",String(i===index));
+  });
+  clearTimeout(slideSwitchTimeout);
+  slideSwitchTimeout=setTimeout(()=>{
+    $("heroNumber").textContent="SFC / 00"+(index+1);
+    $("heroNumber").style.color=entry.color;
+    $("heroHeading").innerHTML=entry.heading;
+    $("heroDescription").textContent=entry.description;
+    $("heroButton").firstChild.textContent=entry.label+" ";
+    $("heroButton").style.backgroundColor=entry.color;
+    $("heroButton").dataset.route=entry.route;
+    copy.classList.remove("switching");
+  },230);
+  resetSlideshow();
+}
+function resetSlideshow(){
+  clearInterval(heroInterval);
+  if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches&&!document.hidden){
+    heroInterval=setInterval(()=>setSlide((currentSlide+1)%slides.length),8200);
+  }
+}
+document.querySelectorAll(".hero-controls button").forEach((button,i)=>button.addEventListener("click",()=>setSlide(i)));
+$("heroButton").addEventListener("click",()=>navigate($("heroButton").dataset.route||"about"));
+document.addEventListener("visibilitychange",resetSlideshow);
+let touchStart=null;
+$("hero").addEventListener("touchstart",event=>{touchStart=event.changedTouches[0].screenX},{passive:true});
+$("hero").addEventListener("touchend",event=>{
+  if(touchStart===null)return;
+  const moved=event.changedTouches[0].screenX-touchStart;
+  if(Math.abs(moved)>55)setSlide((currentSlide+(moved<0?1:2))%3);
+  touchStart=null;
+},{passive:true});
+resetSlideshow();
+/* All sample records are clearly marked as hypothetical. */
+const reports=[
+  {title:"반도체 산업의 구조적 변화와 기업가치 재평가",type:"Equity Research",category:"기업분석",date:"2027.05",desc:"산업 구조 · 현금흐름 전망 · 상대가치평가",question:"반도체 산업의 성장 가정은 기업가치에 어떻게 반영되는가?",method:"산업 분석, 재무 추정, DCF 및 상대가치평가의 연결을 검토하는 구성안입니다.",risk:"산업 사이클, 설비투자, 수익성 추정 등 핵심 가정 변화에 대한 검증 영역입니다."},
+  {title:"국내 소비재 기업의 상대가치 비교",type:"Relative Valuation",category:"기업분석",date:"2027.04",desc:"PER · EV/EBITDA · 비교기업 선정",question:"서로 다른 사업구조를 가진 기업의 배수를 어떻게 비교할 수 있는가?",method:"동종기업 선정과 상대가치평가 배수의 차이를 설명하는 구성안입니다.",risk:"비교기업 선정의 편향과 이익 정상화에 관한 검증 영역입니다."},
+  {title:"IPO 공모가 산정과 시장 평가의 차이",type:"IPO Case Study",category:"케이스",date:"2027.06",desc:"증권신고서 · 멀티플 · 공모가 검토",question:"기업공개 과정의 공모가 산정은 어떤 판단을 전제로 하는가?",method:"공개된 증권신고서의 산정 방식과 비교기업 선정 논리를 검토하는 구성안입니다.",risk:"시장 환경과 할인율 및 거래 가능성의 변화에 관한 검증 영역입니다."},
+  {title:"현금흐름 할인모형의 주요 가정과 민감도",type:"DCF Modeling",category:"교육자료",date:"2027.04",desc:"FCFF · WACC · 잔여가치",question:"할인율과 잔여가치 가정은 기업가치를 얼마나 바꾸는가?",method:"FCFF와 WACC, 잔여가치 추정의 관계를 설명하는 교육용 목업입니다.",risk:"장기 성장률과 자본비용 변화에 따른 모델 불확실성 설명 영역입니다."}
+];
+const categories=["전체","기업분석","케이스","교육자료"];
+let filter="전체",query="",sort="featured",layout="list";
+function openReport(index){navigate("report-"+index)}
+function renderHomeWorks(){
+  $("homeWorks").innerHTML=reports.slice(1,3).map((r,i)=>
+    '<button class="work-link" type="button" data-index="'+(i+1)+'"><small>'+r.type.toUpperCase()+' / DEMO</small><strong>'+r.title+'</strong><small class="date">'+r.date+'</small><span class="row-arr" aria-hidden="true">↗</span></button>'
+  ).join("");
+  $("homeWorks").querySelectorAll("button").forEach(button=>button.addEventListener("click",()=>openReport(Number(button.dataset.index))));
+}
+function setFilter(next){filter=next;renderFilters();renderReports()}
+function renderFilters(){
+  $("reportFilters").innerHTML=categories.map(category=>'<button type="button" class="'+(filter===category?'selected':'')+'" aria-pressed="'+(filter===category)+'">'+category+'</button>').join("");
+  $("reportFilters").querySelectorAll("button").forEach((button,i)=>button.addEventListener("click",()=>setFilter(categories[i])));
+}
+function setLayout(next){
+  layout=next;
+  $("reportResults").classList.toggle("grid",layout==="grid");
+  document.querySelectorAll("[data-layout]").forEach(button=>{
+    const on=button.dataset.layout===layout;
+    button.classList.toggle("selected",on);
+    button.setAttribute("aria-pressed",String(on));
+  });
+}
+function renderReports(){
+  let matches=reports.map((r,i)=>({...r,index:i})).filter(r=>
+    (filter==="전체"||filter===r.category)&&
+    (r.title+" "+r.type+" "+r.desc).toLowerCase().includes(query.trim().toLowerCase())
+  );
+  if(sort==="new")matches.sort((a,b)=>b.date.localeCompare(a.date));
+  else if(sort==="old")matches.sort((a,b)=>a.date.localeCompare(b.date));
+  else if(sort==="title")matches.sort((a,b)=>a.title.localeCompare(b.title,"ko"));
+  $("reportCount").textContent=matches.length+" SAMPLE REPORT"+(matches.length===1?"":"S");
+  const results=$("reportResults");
+  results.innerHTML=matches.length?matches.map(r=>
+    '<button type="button" class="report-item" data-index="'+r.index+'">'+
+      '<div class="report-cover k'+r.index+'"><small>SFC / DEMO</small><b>'+r.type+'</b></div>'+
+      '<div><span class="report-category">'+r.category+' / '+r.type.toUpperCase()+'</span><h3>'+r.title+'</h3><p>'+r.desc+'</p></div>'+
+      '<time>'+r.date+' ↗</time></button>'
+  ).join(""):'<p class="empty-result">검색 결과가 없습니다.</p>';
+  results.querySelectorAll(".report-item").forEach(button=>button.addEventListener("click",()=>openReport(Number(button.dataset.index))));
+  setLayout(layout);
+}
+$("searchReports").addEventListener("input",event=>{query=event.target.value;renderReports()});
+$("sortReports").addEventListener("change",event=>{sort=event.target.value;renderReports()});
+document.querySelectorAll("[data-layout]").forEach(button=>button.addEventListener("click",()=>setLayout(button.dataset.layout)));
+function fillReport(index){
+  const r=reports[index];
+  $("detailType").textContent=r.category+" / "+r.type.toUpperCase()+" / SAMPLE";
+  $("detailTitle").textContent=r.title;
+  $("detailQuestion").textContent=r.question;
+  $("detailMethod").textContent=r.method;
+  $("detailRisk").textContent=r.risk;
+  $("detailMeta").textContent="SFC RESEARCH · "+r.date+" · DEMONSTRATION";
+}
+/* Planned semester */
+const sessions=[
+  ["01","Orientation","오리엔테이션·팀 구성·엑셀 기초","foundation"],
+  ["02","Financial Statements","재무제표 3표 연결 및 주요 비율","foundation"],
+  ["03","Relative Valuation","PER, PBR, EV/EBITDA","foundation"],
+  ["04","DCF Modeling","FCFF, WACC, 잔여가치와 민감도","foundation"],
+  ["05–06","Case Study I","바이사이드 밸류에이션","application"],
+  ["07","Research Skills","DART 공시·산업 분석","application"],
+  ["08","Midterm Break","중간고사 휴회","application"],
+  ["09–10","Case Study II","동종업계 기업가치 비교","application"],
+  ["11–12","Case Study III","IPO 공모가 산정 사례","application"],
+  ["13–14","Final Research","팀별 최종 리포트 작성","research"],
+  ["15","Final Presentation","최종 연구 발표회","research"]
+];
+let selectedStage="all",openedSession=-1;
+const stages=[["all","전체"],["foundation","기초교육"],["application","기업분석 실습"],["research","최종 연구"]];
+function chooseStage(stage){selectedStage=stage;openedSession=-1;renderSchedule()}
+function toggleSession(i){openedSession=openedSession===i?-1:i;renderSchedule()}
+function renderSchedule(){
+  $("scheduleTabs").innerHTML=stages.map(([value,label])=>
+    '<button type="button" data-stage="'+value+'" class="'+(selectedStage===value?'selected':'')+'" aria-pressed="'+(selectedStage===value)+'">'+label+'</button>'
+  ).join("");
+  $("scheduleTabs").querySelectorAll("button").forEach(button=>button.addEventListener("click",()=>chooseStage(button.dataset.stage)));
+  $("scheduleList").innerHTML=sessions.map((s,i)=>({s,i})).filter(({s})=>selectedStage==="all"||s[3]===selectedStage).map(({s,i})=>
+    '<div class="session '+(openedSession===i?'open':'')+'"><button class="session-button" type="button" data-index="'+i+'" aria-expanded="'+(openedSession===i)+'">'+
+    '<span class="week">'+s[0]+' WEEK</span><strong>'+s[1]+'</strong><span class="summary">'+s[2]+'</span><span class="plus" aria-hidden="true">＋</span></button>'+
+    '<div class="session-body"><div><p>'+s[2]+'을 중심으로 학습과 팀 활동을 진행하는 기획안입니다. 구체적인 자료와 과제는 운영 이후 반영됩니다.</p></div></div></div>'
+  ).join("");
+  $("scheduleList").querySelectorAll("button").forEach(button=>button.addEventListener("click",()=>toggleSession(Number(button.dataset.index))));
+}
+/* Only one people section, expandable in place */
+const roles=[
+  ["President","회장","학회 운영 총괄, 지도교수 및 학과와의 소통, 정기 세션 관리"],
+  ["Head of Research","리서치장","기초 교육, 분석 케이스 선정, 리포트 검토와 피드백"],
+  ["Operations","총무·대외","출결·운영 일정, 홍보 및 대외협력 지원"]
+];
+let openedRole=-1;
+function renderRoles(){
+  $("roleList").innerHTML=roles.map((r,i)=>
+    '<div class="role-row '+(openedRole===i?'open':'')+'"><button type="button" class="role-button" data-index="'+i+'" aria-expanded="'+(openedRole===i)+'"><span>0'+(i+1)+'</span><strong>'+r[0]+'</strong><span class="plus" aria-hidden="true">＋</span></button>'+
+    '<div class="role-detail"><div><p><b>'+r[1]+'</b> · '+r[2]+' (운영 기획 기준)</p></div></div></div>'
+  ).join("");
+  $("roleList").querySelectorAll("button").forEach(button=>button.addEventListener("click",()=>{
+    const i=Number(button.dataset.index);openedRole=openedRole===i?-1:i;renderRoles();
+  }));
+}
+/* Recruitment FAQ */
+const faqs=[
+  ["금융 관련 선행 지식이 필요한가요?","기초 교육을 포함하는 운영안이 준비되어 있습니다. 자세한 지원 자격은 모집 공고를 확인해 주세요."],
+  ["활동은 어떻게 진행되나요?","주 1회 약 2시간의 정기 세션과 팀별 기업분석 실습 및 발표를 계획하고 있습니다."],
+  ["언제, 어디서 지원할 수 있나요?","2027년 3월 초 모집 예정이며 지원 방법과 세부 일정은 추후 공지합니다."]
+];
+let openedFaq=-1;
+function renderFaqs(){
+  $("faqList").innerHTML=faqs.map((f,i)=>
+    '<div class="faq '+(openedFaq===i?'open':'')+'"><button type="button" data-index="'+i+'" aria-expanded="'+(openedFaq===i)+'">'+f[0]+' <span aria-hidden="true">＋</span></button>'+
+    '<div class="faq-answer"><div><p>'+f[1]+'</p></div></div></div>'
+  ).join("");
+  $("faqList").querySelectorAll("button").forEach(button=>button.addEventListener("click",()=>{
+    const i=Number(button.dataset.index);openedFaq=openedFaq===i?-1:i;renderFaqs();
+  }));
+}
+/* Reveal only active view's visible elements. */
+let observer;
+function revealOnScroll(){
+  if(observer)observer.disconnect();
+  const targets=document.querySelectorAll(".view.active .reveal");
+  if(!("IntersectionObserver" in window)){
+    targets.forEach(el=>el.classList.add("visible"));return;
+  }
+  observer=new IntersectionObserver(entries=>entries.forEach(entry=>{
+    if(entry.isIntersecting){entry.target.classList.add("visible");observer.unobserve(entry.target);}
+  }),{threshold:.08});
+  targets.forEach(el=>observer.observe(el));
+}
+renderHomeWorks();
+renderFilters();
+renderReports();
+renderSchedule();
+renderRoles();
+renderFaqs();
+if(!location.hash)history.replaceState({route:"home"},"","#home");
+renderRoute();
