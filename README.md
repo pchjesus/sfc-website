@@ -1,31 +1,32 @@
 # SFC Website
 
-Official website prototype for **Sangmyung Financial Club (SFC)**, a university financial research society.
+Website prototype for **Sangmyung Financial Club (SFC)**, a university financial research society.
 
 **Live site:** https://pchjesus.github.io/sfc-website/
 
-## Current version — v0.9
+## Version 1.0 — Minimal Editorial
 
-- Responsive editorial homepage with three photographic hero scenes
-- About: research mission, three disciplines and learning approach
-- Research: featured case, searchable/filterable/sortable publication archive and detail mockups
-- Activities: semester stages and interactive 15-week curriculum
-- People: organizational structure and interactive role explorer
-- Recruitment: planned Spring 2027 intake, process overview and FAQs
-- Browser back/forward navigation, mobile menu, motion-reduction support, and scroll progress indicator
+- **Home:** full-width photo hero, compact featured research, three-step program and recruitment link
+- **About:** short introduction and three research disciplines
+- **Research:** searchable, sortable, filterable report list with optional grid layout and detail mockups
+- **Activities:** 15-week curriculum with stage filters and inline accordion details
+- **People:** single expandable role list, without duplicate description panels
+- **Recruitment:** concise application information, four proposed steps and FAQs
+- **Usability:** mobile navigation, touch-controlled hero, browser history, progressive reveal motion and reduced-motion support
 
-## Implementation
+## Files
 
-This is currently a **static HTML/CSS/JavaScript prototype** published from the `main` branch (repository root) using **GitHub Pages**. It requires no build step or backend credentials. Supabase integration is a possible later stage, not currently active.
-
-## Important: sample content
-
-Research reports, dates, visualized figures, role descriptions, and related data marked **DEMO**, **SAMPLE**, or **PLANNED** are illustrations of the future website experience, **not actual SFC publications or investment recommendations**. Replace these with verified first-party content before public promotion.
+- `index.html` — page structure
+- `css/site.css` — responsive design system
+- `js/site.js` — navigation and UI interactions
+- `.nojekyll` — publish static content without Jekyll processing
 
 ## Publishing
 
-GitHub repository → **Settings → Pages → Deploy from a branch → main → /(root)**. Pushing `index.html` to `main` publishes the static site.
+GitHub Pages is configured for **Deploy from a branch → main → /(root)**. Commits to `main` publish the static website without a build step.
 
-## Design direction
+## Sample content and privacy
 
-Modern institutional-finance editorial typography, disciplined color hierarchy, interactive but purposeful motion, and mobile-first usability.
+All marked **DEMO**, **SAMPLE**, or **PLANNED** records are illustrative mockups, not actual SFC research, finalized academic schedules or investment advice. Actual reports, staff profiles, recruitment instructions, and permissions must be verified before publication.
+
+No user accounts, uploads, forms, private member information or database connections are active. Supabase may be added later.
