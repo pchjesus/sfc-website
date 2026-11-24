@@ -62,3 +62,37 @@
   .cms-post-body{font-size:14px}
   .cms-post-assets{gap:10px}
 }
+
+/* SFC 2.0 published research / organization and education */
+.cms-research-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px solid var(--line);margin-top:18px;padding-top:10px}
+.cms-research-toolbar .cms-filters{display:flex;align-items:center;flex-wrap:wrap;border:0;padding:8px 0;gap:6px}
+.cms-research-search{border:1px solid #cbd4d9;min-height:44px;width:min(320px,100%);padding:11px 13px;font-size:12px;background:#fff;color:var(--ink)}
+.cms-research-total{font-size:11px;color:#9a7b69;letter-spacing:.08em;margin:8px 0}
+.cms-live .cms-live-list{margin-bottom:50px}
+.cms-person-row{display:grid;grid-template-columns:65px 1fr;gap:25px;border-top:1px solid var(--line);padding:26px 4px}
+.cms-person-index{color:#ab725c;font-size:12px;letter-spacing:.09em}
+.cms-person-details h3{font-size:clamp(20px,2.6vw,29px);font-weight:500;margin:0 0 9px}
+.cms-person-details p{font-size:13px;color:#667783;line-height:1.8;margin:0}
+.cms-person-details .cms-person-bio{margin:12px 0 0;white-space:pre-line}
+.cms-session{border-top:1px solid var(--line)}
+.cms-session:last-child{border-bottom:1px solid var(--line)}
+.cms-session-head{display:grid;grid-template-columns:70px minmax(0,1fr) minmax(0,.65fr);gap:20px;align-items:center;border:0;background:none;color:var(--ink);padding:23px 5px;min-height:74px;width:100%;text-align:left}
+.cms-session-week{font-size:11px;color:#b46d54}
+.cms-session-head strong{font-size:clamp(17px,2vw,22px);font-weight:500}
+.cms-session-summary{font-size:12px;color:#75818a;line-height:1.6}
+.cms-session-head[aria-expanded=true] strong{color:#ba6950}
+.cms-session-detail{padding:4px 10px 24px 95px;font-size:13px;color:#576976;line-height:1.9;white-space:pre-line}
+.cms-research-notes{padding-top:16px;border-top:1px solid var(--line)}
+.cms-research-notes h2{font-size:20px;margin:22px 0 10px}
+.cms-research-notes p{font-size:13px}
+@media(max-width:760px){
+ .cms-research-toolbar{align-items:stretch;flex-direction:column}
+ .cms-research-search{width:100%;max-width:none}
+ .cms-session-head{grid-template-columns:58px 1fr;gap:5px 14px}
+ .cms-session-summary{grid-column:2}
+ .cms-session-detail{padding-left:77px}
+ .cms-person-row{grid-template-columns:43px 1fr;gap:10px}
+}
+@media(prefers-reduced-motion:reduce){
+ .header-login,.application-cta-button{transition:none}
+}

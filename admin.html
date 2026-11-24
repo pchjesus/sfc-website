@@ -5,93 +5,139 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#172433">
-<title>SFC Studio | 관리자</title>
+<meta name="description" content="SFC 최고관리자 전용 콘텐츠 스튜디오">
+<title>SFC Studio | Editorial administration</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/cms.css?v=1.4">
-<script defer src="js/cms-config.js"></script>
-<script defer src="js/cms-core.js?v=1.3"></script>
-<script defer src="js/cms-admin.js?v=1.4"></script>
+<link rel="stylesheet" href="css/cms.css?v=2.0">
+<script defer src="js/cms-config.js?v=2.0"></script>
+<script defer src="js/cms-core.js?v=2.0"></script>
+<script defer src="js/cms-admin.js?v=2.0"></script>
+<script defer src="js/cms-studio.js?v=2.0"></script>
 </head>
 <body>
-<header class="studio-header"><a class="studio-brand" href="index.html#home">SFC<span>.</span><small>STUDIO</small></a><div class="studio-top-actions"><a href="index.html#home">홈페이지 ↗</a><span id="studioAccount" hidden></span><button type="button" id="studioLogout" hidden>로그아웃</button></div></header>
+<header class="studio-header">
+<a class="studio-brand" href="index.html#home">SFC<span>.</span><small>STUDIO</small></a>
+<div class="studio-top-actions"><a href="index.html#home">홈페이지 ↗</a><span id="studioAccount" hidden></span><button type="button" id="studioLogout" hidden>로그아웃</button></div>
+</header>
 <main class="studio-main">
-  <section class="studio-auth" id="studioSetup" hidden>
-    <span class="eyebrow">SFC / ADMINISTRATION</span><h1>Studio 준비 중.</h1>
-    <p>관리자 기능 코드는 준비되었지만 별도의 SFC 데이터베이스가 연결되지 않았습니다. 프로젝트 생성 및 관리자 승인 후 이용할 수 있습니다.</p>
-    <a href="index.html#home">홈페이지로 돌아가기 ↗</a>
-  </section>
-  <section class="studio-auth" id="studioLogin" hidden>
-    <span class="eyebrow">SFC / PRIVATE ACCESS</span>
-    <h1>Welcome back.</h1><p>등록된 최고관리자·관리자·회원 계정으로 로그인할 수 있습니다.</p>
-    <form id="loginForm">
-      <label>이메일<input id="loginEmail" type="email" required autocomplete="username" placeholder="admin@example.com"></label>
-      <label>비밀번호<input id="loginPassword" type="password" required autocomplete="current-password" minlength="6"></label>
-      <button type="submit" class="primary">로그인 <span>→</span></button>
-    </form>
-    <button class="plain-link" id="forgotPassword" type="button">비밀번호 재설정 이메일 받기</button>
-  </section>
-  <section class="studio-auth" id="studioReset" hidden>
-    <span class="eyebrow">ACCOUNT / SECURITY</span><h1>Set a password.</h1>
-    <p>새 비밀번호를 설정해 주세요.</p>
-    <form id="resetForm"><label>새 비밀번호<input id="resetPassword" type="password" autocomplete="new-password" minlength="12" required></label>
-      <button type="submit" class="primary">비밀번호 변경</button></form>
-  </section>
-  <section class="studio-auth studio-member-home" id="studioMember" hidden>
-    <span class="eyebrow">SFC / MEMBER ACCESS</span><h1>Member space.</h1>
-    <p><strong id="studioMemberEmail"></strong> 계정으로 로그인했어. 일반 회원은 글 열람 권한을 가지고 있어. 글 작성과 게시 작업은 관리자 이상부터 가능해.</p>
-    <a href="index.html#updates">게시글 보러 가기 ↗</a>
-  </section>
-  <section class="studio-panel" id="studioPanel" hidden>
-    <div class="studio-heading"><div><span class="eyebrow">CONTENT MANAGEMENT</span><h1>Editorial desk.</h1><p>리서치·공지·활동 소식을 작성하고 게시 상태를 관리합니다.</p></div>
-    <div class="studio-heading-actions"><button id="manageMembers" type="button" class="secondary" hidden>회원·권한 관리</button><button id="newPost" type="button" class="primary">＋ 새 글 작성</button></div></div>
-    <div class="studio-layout" id="studioLayout">
-      <aside class="studio-sidebar">
-        <div class="sidebar-header"><strong>게시글</strong><small id="postsCount">0 POSTS</small></div>
-        <div class="sidebar-tabs" role="group" aria-label="게시글 상태">
-          <button type="button" data-status="all" class="selected">전체</button>
-          <button type="button" data-status="draft">임시글</button>
-          <button type="button" data-status="published">게시됨</button>
-        </div>
-        <div id="adminPostList" class="admin-post-list"></div>
-      </aside>
-      <section class="studio-editor">
-        <form id="postForm" novalidate>
-          <div class="editor-topline"><span class="eyebrow" id="editorMode">NEW ARTICLE</span><span id="editorSavedAt">아직 저장되지 않음</span></div>
-          <label>글 유형<select id="postKind" required><option value="notice">공지사항</option><option value="research">Research</option><option value="activity">활동 소식</option></select></label>
-          <label>제목<input id="postTitle" type="text" required maxlength="180" minlength="3" placeholder="제목을 입력하세요"></label>
-          <label>요약<textarea id="postExcerpt" rows="2" maxlength="350" placeholder="목록에 표시할 짧은 설명 (선택)"></textarea></label>
-          <label>본문<textarea id="postBody" rows="15" maxlength="50000" placeholder="내용을 입력하세요.&#10;&#10;# 큰 제목&#10;## 소제목&#10;- 목록 항목"></textarea></label>
-          <p class="editor-hint">제목(#), 소제목(##), 글머리표(-)와 빈 줄을 사용할 수 있어요. HTML은 실행되지 않습니다.</p>
-          <div class="editor-media">
-            <label>대표 이미지 URL<input id="postCoverUrl" type="url" placeholder="https://..."></label>
-            <label>대표 이미지 업로드<input id="postCoverFile" type="file" accept="image/jpeg,image/png,image/webp"></label>
-            <label>첨부 PDF URL<input id="postAttachmentUrl" type="url" placeholder="https://..."></label>
-            <label>PDF 업로드<input id="postPdfFile" type="file" accept="application/pdf"></label>
-          </div>
-          <p class="editor-hint">사진·PDF 업로드 시 Supabase Storage에 저장됩니다. 비밀 문서나 개인정보는 업로드하지 마세요.</p>
-          <div class="editor-toolbar"><button type="button" id="previewButton" class="secondary">미리보기</button><button type="button" id="saveDraft" class="secondary">임시저장</button><button type="button" id="publishPost" class="primary">게시하기 ↗</button></div>
-        </form>
-        <div id="previewPanel" class="preview-panel" hidden><span class="eyebrow">ARTICLE PREVIEW</span><h2 id="previewTitle"></h2><p id="previewExcerpt"></p><div class="cms-richtext" id="previewBody"></div><button type="button" id="closePreview" class="secondary">편집으로 돌아가기</button></div>
-        <div class="editor-danger"><button type="button" id="unpublishPost" hidden>게시 취소</button><button type="button" id="deletePost" hidden>글 삭제</button></div>
-      </section>
-    </div>
-    <section class="studio-roles" id="studioRoles" hidden aria-label="회원 권한 관리">
-      <div class="studio-roles-head"><div><span class="eyebrow">ACCESS CONTROL / SUPERADMIN ONLY</span><h2>People & permissions.</h2>
-      <p>최고관리자 최대 3명 · 관리자는 글 작성 및 관리 · 일반 회원은 읽기 전용</p></div>
-      <button type="button" id="returnPosts" class="secondary">← 글 관리로</button></div>
-      <div class="studio-role-stats"><div><small>최고관리자</small><strong id="superadminCount">0 / 3</strong></div><div><small>등록된 구성원</small><strong id="memberCount">0명</strong></div></div>
-      <form id="memberAddForm" class="studio-member-form">
-        <div><label for="memberEmail">기존 Auth 계정 이메일</label><input id="memberEmail" type="email" autocomplete="off" required placeholder="member@example.com"></div>
-        <div><label for="memberRole">부여할 권한</label><select id="memberRole"><option value="member">일반 회원</option><option value="admin">관리자</option><option value="superadmin">최고관리자 (최대 3명)</option></select></div>
-        <button type="submit" id="memberAddButton" class="primary">구성원 등록 →</button>
-      </form>
-      <p class="editor-hint">먼저 Supabase Authentication → Users에서 해당 이메일로 사용자를 생성하거나 초대해야 해. 비밀번호는 이곳에서 받지 않아. 계정이 없다면 등록되지 않아.</p>
-      <div class="studio-member-list" id="memberList" aria-live="polite"></div>
-    </section>
-  </section>
-  <div id="studioMessage" class="studio-message" role="status" aria-live="polite" hidden></div>
+<section class="studio-auth" id="studioSetup" hidden><span class="eyebrow">SFC / ADMINISTRATION</span><h1>Studio 준비 중.</h1><p>관리자 데이터베이스 연결 설정을 확인해 주세요.</p><a href="index.html#home">홈페이지로 돌아가기 ↗</a></section>
+<section class="studio-auth" id="studioLogin" hidden>
+<span class="eyebrow">SFC / PRIVATE ACCESS</span><h1>Welcome back.</h1>
+<p>승인된 최고관리자만 로그인할 수 있어요. 홈페이지와 공개 자료는 로그인 없이 이용할 수 있습니다.</p>
+<form id="loginForm"><label>이메일<input id="loginEmail" type="email" required autocomplete="username" placeholder="you@example.com"></label>
+<label>비밀번호<input id="loginPassword" type="password" required autocomplete="current-password" minlength="6"></label>
+<button type="submit" class="primary">로그인 <span>→</span></button></form>
+<button class="plain-link" type="button" id="forgotPassword">비밀번호 재설정 이메일 받기</button>
+</section>
+<section class="studio-auth" id="studioReset" hidden><span class="eyebrow">ACCOUNT / SECURITY</span><h1>Set a password.</h1><form id="resetForm"><label>새 비밀번호 (12자 이상)<input id="resetPassword" type="password" autocomplete="new-password" minlength="12" required></label><button type="submit" class="primary">비밀번호 변경</button></form></section>
+<section class="studio-panel" id="studioPanel" hidden>
+<div class="studio-heading"><div><span class="eyebrow">SFC / EDITORIAL WORKSPACE</span><h1>Studio.</h1><p>공개 콘텐츠와 운영 설정을 한곳에서 관리합니다. 모든 게시 작업은 데이터베이스에 저장됩니다.</p></div></div>
+<nav class="studio-tabs" aria-label="관리 메뉴">
+<button type="button" class="selected" data-pane="posts">게시글</button>
+<button type="button" data-pane="site">홈페이지</button>
+<button type="button" data-pane="people">People</button>
+<button type="button" data-pane="sessions">Activities</button>
+<button type="button" data-pane="recruitment">Recruitment</button>
+<button type="button" data-pane="access">계정 관리</button>
+</nav>
+<section data-pane-view="posts" class="studio-pane">
+<div class="studio-section-bar"><div><span class="eyebrow">PUBLICATIONS</span><h2>Editorial desk.</h2></div><button id="newPost" type="button" class="primary">＋ 새 글 작성</button></div>
+<div class="studio-layout">
+<aside class="studio-sidebar"><div class="sidebar-header"><strong>게시글</strong><small id="postsCount">0 POSTS</small></div>
+<div class="sidebar-tabs" role="group" aria-label="게시글 상태">
+<button type="button" data-status="all" class="selected">전체</button>
+<button type="button" data-status="draft">임시글</button>
+<button type="button" data-status="published">게시됨</button>
+<button type="button" data-status="scheduled">예약</button>
+<button type="button" data-status="trash">휴지통</button></div>
+<div id="adminPostList" class="admin-post-list"></div></aside>
+<section class="studio-editor">
+<form id="postForm" novalidate>
+<div class="editor-topline"><span class="eyebrow" id="editorMode">NEW ARTICLE</span><span id="editorSavedAt" role="status">아직 저장되지 않음</span></div>
+<label>글 유형<select id="postKind"><option value="notice">공지사항</option><option value="research">Research</option><option value="activity">활동 소식</option></select></label>
+<label>제목<input id="postTitle" required maxlength="180" minlength="3" placeholder="제목을 입력하세요"></label>
+<label>요약<textarea id="postExcerpt" rows="2" maxlength="350" placeholder="목록에 표시할 간단한 소개"></textarea></label>
+<div id="researchFields" class="studio-field-group" hidden>
+<div class="studio-field-grid"><label>산업 / 주제<input id="researchSector" maxlength="100" placeholder="예: 반도체"></label><label>분석 대상 기업<input id="researchCompany" maxlength="120" placeholder="예: ○○전자"></label></div>
+<label>작성자<input id="researchAuthor" maxlength="160" placeholder="연구팀 / 작성자"></label>
+<label>분석 방법<textarea id="researchMethod" rows="3" maxlength="2000"></textarea></label>
+<label>가정과 한계<textarea id="researchLimitations" rows="3" maxlength="2000"></textarea></label>
+</div>
+<label>본문<textarea id="postBody" rows="15" maxlength="50000" placeholder="# 제목&#10;&#10;본문을 입력해 주세요.&#10;&#10;## 소제목&#10;- 핵심 항목"></textarea></label>
+<p class="editor-hint"># 제목 · ## 소제목 · - 목록 · 빈 줄 지원. HTML은 실행되지 않습니다.</p>
+<div class="studio-field-grid">
+<label>대표 이미지 URL<input id="postCoverUrl" type="url" placeholder="https://..."></label>
+<label>대표 이미지 업로드<input id="postCoverFile" type="file" accept="image/jpeg,image/png,image/webp"></label>
+<label>첨부 PDF URL<input id="postAttachmentUrl" type="url" placeholder="https://..."></label>
+<label>첨부 PDF 업로드<input id="postPdfFile" type="file" accept="application/pdf"></label>
+</div>
+<label>예약 발행 (선택, 현지 시간)<input type="datetime-local" id="postSchedule"><span class="form-help">미래 시각을 지정한 뒤 '게시'하면 해당 시각부터 공개돼요. 빈칸이면 즉시 게시합니다.</span></label>
+<div class="editor-toolbar"><button type="button" id="previewButton" class="secondary">미리보기</button><button type="button" id="saveDraft" class="secondary">임시저장</button><button type="button" id="publishPost" class="primary">게시하기 ↗</button></div>
+</form>
+<div id="previewPanel" class="preview-panel" hidden><span class="eyebrow">ARTICLE PREVIEW</span><h2 id="previewTitle"></h2><p id="previewExcerpt"></p><div class="cms-richtext" id="previewBody"></div><button type="button" id="closePreview" class="secondary">편집으로 돌아가기</button></div>
+<div class="editor-danger"><button type="button" id="unpublishPost" hidden>게시 취소</button><button type="button" id="trashPost" hidden>휴지통으로</button><button type="button" id="restorePost" hidden>복구하기</button><button type="button" id="deletePost" hidden>영구 삭제</button><button type="button" id="historyButton" hidden>수정 이력</button></div>
+<div id="historyPanel" class="studio-history" hidden><div class="studio-history-head"><h3>수정 이력</h3><button type="button" id="historyClose">닫기</button></div><p class="editor-hint">이전을 선택하면 편집기에 불러와져요. 실제 복원은 다시 저장한 후 적용됩니다.</p><div id="historyList"></div></div>
+</section></div></section>
+<section data-pane-view="site" class="studio-pane" hidden><div class="studio-section-bar"><div><span class="eyebrow">SITE CONTENT</span><h2>Homepage & About.</h2></div></div>
+<p class="studio-pane-intro">홈페이지와 소개 문구를 수정할 수 있어요. 배치·색상·레이아웃 변경은 GitHub에서 진행합니다.</p>
+<form id="siteForm" class="studio-wide-form">
+<label>히어로 첫 번째 슬라이드 설명<input id="siteHeroDescription" maxlength="220" placeholder="기업의 숫자를 읽고, 가치의 근거를 찾다."></label>
+<label>About 제목 (줄바꿈 가능)<textarea id="siteAboutHeading" rows="2" maxlength="180"></textarea></label>
+<label>About 소개<textarea id="siteAboutBody" rows="5" maxlength="1800"></textarea></label>
+<label>학회 운영 안내<textarea id="siteProgramNote" rows="3" maxlength="800"></textarea></label>
+<label>공식 연락 이메일<input id="siteContactEmail" type="email" maxlength="180" placeholder="공개할 이메일 (선택)"></label>
+<button type="submit" class="primary">공개 문구 저장 →</button></form></section>
+<section data-pane-view="people" class="studio-pane" hidden>
+<div class="studio-section-bar"><div><span class="eyebrow">PEOPLE / TEAM</span><h2>People.</h2></div><button type="button" class="secondary" id="newPerson">＋ 신규 인물</button></div>
+<div class="studio-two-columns"><form id="peopleForm">
+<input type="hidden" id="personId"><label>성명<input id="personName" maxlength="100" required></label>
+<label>역할 / 직책<input id="personPosition" maxlength="130" placeholder="회장 / 리서치장 등"></label>
+<label>활동 기수 또는 임기<input id="personTerm" maxlength="80" placeholder="예: 2027 SPRING"></label>
+<label>소개<textarea id="personBio" rows="5" maxlength="2000"></textarea></label>
+<label>표시 순서<input id="personOrder" type="number" value="0" min="0" max="9999"></label>
+<label class="studio-checkbox"><input id="personVisible" type="checkbox" checked> 홈페이지에 공개</label>
+<button type="submit" class="primary">인물 정보 저장 →</button></form>
+<div><span class="eyebrow">등록된 인물</span><div id="peopleList" class="studio-manage-list"></div></div></div>
+</section>
+<section data-pane-view="sessions" class="studio-pane" hidden>
+<div class="studio-section-bar"><div><span class="eyebrow">ACTIVITIES / CURRICULUM</span><h2>Program.</h2></div><button type="button" id="newSession" class="secondary">＋ 주차 추가</button></div>
+<p class="studio-pane-intro">등록된 공개 교육과정이 있으면 기존 15주 샘플 대신 이 자료를 보여줘요.</p>
+<div class="studio-two-columns"><form id="sessionForm">
+<input type="hidden" id="sessionId">
+<div class="studio-field-grid"><label>주차 표기<input id="sessionWeek" maxlength="20" required placeholder="01 / 05–06"></label><label>단계<select id="sessionStage"><option value="foundation">기초교육</option><option value="application">기업분석 실습</option><option value="research">최종 연구</option></select></label></div>
+<label>영문 또는 한글 제목<input id="sessionTitle" maxlength="150" required></label>
+<label>한 줄 소개<input id="sessionSummary" maxlength="500"></label>
+<label>세부 내용<textarea id="sessionDetail" rows="5" maxlength="2500"></textarea></label>
+<label>표시 순서<input id="sessionOrder" type="number" value="0" min="0" max="9999"></label>
+<label class="studio-checkbox"><input id="sessionVisible" type="checkbox" checked> 공개</label>
+<button type="submit" class="primary">교육과정 저장 →</button></form>
+<div><span class="eyebrow">등록된 교육과정</span><div id="sessionsList" class="studio-manage-list"></div></div></div>
+</section>
+<section data-pane-view="recruitment" class="studio-pane" hidden>
+<div class="studio-section-bar"><div><span class="eyebrow">RECRUITMENT / APPLICATION</span><h2>Recruitment.</h2></div></div>
+<p class="studio-pane-intro">모집 상태를 설정하고 공식 지원서 파일을 등록하세요. 파일이 없으면 공개 다운로드 버튼은 비활성화됩니다.</p>
+<form id="recruitForm" class="studio-wide-form">
+<div class="studio-field-grid"><label>모집 상태<select id="recruitStatus"><option value="planned">모집 예정</option><option value="open">모집 중</option><option value="closed">모집 마감</option></select></label><label>모집 제목<input id="recruitTitle" maxlength="150" placeholder="2027 Spring Recruitment"></label></div>
+<label>모집 안내<textarea id="recruitMessage" rows="3" maxlength="700"></textarea></label>
+<div class="studio-field-grid"><label>모집 시작 시각<input type="datetime-local" id="recruitStart"></label><label>모집 종료 시각<input type="datetime-local" id="recruitEnd"></label></div>
+<div class="studio-field-grid"><label>지원 대상<input id="recruitAudience" maxlength="160"></label><label>활동 인원<input id="recruitCapacity" maxlength="120"></label><label>활동 시간<input id="recruitMeeting" maxlength="120"></label><label>지원 방법<input id="recruitMethod" maxlength="300" placeholder="이메일 제출 등"></label></div>
+<label>지원서 제출 안내<textarea id="recruitInstructions" rows="4" maxlength="1200"></textarea></label>
+<label>PDF 지원서 양식 (미리보기·다운로드)<input type="file" id="recruitPdf" accept="application/pdf"></label>
+<label>편집 가능한 DOCX 지원서 (선택)<input type="file" id="recruitDocx" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label>
+<div class="studio-file-links"><a id="currentRecruitPdf" hidden target="_blank" rel="noopener noreferrer">현재 등록된 PDF ↗</a><a id="currentRecruitDocx" hidden target="_blank" rel="noopener noreferrer">현재 등록된 DOCX ↗</a></div>
+<p class="editor-hint">지원서에는 개인정보가 포함될 수 있지만, 여기 올리는 파일은 작성 전 공통 양식이야. 제출 완료된 지원서는 공개 Storage에 올리면 안 돼.</p>
+<button type="submit" class="primary">모집 설정 저장 →</button></form></section>
+<section data-pane-view="access" class="studio-pane" hidden><div class="studio-section-bar"><div><span class="eyebrow">SECURITY / MAX 3 ACCOUNTS</span><h2>Superadmins.</h2></div></div>
+<p class="studio-pane-intro">최고관리자만 존재합니다. 일반 방문자는 계정 없이 모든 공개 콘텐츠를 이용합니다. 새로운 계정은 Supabase Auth → Users에서 먼저 만들어야 합니다.</p>
+<div class="studio-role-stats"><div><small>최고관리자</small><strong id="superadminCount">0 / 3</strong></div><div><small>운영 권한</small><strong>Full access</strong></div></div>
+<form id="memberAddForm" class="studio-member-form"><div><label for="memberEmail">기존 계정 이메일</label><input id="memberEmail" type="email" autocomplete="off" required placeholder="manager@example.com"></div>
+<button type="submit" id="memberAddButton" class="primary">최고관리자 추가 →</button></form>
+<div id="memberList" class="studio-member-list" aria-live="polite"></div>
+</section>
+</section>
+<div id="studioMessage" class="studio-message" role="status" aria-live="polite" hidden></div>
 </main>
 </body>
 </html>

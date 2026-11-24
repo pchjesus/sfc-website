@@ -66,6 +66,11 @@ const slides=[
   {heading:"Ideas become<br>insight.",description:"배움을 실전으로 연결하는 15주의 여정.",label:"OUR ACTIVITIES",route:"activities",color:"#e9e1a5"}
 ];
 let currentSlide=0,heroInterval=null,slideSwitchTimeout=null;
+window.SFC_HERO_EDIT = (description)=>{
+  if(typeof description!=="string"||!description.trim())return;
+  slides[0].description=description.trim();
+  if(currentSlide===0)$("heroDescription").textContent=slides[0].description;
+};
 function setSlide(index){
   if(index===currentSlide)return;
   currentSlide=index;

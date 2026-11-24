@@ -1,79 +1,84 @@
-# SFC Website
+# SFC Official Website
 
-Official web prototype of Sangmyung Financial Club — **Institutional Finance × Modern Editorial**.
+**Sangmyung Financial Club (SFC)** — public research and recruitment website + private editorial Studio.
 
-Public site: https://pchjesus.github.io/sfc-website/  
-Private editor: https://pchjesus.github.io/sfc-website/admin.html
+- Public website: https://pchjesus.github.io/sfc-website/
+- Login / Studio: https://pchjesus.github.io/sfc-website/admin.html
+- Supabase backend: dedicated SFC project `nnoicikkennbihjdoivt` in Seoul (`ap-northeast-2`)
+- Architecture: framework-free GitHub Pages static HTML/CSS/JS + Supabase Auth/PostgreSQL/Storage
 
-## v1.4 — CMS with three-level access control
+## Integrated 2.0 release
 
-A static GitHub Pages front end with an **optional** Supabase backend.
-The public site continues to work without Supabase; the private studio displays a setup notice until an SFC-only project is connected.
+**Everyone can browse the site and download official blank application forms without login.** A small LOGIN link is located only in the top-right header. There are no ordinary member accounts, administrator roles, comments or community features.
 
-- Email/password sign-in with Supabase Auth, persistent session, password reset and sign-out
-- Role-aware membership: **superadmin (max 3)**, **admin**, and **member**
-- Superadmins can add verified Auth accounts by email, promote/demote roles and remove members in Studio
-- Admins can create/edit/publish/delete articles, but cannot change roles; members have public read-only access
-- PostgreSQL enforces the 3-superadmin limit with an advisory-lock-protected trigger, prevents removal of the last superadmin and prevents self-demotion
-- Draft/publish/unpublish/edit/delete with PostgreSQL persistence, update conflict detection and in-tab recovery copy
-- Research, notice and activity post types; published-only public feed and article detail route
-- Images and PDFs via a public Supabase Storage bucket with admin-only write policies
-- Safe, limited plain-text formatting (# headings, - bullets). All text is rendered with textContent, not arbitrary HTML.
-- Demo reports remain clearly separate from published SFC posts.
+**Superadmins (maximum three)** are approved by the Supabase database allowlist. Only superadmins can access Studio, write/edit/publish/unpublish/schedule/trash/restore posts, manage files, change public content and add/remove fellow superadmins.
 
-**Backend linked (2026-11-24):** Dedicated SFC Supabase project `nnoicikkennbihjdoivt` (Seoul, ap-northeast-2) is `ACTIVE_HEALTHY`. Database schema and RLS are applied. Public GitHub Pages frontend is connected with its **publishable key only**. Security Advisor: no warnings. Anonymous role has SELECT only (INSERT/UPDATE/DELETE all denied); the first superadministrator has **not** been provisioned yet, so end-to-end authenticated publishing is still untested.
+Studio includes:
+- **Posts:** public notice, activity and research reports; research tags, company, author, method, limitations, PDF attachment
+- **Drafts:** immediate in-tab sessionStorage recovery and debounced server autosave for valid draft content
+- **Publication:** scheduled release based on UTC timestamps using PostgreSQL public visibility rules, no cron needed
+- **Safety:** revision history captured by database trigger; trash, restore and permanent delete
+- **Site content:** home hero intro, About intro, program description, official contact email
+- **People / Activities:** managed structured lists replace illustrative placeholders when populated
+- **Recruitment:** status, start/end date, audience, meeting details, application instructions; admin upload of blank PDF and optional editable DOCX application forms; public preview modal and download
+- **Access:** superadmin allowlist management via existing verified Supabase Auth email; maximum three enforced in serialized DB trigger
 
-## Initial administrator setup and login
+The published Research/Updates feed uses database RLS to expose **only published, nontrashed, released posts**. Existing demo reports stay labeled as SAMPLE and are hidden once actual public research is present. No real SFC report, official member bio, application form or dates have been fabricated.
 
-1. **Already complete:** SFC-only project created in Seoul, within the existing organization. Quoted project creation cost: $0/month. Check your actual usage and plan quotas separately.
-2. **Already complete:** [sql/sfc-cms.sql](sql/sfc-cms.sql) has been applied as Supabase migrations, with an additional read-policy optimization and author index. RLS is enabled on both CMS tables.
-3. **Already complete:** [sql/sfc-roles-v1.4.sql](sql/sfc-roles-v1.4.sql) has been applied. It adds membership roles and secure administration policies. The superadmin limit is enforced at the database level.
-4. In **Authentication > Providers**, turn off public user signups; create/invite the first trusted superadministrator in **Authentication > Users**, then have them verify their email. Never hard-code a password. The project currently has no Auth users or approved members.
-5. In Supabase SQL Editor, bootstrap the **first** superadministrator with their actual email (replace the placeholder with the registered email):
-   ```sql
-   insert into public.cms_admins (user_id, role)
-   select id, 'superadmin' from auth.users
-   where lower(email) = lower('FIRST-ADMIN@EXAMPLE.COM');
-   ```
-   Check that exactly one row was added. Do not create an open "first user becomes superadmin" registration flow.
-6. After this, the first superadministrator signs in at `admin.html` and opens **회원·권한 관리**. To add anyone, first create/invite their account in Authentication > Users. Then enter their email in Studio and select `member`, `admin` or `superadmin` (at most three total). Grant the minimum role they need.
-7. In **Authentication > URL Configuration**, add `https://pchjesus.github.io/sfc-website/admin.html` as an allowed redirect URL (for password recovery). Set Site URL to the intended public origin/site.
-8. **Already complete:** the SFC HTTPS URL and **publishable key** (`sb_publishable_...`) are set in [js/cms-config.js](js/cms-config.js). These values are public by design. **Never put a secret / service_role key in frontend files, commits, or chat.**
-9. Visit `admin.html` and sign in with the approved account. Create a draft, edit it, publish it, then confirm that it appears publicly at `#updates` and disappears when unpublished.
-10. Before live rollout, test anonymous access to drafts (must be denied), anonymous insert/update/delete (denied), authenticated non-admin writes (denied), and admin write/read (allowed). Then run Supabase Security Advisors and resolve relevant notices.
+## Run verification
 
-### Data safety
-
-- PostgreSQL is the authoritative source. Saving as a **draft** writes to the server and survives other devices.
-- The editor maintains a temporary **sessionStorage** recovery copy for unsaved changes; this is not a substitute for clicking Save. It is removed on save/logout. Avoid shared computers for confidential drafts.
-- Updates compare the previously read `updated_at` value before saving to prevent accidental overwrites.
-- Uploaded attachments go to the **public** `sfc-media` bucket. Never upload private documents; removing a post does not automatically delete uploaded files (clean up unused media in Supabase Storage manually).
-- Supabase backup, restore, and retention availability depend on plan. Set and test an export/restore process before production; don't assume automatic free-tier backups. A monthly CSV/SQL export and pre-release backup are sensible minimums.
-- The CDN client is version pinned to `@supabase/supabase-js@2.119.2`. Do not unpin without testing.
-- Email delivery, Auth provider and redirect URL configuration are managed in Supabase; web UI alone does not enable them.
-
-## Project structure
-
-```text
-index.html             public site (Home, About, Research, Activities, People, Recruitment, Updates)
-admin.html             separate private editorial studio
-css/site.css           existing design
-css/cms-public.css     CMS public styles
-css/cms.css            CMS admin styles
-js/site.js             route and legacy interactive screens
-js/cms-config.js       connected SFC Supabase URL + public publishable key
-js/cms-core.js         Supabase client, safe public rendering helpers
-js/cms-public.js       published feed, research links, article view
-js/cms-admin.js        authenticated editor, uploads and data management
-sql/sfc-cms.sql        base RLS schema, triggers and storage policies
-sql/sfc-roles-v1.4.sql  role migration, 3-superadmin cap and additional RLS policies
-.nojekyll              GitHub Pages uses main/(root)
+```bash
+npm test
+# no package installation required
 ```
 
-## Deployment
+Read [docs/CODEX_QA.md](docs/CODEX_QA.md) for browser and Supabase security integration tests. [AGENTS.md](AGENTS.md) is a concise Codex guide.
 
-Use **GitHub Pages → Deploy from a branch → main → /(root)**, without a custom Actions deployment setup. Verify the specific commit's Pages build and deploy steps. A successful deployment alone does not prove backend authentication or RLS works.
+## Supabase activation (first account)
 
-## Legacy content
+The dedicated project and migrations are already set up. **The project currently has no pre-created Auth users.** To activate the editor:
 
-All **SAMPLE**, **DEMO** and **PLANNED** records are illustrative mockups, not real SFC research or finalized events. Existing demo Research cards stay separate from published SFC content.
+1. Create or invite the real initial user in [Supabase Authentication → Users](https://supabase.com/dashboard/project/nnoicikkennbihjdoivt/auth/users). Confirm the email and set a strong private password.
+2. Disable open public signups in Supabase Auth settings. Set `https://pchjesus.github.io/sfc-website/admin.html` as a password recovery redirect URL.
+3. In the project's SQL Editor only, approve the first trusted superadmin by actual Auth email:
+   ```sql
+   insert into public.cms_admins(user_id)
+   select id from auth.users
+   where lower(email) = lower('YOU@EXAMPLE.COM');
+   ```
+4. Sign in to Studio. Additional superadmins can then be approved through the **계정 관리** tab after their Auth accounts exist.
+
+**Never commit service_role / secret keys, a password or user token.** `js/cms-config.js` only contains a public project URL and publishable API key. Backend RLS is the source of permission enforcement, not the Studio UI.
+
+## Implementation notes
+
+- Migrations already applied to this project (in order):
+  `sql/sfc-cms.sql` → `sql/sfc-roles-v1.4.sql` → `sql/sfc-integrated-2.0.sql`.
+  Do **not** blindly reapply historical migrations.
+- Site is deployed from `main` root via GitHub Pages. A Pages success confirms static distribution, **not** that live Auth and uploads were tested.
+- Scheduled published posts become visible when `scheduled_at <= now()`, including on anonymous sessions; times are entered in browser local time and stored as ISO UTC.
+- PostgreSQL post revisions capture every save including automatic draft saves. The visible editor can restore a snapshot into its unsaved form, then the superadmin explicitly saves.
+- Uploaded files in `sfc-media` are public. Only upload blank recruitment templates and public research attachments. Deleting posts/settings does not garbage-collect old public files automatically.
+- **Per-post social sharing cards and search indexing are limited by hash-based routing**; the root has generic Open Graph metadata, robots.txt and sitemap.xml.
+- Production backup/restore, email deliverability, mobile visual QA, browser E2E, first admin creation and negative authorization tests require a real approved Auth account. See QA handoff.
+- Major structural changes (navigation redesign, code, layout) belong in reviewed GitHub/Codex work, not in an authenticated browser-based code editor.
+
+## Code map
+
+```text
+index.html             public routes, login link, application preview dialog
+admin.html             private editorial Studio
+css/site.css           public design system
+css/cms-public.css     live post, curriculum, team styling
+css/cms.css            Studio styling
+js/site.js             legacy navigation, slides, demo fallback
+js/cms-config.js       public-only Supabase connection
+js/cms-core.js         safe formatting, client setup and shared helpers
+js/cms-public.js       published posts, site settings, public content, recruitment
+js/cms-admin.js        superadmin sign-in, posts, history, trash, schedules, uploads
+js/cms-studio.js       site/people/sessions/recruitment/access editors
+sql/                   applied migration snapshots (not to be rerun blindly)
+tests/static-check.mjs dependency-free source validation
+docs/CODEX_QA.md       browser integration and security QA matrix
+AGENTS.md              Codex instructions
+```
