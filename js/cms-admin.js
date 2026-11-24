@@ -48,9 +48,25 @@
     $("editorMode").textContent=item?"EDIT ARTICLE / "+item.status.toUpperCase():"NEW ARTICLE";
     $("editorSavedAt").textContent=item?"마지막 저장 "+cms.dateText(item.updated_at):"아직 저장되지 않음";
     $("deletePost").hidden=!item;$("unpublishPost").hidden=!item||item.status!=="published";
+    $("saveDraft").hidden=!!item&&item.status==="published";
     $("publishPost").textContent=item?.status==="published"?"변경사항 게시 ↗":"게시하기 ↗";
     $("previewPanel").hidden=true;$("postForm").hidden=false;
     renderList();
+  }
+  function restoreScratch(item){
+    let snapshot=null;
+    try{snapshot=JSON.parse(sessionStorage.getItem(scratchKey)||"null");}catch(_error){}
+    if(!snapshot||snapshot.id!==item.id)return;
+    if(!window.confirm("이 글의 저장되지 않은 편집 복구본이 있습니다. 복구할까요?")){
+      forgetScratch();return;
+    }
+    $("postKind").value=snapshot.kind||item.kind;
+    $("postTitle").value=snapshot.title||item.title;
+    $("postExcerpt").value=snapshot.excerpt||"";
+    $("postBody").value=snapshot.body||"";
+    $("postCoverUrl").value=snapshot.cover_url||"";
+    $("postAttachmentUrl").value=snapshot.attachment_url||"";
+    changed();
   }
   function newPost(){
     if(dirty&&!window.confirm("저장하지 않은 변경사항이 있습니다. 다른 글로 이동할까요?"))return;
@@ -84,7 +100,7 @@
       b.addEventListener("click",()=>{
         if(current?.id===p.id)return;
         if(dirty&&!window.confirm("저장하지 않은 변경사항이 있습니다. 이 글을 열까요?"))return;
-        forgetScratch();setEditor(p);
+        setEditor(p);restoreScratch(p);
       });
       target.append(b);
     });
@@ -185,7 +201,7 @@
     user=candidate;
     $("studioAccount").textContent=user.email||"관리자";
     visible("studioPanel");
-    try{await reload();if(!current)setEditor(null);}
+    try{await reload();if(!current)newPost();}
     catch(error){notify("글 목록을 불러오지 못했습니다: "+error.message,true);}
   }
   async function start(){
