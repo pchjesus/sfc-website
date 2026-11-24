@@ -216,8 +216,9 @@ h1,h2,h3{letter-spacing:-.054em}
 .site-footer{border-top:1px solid var(--line);padding:37px clamp(22px,5vw,72px);display:flex;justify-content:space-between;gap:30px;align-items:end}
 .site-footer strong{font-size:27px;letter-spacing:-.08em}
 .site-footer p,.site-footer small{font-size:10px;line-height:1.9;color:#78838c}
-.reveal{opacity:0;transform:translateY(17px);transition:opacity .65s var(--ease),transform .65s var(--ease)}
-.reveal.visible{opacity:1;transform:none}
+.reveal{opacity:1;transform:none;transition:opacity .65s var(--ease),transform .65s var(--ease)}
+.js .reveal{opacity:0;transform:translateY(17px)}
+.js .reveal.visible{opacity:1;transform:none}
 @media(max-width:900px){
 .wrap{width:calc(100% - 54px)}
 .nav-links{gap:17px}.nav-links button{font-size:10px}
