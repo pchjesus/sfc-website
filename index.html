@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/site.css">
-<script defer src="js/site.js"></script>
+<link rel="stylesheet" href="css/site.css?v=1.1">
+<script defer src="js/site.js?v=1.1"></script>
 </head>
 <body>
 <header class="site-header">
@@ -53,25 +53,25 @@
     </div>
     <div class="home-section reveal">
       <div class="section-head"><div><span class="eyebrow">01 / RESEARCH</span><h2>Selected work.</h2></div><a class="line-link" href="#research">ALL RESEARCH ↗</a></div>
-      <div class="featured-work" role="button" tabindex="0" onclick="openReport(0)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openReport(0)}">
+      <a class="featured-work" href="#report-0" aria-label="샘플 리서치 보고서 상세 보기">
         <div class="featured-photo"><img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=1100&q=80" alt="건축적 구조와 공간" loading="lazy"></div>
         <div class="featured-copy"><span class="eyebrow">FEATURED / DEMO RESEARCH</span><h3>반도체 산업의 구조적 변화와 기업가치 재평가</h3><p>Equity Research · 2027.05 / SAMPLE</p><span class="line-link">EXPLORE REPORT ↗</span></div>
-      </div>
+      </a>
       <div class="work-list" id="homeWorks"></div>
     </div>
   </div>
   <div class="process-band">
     <div class="wrap process-layout reveal">
-      <div><span class="eyebrow">02 / PROGRAM</span><h2>Learn.<br>Analyze.<br>Present.</h2><p>기초 교육에서 기업분석과 최종 리서치까지.</p></div>
+      <div><span class="eyebrow">02 / PROGRAM</span><h2>15 weeks.<br>One research cycle.</h2><p>기초부터 최종 기업분석까지 이어지는 학기 운영안.</p></div>
       <div class="process-points">
         <div class="process-point"><span>01</span><strong>Foundation</strong><small>1–4주</small></div>
         <div class="process-point"><span>02</span><strong>Case Studies</strong><small>5–12주</small></div>
         <div class="process-point"><span>03</span><strong>Final Research</strong><small>13–15주</small></div>
-        <a class="line-link" href="#activities" style="margin-top:16px;align-self:flex-start">VIEW CURRICULUM ↗</a>
+        <a class="line-link" href="#activities">VIEW CURRICULUM ↗</a>
       </div>
     </div>
   </div>
-  <div class="join-strip"><div class="wrap join-layout reveal"><div><span class="eyebrow">03 / RECRUITMENT</span><h2>Join the conversation.</h2><p>2027년 봄, 신입회원 모집 예정.</p></div><a class="line-link" href="#recruitment">JOIN SFC ↗</a></div></div>
+  <div class="join-strip"><div class="wrap join-layout reveal"><div><span class="eyebrow">03 / RECRUITMENT</span><h2>Join the next cohort.</h2><p>2027년 봄 신입회원 모집 예정 · 세부 일정 추후 공지</p></div><a class="line-link" href="#recruitment">JOIN SFC ↗</a></div></div>
 </section>
 <!-- ABOUT -->
 <section class="view" id="about">
@@ -100,7 +100,7 @@
     <div class="report-meta">
       <span id="reportCount" aria-live="polite">4 SAMPLE REPORTS</span>
       <div class="report-actions"><select id="sortReports" aria-label="보고서 정렬"><option value="featured">기본순</option><option value="new">최신순</option><option value="old">오래된순</option><option value="title">제목순</option></select>
-        <div class="view-toggle" role="group" aria-label="보고서 보기 방식"><button type="button" data-layout="list" class="selected" aria-pressed="true">☷</button><button type="button" data-layout="grid" aria-pressed="false">▦</button></div>
+        <div class="view-toggle" role="group" aria-label="보고서 보기 방식"><button type="button" data-layout="list" class="selected" aria-pressed="true" aria-label="목록 보기" title="목록 보기">☷</button><button type="button" data-layout="grid" aria-pressed="false" aria-label="격자 보기" title="격자 보기">▦</button></div>
       </div>
     </div>
     <div class="report-list" id="reportResults"></div>
@@ -159,13 +159,13 @@
     <div class="detail-data"><span id="detailMeta"></span><span>NOT AN ACTUAL INVESTMENT REPORT</span></div>
     <div class="detail-thesis"><span class="eyebrow">RESEARCH QUESTION</span><h2 id="detailQuestion"></h2><p>실제 발행 시 이곳에는 연구의 핵심 논리와 근거가 들어갑니다.</p></div>
     <div class="detail-columns"><div><h3>Methodology</h3><p id="detailMethod"></p></div><div><h3>Risks &amp; Assumptions</h3><p id="detailRisk"></p></div></div>
-    <div class="detail-actions"><button type="button" onclick="navigate('research')">← 연구 목록으로</button></div>
+    <div class="detail-actions"><button type="button" onclick="navigate('research')">← 연구 목록으로</button><button type="button" id="copyReportLink" aria-live="polite">COPY SAMPLE LINK ↗</button></div>
   </div>
 </section>
 </main>
 <footer class="site-footer">
 <div><strong>SFC.</strong><p>SANGMYUNG FINANCIAL CLUB<br>Independent Research · Sangmyung University</p></div>
-<small>© 2027 SFC · v1.0 PROTOTYPE / SAMPLE CONTENT</small>
+<small>© 2027 SFC · v1.1 PROTOTYPE / SAMPLE CONTENT</small>
 </footer>
 </body>
 </html>

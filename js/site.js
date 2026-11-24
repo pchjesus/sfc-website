@@ -136,7 +136,7 @@ function setLayout(next){
 function renderReports(){
   let matches=reports.map((r,i)=>({...r,index:i})).filter(r=>
     (filter==="전체"||filter===r.category)&&
-    (r.title+" "+r.type+" "+r.desc).toLowerCase().includes(query.trim().toLowerCase())
+    (r.title+" "+r.type+" "+r.category+" "+r.desc).toLowerCase().includes(query.trim().toLowerCase())
   );
   if(sort==="new")matches.sort((a,b)=>b.date.localeCompare(a.date));
   else if(sort==="old")matches.sort((a,b)=>a.date.localeCompare(b.date));
@@ -145,11 +145,12 @@ function renderReports(){
   const results=$("reportResults");
   results.innerHTML=matches.length?matches.map(r=>
     '<button type="button" class="report-item" data-index="'+r.index+'">'+
-      '<div class="report-cover k'+r.index+'"><small>SFC / DEMO</small><b>'+r.type+'</b></div>'+
+      '<div class="report-cover k'+r.index+'"><small>SFC / DEMO 0'+(r.index+1)+'</small><b>'+r.type+'</b></div>'+
       '<div><span class="report-category">'+r.category+' / '+r.type.toUpperCase()+'</span><h3>'+r.title+'</h3><p>'+r.desc+'</p></div>'+
       '<time>'+r.date+' ↗</time></button>'
-  ).join(""):'<p class="empty-result">검색 결과가 없습니다.</p>';
+  ).join(""):'<div class="empty-result"><p>조건에 맞는 예시 보고서가 없습니다.</p><button type="button" id="resetReports">검색 초기화 ↗</button></div>';
   results.querySelectorAll(".report-item").forEach(button=>button.addEventListener("click",()=>openReport(Number(button.dataset.index))));
+  results.querySelector("#resetReports")?.addEventListener("click",()=>{filter="전체";query="";$("searchReports").value="";renderFilters();renderReports()});
   setLayout(layout);
 }
 $("searchReports").addEventListener("input",event=>{query=event.target.value;renderReports()});
@@ -163,34 +164,65 @@ function fillReport(index){
   $("detailMethod").textContent=r.method;
   $("detailRisk").textContent=r.risk;
   $("detailMeta").textContent="SFC RESEARCH · "+r.date+" · DEMONSTRATION";
+  $("copyReportLink").textContent="COPY SAMPLE LINK ↗";
 }
+let linkCopyReset;
+$("copyReportLink").addEventListener("click",async ()=>{
+  const button=$("copyReportLink");
+  try{
+    await navigator.clipboard.writeText(window.location.href);
+    button.textContent="LINK COPIED ✓";
+  }catch(error){
+    button.textContent="LINK COPY UNAVAILABLE";
+  }
+  clearTimeout(linkCopyReset);
+  linkCopyReset=setTimeout(()=>{button.textContent="COPY SAMPLE LINK ↗"},2400);
+});
 /* Planned semester */
 const sessions=[
-  ["01","Orientation","오리엔테이션·팀 구성·엑셀 기초","foundation"],
-  ["02","Financial Statements","재무제표 3표 연결 및 주요 비율","foundation"],
-  ["03","Relative Valuation","PER, PBR, EV/EBITDA","foundation"],
-  ["04","DCF Modeling","FCFF, WACC, 잔여가치와 민감도","foundation"],
-  ["05–06","Case Study I","바이사이드 밸류에이션","application"],
-  ["07","Research Skills","DART 공시·산업 분석","application"],
-  ["08","Midterm Break","중간고사 휴회","application"],
-  ["09–10","Case Study II","동종업계 기업가치 비교","application"],
-  ["11–12","Case Study III","IPO 공모가 산정 사례","application"],
-  ["13–14","Final Research","팀별 최종 리포트 작성","research"],
-  ["15","Final Presentation","최종 연구 발표회","research"]
+  ["01","Orientation","오리엔테이션 · 팀 구성 · 엑셀 기초","foundation","학기 목표와 세션 진행 방식을 공유하고, 팀 구성 및 기초 스프레드시트 작업을 준비합니다."],
+  ["02","Financial Statements","재무제표 3표 연결 및 주요 비율","foundation","재무상태표·손익계산서·현금흐름표의 연결을 확인하고 핵심 재무비율을 해석합니다."],
+  ["03","Relative Valuation","PER · PBR · EV/EBITDA","foundation","평가배수의 정의를 구분하고 적절한 비교기업을 선정할 때 고려할 조건을 학습합니다."],
+  ["04","DCF Modeling","FCFF · WACC · 잔여가치와 민감도","foundation","현금흐름과 할인율을 연결해 기업가치를 계산하고 핵심 가정의 민감도를 살펴봅니다."],
+  ["05–06","Case Study I","바이사이드 밸류에이션","application","공개 기업자료를 바탕으로 사업구조와 가치평가의 전제를 검토하는 사례연구를 계획합니다."],
+  ["07","Research Skills","DART 공시 · 산업 분석","application","사업보고서와 공시에서 분석 근거를 찾고 산업 구조를 정리하는 과정을 연습합니다."],
+  ["08","Midterm Break","중간고사 기간 · 정기 세션 휴회","application","중간고사 기간에 따른 휴회 주차로 계획되어 있으며 정기 교육 세션은 진행하지 않습니다."],
+  ["09–10","Case Study II","동종업계 기업가치 비교","application","기업별 사업 구성과 수익성 차이를 고려해 비교기업 분석과 가치평가 배수를 검토합니다."],
+  ["11–12","Case Study III","IPO 공모가 산정 사례","application","증권신고서의 공모가 산정 근거를 읽고 비교기업과 할인 기준의 적절성을 토론합니다."],
+  ["13–14","Final Research","팀별 최종 리포트 작성","research","분석 질문을 정하고 근거 자료와 가치평가 결과를 정리해 팀별 보고서 초안을 준비합니다."],
+  ["15","Final Presentation","최종 연구 발표회","research","분석 결과를 발표하고 가정·방법론·한계에 대한 질의응답을 진행하는 과정입니다."]
 ];
 let selectedStage="all",openedSession=-1;
 const stages=[["all","전체"],["foundation","기초교육"],["application","기업분석 실습"],["research","최종 연구"]];
 function chooseStage(stage){selectedStage=stage;openedSession=-1;renderSchedule()}
-function toggleSession(i){openedSession=openedSession===i?-1:i;renderSchedule()}
+function toggleSession(i){
+  const next=openedSession===i?-1:i;
+  const list=$("scheduleList");
+  const previous=list.querySelector(".session.open");
+  if(previous){
+    previous.classList.remove("open");
+    previous.querySelector("button").setAttribute("aria-expanded","false");
+    previous.querySelector(".session-body").setAttribute("aria-hidden","true");
+  }
+  if(next!==-1){
+    const active=list.querySelector('[data-session="'+i+'"]');
+    if(active){
+      active.classList.add("open");
+      active.querySelector("button").setAttribute("aria-expanded","true");
+      active.querySelector(".session-body").setAttribute("aria-hidden","false");
+    }
+  }
+  openedSession=next;
+}
 function renderSchedule(){
   $("scheduleTabs").innerHTML=stages.map(([value,label])=>
     '<button type="button" data-stage="'+value+'" class="'+(selectedStage===value?'selected':'')+'" aria-pressed="'+(selectedStage===value)+'">'+label+'</button>'
   ).join("");
   $("scheduleTabs").querySelectorAll("button").forEach(button=>button.addEventListener("click",()=>chooseStage(button.dataset.stage)));
   $("scheduleList").innerHTML=sessions.map((s,i)=>({s,i})).filter(({s})=>selectedStage==="all"||s[3]===selectedStage).map(({s,i})=>
-    '<div class="session '+(openedSession===i?'open':'')+'"><button class="session-button" type="button" data-index="'+i+'" aria-expanded="'+(openedSession===i)+'">'+
-    '<span class="week">'+s[0]+' WEEK</span><strong>'+s[1]+'</strong><span class="summary">'+s[2]+'</span><span class="plus" aria-hidden="true">＋</span></button>'+
-    '<div class="session-body"><div><p>'+s[2]+'을 중심으로 학습과 팀 활동을 진행하는 기획안입니다. 구체적인 자료와 과제는 운영 이후 반영됩니다.</p></div></div></div>'
+    '<div class="session" data-session="'+i+'"><button class="session-button" type="button" data-index="'+i+'" aria-controls="session-panel-'+i+'" aria-expanded="false">'+
+    '<span class="week">W'+s[0]+'</span><strong>'+s[1]+'</strong><span class="summary">'+s[2]+'</span><span class="plus" aria-hidden="true">＋</span></button>'+
+    '<div class="session-body" id="session-panel-'+i+'" aria-hidden="true"><div><p>'+s[4]+'</p></div></div></div>'
   ).join("");
   $("scheduleList").querySelectorAll("button").forEach(button=>button.addEventListener("click",()=>toggleSession(Number(button.dataset.index))));
 }
@@ -201,14 +233,31 @@ const roles=[
   ["Operations","총무·대외","출결·운영 일정, 홍보 및 대외협력 지원"]
 ];
 let openedRole=-1;
+function toggleRole(i){
+  const next=openedRole===i?-1:i;
+  const list=$("roleList");
+  const old=list.querySelector(".role-row.open");
+  if(old){
+    old.classList.remove("open");
+    old.querySelector("button").setAttribute("aria-expanded","false");
+    old.querySelector(".role-detail").setAttribute("aria-hidden","true");
+  }
+  if(next!==-1){
+    const active=list.querySelector('[data-role="'+i+'"]');
+    if(active){
+      active.classList.add("open");
+      active.querySelector("button").setAttribute("aria-expanded","true");
+      active.querySelector(".role-detail").setAttribute("aria-hidden","false");
+    }
+  }
+  openedRole=next;
+}
 function renderRoles(){
   $("roleList").innerHTML=roles.map((r,i)=>
-    '<div class="role-row '+(openedRole===i?'open':'')+'"><button type="button" class="role-button" data-index="'+i+'" aria-expanded="'+(openedRole===i)+'"><span>0'+(i+1)+'</span><strong>'+r[0]+'</strong><span class="plus" aria-hidden="true">＋</span></button>'+
-    '<div class="role-detail"><div><p><b>'+r[1]+'</b> · '+r[2]+' (운영 기획 기준)</p></div></div></div>'
+    '<div class="role-row" data-role="'+i+'"><button type="button" class="role-button" data-index="'+i+'" aria-controls="role-panel-'+i+'" aria-expanded="false"><span>0'+(i+1)+'</span><span class="role-title"><strong>'+r[0]+'</strong><small>'+r[1]+'</small></span><span class="plus" aria-hidden="true">＋</span></button>'+
+    '<div class="role-detail" id="role-panel-'+i+'" aria-hidden="true"><div><p>'+r[2]+' (운영 기획 기준)</p></div></div></div>'
   ).join("");
-  $("roleList").querySelectorAll("button").forEach(button=>button.addEventListener("click",()=>{
-    const i=Number(button.dataset.index);openedRole=openedRole===i?-1:i;renderRoles();
-  }));
+  $("roleList").querySelectorAll("button").forEach(button=>button.addEventListener("click",()=>toggleRole(Number(button.dataset.index))));
 }
 /* Recruitment FAQ */
 const faqs=[
@@ -217,14 +266,31 @@ const faqs=[
   ["언제, 어디서 지원할 수 있나요?","2027년 3월 초 모집 예정이며 지원 방법과 세부 일정은 추후 공지합니다."]
 ];
 let openedFaq=-1;
+function toggleFaq(i){
+  const next=openedFaq===i?-1:i;
+  const list=$("faqList");
+  const old=list.querySelector(".faq.open");
+  if(old){
+    old.classList.remove("open");
+    old.querySelector("button").setAttribute("aria-expanded","false");
+    old.querySelector(".faq-answer").setAttribute("aria-hidden","true");
+  }
+  if(next!==-1){
+    const active=list.querySelector('[data-faq="'+i+'"]');
+    if(active){
+      active.classList.add("open");
+      active.querySelector("button").setAttribute("aria-expanded","true");
+      active.querySelector(".faq-answer").setAttribute("aria-hidden","false");
+    }
+  }
+  openedFaq=next;
+}
 function renderFaqs(){
   $("faqList").innerHTML=faqs.map((f,i)=>
-    '<div class="faq '+(openedFaq===i?'open':'')+'"><button type="button" data-index="'+i+'" aria-expanded="'+(openedFaq===i)+'">'+f[0]+' <span aria-hidden="true">＋</span></button>'+
-    '<div class="faq-answer"><div><p>'+f[1]+'</p></div></div></div>'
+    '<div class="faq" data-faq="'+i+'"><button type="button" data-index="'+i+'" aria-controls="faq-panel-'+i+'" aria-expanded="false">'+f[0]+' <span aria-hidden="true">＋</span></button>'+
+    '<div class="faq-answer" id="faq-panel-'+i+'" aria-hidden="true"><div><p>'+f[1]+'</p></div></div></div>'
   ).join("");
-  $("faqList").querySelectorAll("button").forEach(button=>button.addEventListener("click",()=>{
-    const i=Number(button.dataset.index);openedFaq=openedFaq===i?-1:i;renderFaqs();
-  }));
+  $("faqList").querySelectorAll("button").forEach(button=>button.addEventListener("click",()=>toggleFaq(Number(button.dataset.index))));
 }
 /* Reveal only active view's visible elements. */
 let observer;
