@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/site.css?v=1.1">
-<script defer src="js/site.js?v=1.1"></script>
+<link rel="stylesheet" href="css/site.css?v=1.2">
+<script defer src="js/site.js?v=1.2"></script>
 </head>
 <body>
 <header class="site-header">
@@ -78,6 +78,10 @@
   <div class="wrap">
     <div class="page-head"><span class="eyebrow">ABOUT / THE CLUB</span><h1>About SFC.</h1><p>재무 이론을 실제 기업분석에 적용하는 학술동아리.</p></div>
     <div class="about-grid reveal"><h2>숫자를 읽고,<br>기업의 가치를 이해합니다.</h2><p>SFC(Sangmyung Financial Club)는 상명대학교 경영학부 기업재무분석 학술동아리입니다. 기업의 사업구조와 재무 데이터를 분석하고, 가치평가의 가정을 검증하며, 근거에 기반한 판단을 토론합니다.</p></div>
+    <figure class="about-media reveal">
+      <img src="https://images.unsplash.com/photo-1760166699654-5d0e10f51994?auto=format&amp;fit=crop&amp;w=1600&amp;q=78" alt="책장과 자연광이 어우러진 현대적인 도서관 공간의 참고 사진" loading="lazy" decoding="async">
+      <figcaption>ILLUSTRATIVE IMAGE / RESEARCH ENVIRONMENT · UNSPLASH</figcaption>
+    </figure>
     <div class="content-block">
       <span class="eyebrow">OUR FOCUS</span>
       <div class="discipline-list reveal">
@@ -153,19 +157,55 @@
 </section>
 <!-- REPORT DETAIL -->
 <section class="view" id="detail">
-  <div class="wrap">
-    <button class="detail-back" type="button" onclick="navigate('research')">← BACK TO RESEARCH</button>
-    <div class="page-head detail-head"><span class="eyebrow" id="detailType"></span><h1 id="detailTitle"></h1><p>RESEARCH MOCKUP / SAMPLE DATA</p></div>
-    <div class="detail-data"><span id="detailMeta"></span><span>NOT AN ACTUAL INVESTMENT REPORT</span></div>
-    <div class="detail-thesis"><span class="eyebrow">RESEARCH QUESTION</span><h2 id="detailQuestion"></h2><p>실제 발행 시 이곳에는 연구의 핵심 논리와 근거가 들어갑니다.</p></div>
-    <div class="detail-columns"><div><h3>Methodology</h3><p id="detailMethod"></p></div><div><h3>Risks &amp; Assumptions</h3><p id="detailRisk"></p></div></div>
-    <div class="detail-actions"><button type="button" onclick="navigate('research')">← 연구 목록으로</button><button type="button" id="copyReportLink" aria-live="polite">COPY SAMPLE LINK ↗</button></div>
+  <div class="wrap detail-shell">
+    <div class="detail-topline">
+      <button class="detail-back" type="button" onclick="navigate('research')">← BACK TO RESEARCH</button>
+      <span>SFC RESEARCH / DEMONSTRATION</span>
+    </div>
+    <header class="detail-masthead">
+      <span class="eyebrow" id="detailType"></span>
+      <h1 id="detailTitle"></h1>
+      <p class="detail-deck" id="detailDeck"></p>
+    </header>
+    <div class="detail-data"><span id="detailMeta"></span><span class="detail-demo-label">SAMPLE ONLY · NOT AN INVESTMENT REPORT</span></div>
+    <div class="detail-body">
+      <aside class="detail-aside" aria-label="보고서 정보">
+        <span class="eyebrow">REPORT PROFILE</span>
+        <div class="detail-aside-block"><small>STATUS</small><strong>Demonstration</strong></div>
+        <div class="detail-aside-block"><small>RESEARCH TYPE</small><strong id="detailField"></strong></div>
+        <div class="detail-aside-block"><small>ANALYTICAL FOCUS</small><p id="detailFocus"></p></div>
+        <p class="detail-aside-note">본 페이지는 연구 문서의 화면 설계를 위한 예시입니다. 분석 결과·투자 의견·목표주가는 포함하지 않습니다.</p>
+      </aside>
+      <div class="detail-content">
+        <section class="detail-thesis">
+          <span class="eyebrow">01 / RESEARCH QUESTION</span>
+          <h2 id="detailQuestion"></h2>
+          <p id="detailOverview"></p>
+        </section>
+        <section class="detail-framework">
+          <div class="detail-section-head"><span class="eyebrow">02 / ANALYTICAL FRAMEWORK</span><h3>분석 접근</h3></div>
+          <div id="detailSteps" class="detail-steps"></div>
+        </section>
+        <section class="detail-columns">
+          <div><span class="eyebrow">03 / METHODOLOGY</span><h3>분석 방법</h3><p id="detailMethod"></p></div>
+          <div><span class="eyebrow">04 / ASSUMPTIONS & RISKS</span><h3>가정과 검증 과제</h3><p id="detailRisk"></p></div>
+        </section>
+      </div>
+    </div>
+    <section class="detail-next" aria-label="다른 예시 보고서">
+      <div><span class="eyebrow">SFC / RESEARCH ARCHIVE</span><h2>Further reading.</h2><p>다른 연구 구성안 살펴보기</p></div>
+      <div class="detail-related-list" id="detailRelated"></div>
+    </section>
+    <div class="detail-actions">
+      <button type="button" onclick="navigate('research')">← 연구 목록으로</button>
+      <button type="button" id="copyReportLink" aria-live="polite">COPY SAMPLE LINK ↗</button>
+    </div>
   </div>
 </section>
 </main>
 <footer class="site-footer">
 <div><strong>SFC.</strong><p>SANGMYUNG FINANCIAL CLUB<br>Independent Research · Sangmyung University</p></div>
-<small>© 2027 SFC · v1.1 PROTOTYPE / SAMPLE CONTENT</small>
+<small>© 2027 SFC · v1.2 PROTOTYPE / SAMPLE CONTENT</small>
 </footer>
 </body>
 </html>

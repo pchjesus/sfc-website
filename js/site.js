@@ -110,6 +110,50 @@ const reports=[
   {title:"IPO 공모가 산정과 시장 평가의 차이",type:"IPO Case Study",category:"케이스",date:"2027.06",desc:"증권신고서 · 멀티플 · 공모가 검토",question:"기업공개 과정의 공모가 산정은 어떤 판단을 전제로 하는가?",method:"공개된 증권신고서의 산정 방식과 비교기업 선정 논리를 검토하는 구성안입니다.",risk:"시장 환경과 할인율 및 거래 가능성의 변화에 관한 검증 영역입니다."},
   {title:"현금흐름 할인모형의 주요 가정과 민감도",type:"DCF Modeling",category:"교육자료",date:"2027.04",desc:"FCFF · WACC · 잔여가치",question:"할인율과 잔여가치 가정은 기업가치를 얼마나 바꾸는가?",method:"FCFF와 WACC, 잔여가치 추정의 관계를 설명하는 교육용 목업입니다.",risk:"장기 성장률과 자본비용 변화에 따른 모델 불확실성 설명 영역입니다."}
 ];
+/* Hypothetical report outlines for the editorial prototype: no measured results or investment ratings. */
+const reportBriefs=[
+  {
+    deck:"반도체 산업의 변화가 기업가치의 주요 가정에 어떤 영향을 미치는지 살펴보는 리서치 구성안.",
+    overview:"시장 성장 전망을 그대로 주가 전망으로 연결하지 않고, 수요·공급 구조와 기업의 현금흐름 가정을 분리하여 검토하는 것을 목표로 합니다.",
+    focus:"산업 사이클 / 설비투자 / 수익성",
+    steps:[
+      ["Industry context","수요와 공급, 경쟁구도, 산업 사이클을 구분하여 주요 변수를 정리합니다."],
+      ["Financial translation","산업 가정을 매출·이익률·투자지출·현금흐름 추정으로 연결합니다."],
+      ["Valuation review","DCF와 비교기업 배수를 함께 살펴보고 가정별 민감도를 검토합니다."]
+    ]
+  },
+  {
+    deck:"서로 다른 소비재 기업의 가치평가 배수를 비교할 때 고려해야 하는 기준을 정리한 예시.",
+    overview:"단순히 PER이 낮은 기업을 저평가로 판단하지 않고, 사업 포트폴리오와 성장률, 수익성 차이를 먼저 확인하는 분석 구조를 제안합니다.",
+    focus:"비교기업 선정 / 수익성 / 평가배수",
+    steps:[
+      ["Peer selection","사업 영역, 제품군, 지역별 매출 구성을 기준으로 비교 대상의 적합성을 살핍니다."],
+      ["Metric normalization","회계 및 일회성 요인 차이를 점검하고 비교 가능한 이익 지표를 검토합니다."],
+      ["Multiple interpretation","PER과 EV/EBITDA 등 배수 차이를 성장률과 수익성 가정에 비추어 해석합니다."]
+    ]
+  },
+  {
+    deck:"IPO 공모가 산정 논리를 읽고 비교기업과 할인 기준을 검토하는 사례연구 구성안.",
+    overview:"공모가를 사후 성과로만 판단하지 않고, 당시 증권신고서에 제시된 비교기업·이익 지표·할인 조건의 논리를 구분해 살펴봅니다.",
+    focus:"증권신고서 / 공모가 / 비교기업",
+    steps:[
+      ["Disclosure review","증권신고서에 제시된 기업 개요와 공모가 산정 절차를 확인합니다."],
+      ["Peer benchmarking","비교기업 선정 근거와 평가배수 적용 방식을 분석합니다."],
+      ["Assumption check","희망 공모가 밴드와 적용 할인 조건에 반영된 전제를 검토합니다."]
+    ]
+  },
+  {
+    deck:"DCF 모형을 구성하는 할인율과 잔여가치 가정의 영향을 살펴보는 교육용 구성안.",
+    overview:"한 개의 기업가치 수치보다 현금흐름의 근거와 할인율·잔여가치에 대한 판단 과정을 명확히 설명하는 데 초점을 둡니다.",
+    focus:"FCFF / WACC / Terminal Value",
+    steps:[
+      ["Cash flow model","매출·비용·투자·운전자본 가정을 FCFF 추정으로 연결합니다."],
+      ["Cost of capital","WACC의 구성 요소와 자본구조·요구수익률의 관계를 점검합니다."],
+      ["Sensitivity review","할인율 및 장기성장률 변화를 통해 추정 가치의 범위를 검토합니다."]
+    ]
+  }
+];
+
 const categories=["전체","기업분석","케이스","교육자료"];
 let filter="전체",query="",sort="featured",layout="list";
 function openReport(index){navigate("report-"+index)}
@@ -158,12 +202,49 @@ $("sortReports").addEventListener("change",event=>{sort=event.target.value;rende
 document.querySelectorAll("[data-layout]").forEach(button=>button.addEventListener("click",()=>setLayout(button.dataset.layout)));
 function fillReport(index){
   const r=reports[index];
+  const brief=reportBriefs[index];
+  if(!r||!brief)return;
   $("detailType").textContent=r.category+" / "+r.type.toUpperCase()+" / SAMPLE";
   $("detailTitle").textContent=r.title;
+  $("detailDeck").textContent=brief.deck;
   $("detailQuestion").textContent=r.question;
+  $("detailOverview").textContent=brief.overview;
   $("detailMethod").textContent=r.method;
   $("detailRisk").textContent=r.risk;
+  $("detailField").textContent=r.type;
+  $("detailFocus").textContent=brief.focus;
   $("detailMeta").textContent="SFC RESEARCH · "+r.date+" · DEMONSTRATION";
+  $("detailSteps").replaceChildren(...brief.steps.map(([title,description],i)=>{
+    const row=document.createElement("div");
+    row.className="detail-step";
+    const number=document.createElement("span");
+    number.className="detail-step-number";
+    number.textContent=String(i+1).padStart(2,"0");
+    const heading=document.createElement("strong");
+    heading.textContent=title;
+    const body=document.createElement("p");
+    body.textContent=description;
+    row.append(number,heading,body);
+    return row;
+  }));
+  const related=reports.map((item,i)=>({item,i})).filter(({i})=>i!==index).slice(0,2);
+  const container=$("detailRelated");
+  container.replaceChildren(...related.map(({item,i})=>{
+    const button=document.createElement("button");
+    button.type="button";
+    button.className="detail-related-link";
+    const type=document.createElement("span");
+    type.textContent=item.type.toUpperCase()+" / SAMPLE";
+    const title=document.createElement("strong");
+    title.textContent=item.title;
+    const arrow=document.createElement("span");
+    arrow.className="detail-related-arrow";
+    arrow.setAttribute("aria-hidden","true");
+    arrow.textContent="↗";
+    button.append(type,title,arrow);
+    button.addEventListener("click",()=>openReport(i));
+    return button;
+  }));
   $("copyReportLink").textContent="COPY SAMPLE LINK ↗";
 }
 let linkCopyReset;
@@ -254,7 +335,7 @@ function toggleRole(i){
 }
 function renderRoles(){
   $("roleList").innerHTML=roles.map((r,i)=>
-    '<div class="role-row" data-role="'+i+'"><button type="button" class="role-button" data-index="'+i+'" aria-controls="role-panel-'+i+'" aria-expanded="false"><span>0'+(i+1)+'</span><span class="role-title"><strong>'+r[0]+'</strong><small>'+r[1]+'</small></span><span class="plus" aria-hidden="true">＋</span></button>'+
+    '<div class="role-row" data-role="'+i+'"><button type="button" class="role-button" data-index="'+i+'" aria-controls="role-panel-'+i+'" aria-expanded="false"><span>0'+(i+1)+'</span><span class="role-title"><strong>'+r[0]+'</strong><small>'+r[1]+'</small></span><span class="role-toggle-icon" aria-hidden="true"></span></button>'+
     '<div class="role-detail" id="role-panel-'+i+'" aria-hidden="true"><div><p>'+r[2]+' (운영 기획 기준)</p></div></div></div>'
   ).join("");
   $("roleList").querySelectorAll("button").forEach(button=>button.addEventListener("click",()=>toggleRole(Number(button.dataset.index))));
