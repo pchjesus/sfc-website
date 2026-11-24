@@ -2,13 +2,14 @@
 (function(){
   const cms=window.SFC_CMS;
   const $=id=>document.getElementById(id);
-  let client=null,user=null,posts=[],current=null,dirty=false,busy=false,filter="all",recovering=false;
+  let client=null,user=null,myRole=null,posts=[],members=[],current=null,dirty=false,busy=false,filter="all",recovering=false;
   let noticeTimer=null,scratchTimer=null;
   const scratchKey="sfc-studio-editor-recovery-v1";
   const visible=id=>{
-    for(const key of ["studioSetup","studioLogin","studioReset","studioPanel"])$(key).hidden=key!==id;
-    $("studioLogout").hidden=id!=="studioPanel";
-    $("studioAccount").hidden=id!=="studioPanel";
+    for(const key of ["studioSetup","studioLogin","studioReset","studioPanel","studioMember"])$(key).hidden=key!==id;
+    const signedIn=id==="studioPanel"||id==="studioMember";
+    $("studioLogout").hidden=!signedIn;
+    $("studioAccount").hidden=!signedIn;
   };
   function notify(message,error=false){
     const el=$("studioMessage");
@@ -187,20 +188,134 @@
     cms.renderBody($("previewBody"),draft.body);
     $("postForm").hidden=true;$("previewPanel").hidden=false;
   }
+  const roleNames={superadmin:"최고관리자",admin:"관리자",member:"일반 회원"};
+  function memberRoleName(value){return roleNames[value]||"미등록";}
+  function roleCount(value){return members.filter(x=>x.role===value).length;}
+  function memberNode(tag,className,text){
+    const element=document.createElement(tag);
+    if(className)element.className=className;
+    if(text!==undefined)element.textContent=text;
+    return element;
+  }
+  function renderMembers(){
+    const list=$("memberList");
+    list.replaceChildren();
+    $("memberCount").textContent=members.length+"명";
+    const superCount=roleCount("superadmin");
+    $("superadminCount").textContent=superCount+" / 3";
+    if(!members.length){
+      list.appendChild(memberNode("p","sidebar-empty","등록된 구성원이 없습니다."));
+      return;
+    }
+    for(const member of members){
+      const isSelf=user?.id===member.user_id;
+      const isLastSuper=member.role==="superadmin"&&superCount<=1;
+      const row=memberNode("div","studio-member-row");
+      const identity=memberNode("div","studio-member-identity");
+      const email=memberNode("strong","",member.email||"이메일 미등록");
+      const sub=memberNode("small","",member.user_id);
+      if(isSelf){
+        const own=memberNode("span","self-label","(내 계정)");
+        email.appendChild(own);
+      }
+      identity.append(email,sub);
+      const select=memberNode("select","");
+      select.setAttribute("aria-label",(member.email||"구성원")+" 권한");
+      for(const [value,title] of [["member","일반 회원"],["admin","관리자"],["superadmin","최고관리자"]]){
+        const option=memberNode("option","",title);
+        option.value=value;option.selected=value===member.role;
+        if(value==="superadmin"&&member.role!=="superadmin"&&superCount>=3)option.disabled=true;
+        select.append(option);
+      }
+      select.disabled=isSelf||isLastSuper;
+      const actions=memberNode("div","studio-member-controls");
+      const saveButton=memberNode("button","","권한 저장");
+      saveButton.type="button";saveButton.disabled=true;
+      select.addEventListener("change",()=>{
+        saveButton.disabled=select.value===member.role;
+      });
+      saveButton.addEventListener("click",async()=>{
+        if(select.value===member.role||!user)return;
+        if(select.value==="superadmin"&&superCount>=3){notify("최고관리자는 최대 3명입니다.",true);return;}
+        if(!window.confirm((member.email||"이 구성원")+"의 권한을 "+memberRoleName(select.value)+"(으)로 변경할까요?"))return;
+        saveButton.disabled=true;
+        try{
+          const {data,error}=await client.from("cms_admins").update({role:select.value})
+            .eq("user_id",member.user_id).select("user_id").single();
+          if(error)throw error;
+          if(!data)throw new Error("해당 계정을 찾지 못했습니다.");
+          await loadMembers();
+          notify("구성원 권한이 변경되었습니다.");
+        }catch(error){notify("권한 변경 실패: "+(error.message||error),true);saveButton.disabled=false;}
+      });
+      const removeButton=memberNode("button","","제외");
+      removeButton.type="button";
+      removeButton.disabled=isSelf||isLastSuper;
+      removeButton.addEventListener("click",async()=>{
+        if(!window.confirm((member.email||"이 구성원")+"을 SFC에서 제외할까요? 로그인 계정 자체는 삭제되지 않습니다."))return;
+        removeButton.disabled=true;
+        try{
+          const {data,error}=await client.from("cms_admins").delete()
+            .eq("user_id",member.user_id).select("user_id").single();
+          if(error)throw error;
+          if(!data)throw new Error("해당 계정을 찾지 못했습니다.");
+          await loadMembers();
+          notify("구성원이 제외되었습니다.");
+        }catch(error){notify("제외 실패: "+(error.message||error),true);removeButton.disabled=false;}
+      });
+      actions.append(saveButton,removeButton);
+      row.append(identity,select,actions);
+      list.append(row);
+    }
+  }
+  async function loadMembers(){
+    if(myRole!=="superadmin")return;
+    const {data,error}=await client.from("cms_admins")
+      .select("user_id,email,role,created_at")
+      .order("created_at",{ascending:true}).limit(500);
+    if(error)throw error;
+    members=data||[];
+    renderMembers();
+  }
+  async function showMemberManager(){
+    if(myRole!=="superadmin")return;
+    if(dirty&&!window.confirm("작성 중인 변경사항은 저장되지 않았습니다. 임시 복구본을 남기고 권한 관리로 이동할까요?"))return;
+    if(dirty)stash();
+    $("studioLayout").hidden=true;
+    $("studioRoles").hidden=false;
+    $("manageMembers").hidden=true;
+    $("newPost").hidden=true;
+    try{await loadMembers();}
+    catch(error){notify("구성원 목록을 불러오지 못했습니다: "+error.message,true);}
+  }
+  function showEditor(){
+    $("studioRoles").hidden=true;
+    $("studioLayout").hidden=false;
+    $("manageMembers").hidden=myRole!=="superadmin";
+    $("newPost").hidden=false;
+  }
   async function checkUser(){
     if(recovering)return;
     const response=await client.auth.getUser();
-    if(response.error||!response.data.user){user=null;visible("studioLogin");return;}
+    if(response.error||!response.data.user){user=null;myRole=null;visible("studioLogin");return;}
     const candidate=response.data.user;
-    const {data,error}=await client.from("cms_admins").select("user_id").eq("user_id",candidate.id).maybeSingle();
-    if(error){notify("관리자 권한 확인 실패: "+error.message,true);visible("studioLogin");return;}
-    if(!data){
+    const {data,error}=await client.from("cms_admins")
+      .select("user_id,role,email").eq("user_id",candidate.id).maybeSingle();
+    if(error){notify("구성원 권한 확인 실패: "+error.message,true);visible("studioLogin");return;}
+    if(!data||!roleNames[data.role]){
       await client.auth.signOut();
-      user=null;visible("studioLogin");notify("승인된 관리자 계정이 아닙니다.",true);return;
+      user=null;myRole=null;visible("studioLogin");
+      notify("SFC에 등록된 계정이 아닙니다. 승인받은 뒤 로그인해 주세요.",true);return;
     }
-    user=candidate;
-    $("studioAccount").textContent=user.email||"관리자";
+    user=candidate;myRole=data.role;
+    $("studioAccount").textContent=(user.email||"SFC") +" · "+memberRoleName(myRole);
+    if(myRole==="member"){
+      $("studioMemberEmail").textContent=user.email||"일반 회원";
+      visible("studioMember");return;
+    }
     visible("studioPanel");
+    $("manageMembers").hidden=myRole!=="superadmin";
+    showEditor();
     try{await reload();if(!current)newPost();}
     catch(error){notify("글 목록을 불러오지 못했습니다: "+error.message,true);}
   }
@@ -210,7 +325,7 @@
       client=await cms.getClient();
       client.auth.onAuthStateChange((event)=>{
         if(event==="PASSWORD_RECOVERY"){recovering=true;visible("studioReset");return;}
-        if(event==="SIGNED_OUT"){user=null;visible("studioLogin");return;}
+        if(event==="SIGNED_OUT"){user=null;myRole=null;members=[];visible("studioLogin");return;}
         if(event==="SIGNED_IN"&&!recovering)queueMicrotask(()=>{checkUser().catch(()=>{});});
       });
       await checkUser();
@@ -248,7 +363,7 @@
     await client.auth.signOut();visible("studioLogin");notify("비밀번호가 변경되었습니다. 다시 로그인해 주세요.");
   });
   $("studioLogout").addEventListener("click",async()=>{
-    forgetScratch();await client.auth.signOut();user=null;visible("studioLogin");notify("로그아웃되었습니다.");
+    forgetScratch();await client.auth.signOut();user=null;myRole=null;members=[];visible("studioLogin");notify("로그아웃되었습니다.");
   });
   document.querySelectorAll(".sidebar-tabs button").forEach(b=>b.addEventListener("click",()=>{
     filter=b.dataset.status;
@@ -256,6 +371,29 @@
     renderList();
   }));
   $("newPost").addEventListener("click",newPost);
+  $("manageMembers").addEventListener("click",showMemberManager);
+  $("returnPosts").addEventListener("click",showEditor);
+  $("memberAddForm").addEventListener("submit",async event=>{
+    event.preventDefault();
+    if(myRole!=="superadmin")return;
+    const email=$("memberEmail").value.trim().toLowerCase(),role=$("memberRole").value;
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){notify("올바른 이메일을 입력해 주세요.",true);return;}
+    if(!roleNames[role]){notify("유효하지 않은 권한입니다.",true);return;}
+    if(role==="superadmin"&&roleCount("superadmin")>=3){notify("최고관리자는 최대 3명까지 등록할 수 있어.",true);return;}
+    const button=$("memberAddButton");button.disabled=true;
+    try{
+      const {data,error}=await client.from("cms_admins")
+        .insert({email,role}).select("user_id").single();
+      if(error)throw error;
+      if(!data)throw new Error("구성원 등록을 확인할 수 없습니다.");
+      $("memberEmail").value="";
+      $("memberRole").value="member";
+      await loadMembers();
+      notify("구성원을 "+memberRoleName(role)+"(으)로 등록했습니다.");
+    }catch(error){
+      notify("등록 실패: "+(error.message||error)+". Supabase Auth에 계정이 먼저 있는지도 확인해 주세요.",true);
+    }finally{button.disabled=false;}
+  });
   ["postKind","postTitle","postExcerpt","postBody","postCoverUrl","postAttachmentUrl"].forEach(id=>$(id).addEventListener("input",changed));
   $("saveDraft").addEventListener("click",()=>save("draft"));
   $("publishPost").addEventListener("click",()=>save("published"));

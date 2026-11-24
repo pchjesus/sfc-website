@@ -35,3 +35,49 @@ textarea{resize:vertical;line-height:1.8}input[type=file]{font-size:12px;backgro
 @media(max-width:800px){.studio-layout{grid-template-columns:1fr;gap:32px}.studio-sidebar{border-right:0;padding-right:0;border-bottom:1px solid var(--line);padding-bottom:19px}.admin-post-list{display:flex;overflow-x:auto;gap:10px}.admin-post-item{flex:0 0 215px;border:1px solid var(--line);padding:14px}.studio-heading{padding:35px 0 25px}.studio-heading h1{font-size:44px}}
 @media(max-width:500px){.studio-header{height:66px;padding:0 20px}.studio-brand{font-size:29px}.studio-brand small{font-size:9px;margin-left:10px;padding-left:10px}.studio-top-actions{gap:10px;font-size:11px}.studio-top-actions #studioAccount{display:none!important}.studio-main{padding:0 20px}.studio-heading{align-items:flex-start;flex-direction:column;gap:20px}.studio-heading .primary{width:100%;justify-content:center}.editor-media{grid-template-columns:1fr}.editor-toolbar{display:grid;grid-template-columns:1fr 1fr}.editor-toolbar .primary{grid-column:1/-1;justify-content:center}.studio-message{right:20px;bottom:15px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
+
+/* v1.4: role-aware Studio — editorial hierarchy, not decorative cards */
+.studio-heading-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+.studio-member-home strong{color:#24394b}
+.studio-roles{padding:24px 0 100px;border-top:1px solid var(--line)}
+.studio-roles-head{display:flex;justify-content:space-between;align-items:flex-end;gap:25px;padding:5px 0 32px}
+.studio-roles-head h2{font-size:clamp(32px,4vw,52px);font-weight:500;letter-spacing:-.06em;margin:12px 0}
+.studio-roles-head p{color:var(--muted);font-size:13px;line-height:1.85;margin:0}
+.studio-role-stats{display:grid;grid-template-columns:1fr 1fr;gap:16px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:26px 0;margin-bottom:35px}
+.studio-role-stats>div{display:flex;flex-direction:column;gap:7px}
+.studio-role-stats small{font-size:11px;color:var(--muted)}
+.studio-role-stats strong{font-size:clamp(24px,3vw,34px);font-weight:500;letter-spacing:-.04em}
+.studio-member-form{display:grid;grid-template-columns:minmax(0,2fr) minmax(170px,1fr) auto;gap:17px;align-items:end}
+.studio-member-form label{margin-bottom:0}
+.studio-member-form input,.studio-member-form select{margin-top:0;min-width:0}
+.studio-member-form>div{display:grid;gap:10px}
+.studio-member-form .primary{margin:0 0 0;white-space:nowrap}
+.studio-roles>.editor-hint{margin:13px 0 36px;max-width:900px}
+.studio-member-list{border-top:1px solid var(--line)}
+.studio-member-row{display:grid;grid-template-columns:minmax(190px,1fr) minmax(165px,215px) auto;gap:15px;align-items:center;border-bottom:1px solid var(--line);padding:17px 4px}
+.studio-member-identity{min-width:0}
+.studio-member-identity strong{font-size:14px;font-weight:500;overflow-wrap:anywhere}
+.studio-member-identity small{display:block;font-size:10px;color:#8b969e;margin-top:5px;overflow-wrap:anywhere}
+.studio-member-identity .self-label{margin-left:9px;color:#b6654e}
+.studio-member-row select{margin:0;font-size:12px}
+.studio-member-controls{display:flex;gap:10px;align-items:center;justify-content:flex-end}
+.studio-member-controls button{background:transparent;border:1px solid #bfc8ce;color:var(--ink);font-size:11px;min-height:43px;padding:10px 12px;white-space:nowrap}
+.studio-member-controls button:last-child{color:#b35c4b;border-color:#d6aca1}
+.studio-member-controls button:disabled{opacity:.43;cursor:not-allowed}
+.studio-roles .sidebar-empty{padding:35px 5px}
+@media(max-width:900px){
+  .studio-member-form{grid-template-columns:1fr 1fr}
+  .studio-member-form>div:first-child{grid-column:1/-1}
+  .studio-member-row{grid-template-columns:minmax(0,1fr) minmax(145px,.6fr)}
+  .studio-member-controls{grid-column:1/-1;justify-content:flex-end}
+}
+@media(max-width:500px){
+  .studio-heading-actions{width:100%;display:grid;grid-template-columns:1fr 1fr}
+  .studio-heading-actions .primary,.studio-heading-actions .secondary{width:100%;justify-content:center;padding:13px 9px;font-size:11px}
+  .studio-roles-head{align-items:flex-start;flex-direction:column;gap:15px}
+  .studio-member-form{grid-template-columns:1fr}
+  .studio-member-form>div:first-child{grid-column:auto}
+  .studio-member-form button{justify-content:center}
+  .studio-member-row{grid-template-columns:1fr;gap:13px}
+  .studio-member-controls{grid-column:1;justify-content:flex-start}
+}

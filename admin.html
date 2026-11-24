@@ -9,13 +9,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/cms.css?v=1.3">
+<link rel="stylesheet" href="css/cms.css?v=1.4">
 <script defer src="js/cms-config.js"></script>
 <script defer src="js/cms-core.js?v=1.3"></script>
-<script defer src="js/cms-admin.js?v=1.3.1"></script>
+<script defer src="js/cms-admin.js?v=1.4"></script>
 </head>
 <body>
-<header class="studio-header"><a class="studio-brand" href="index.html#home">SFC<span>.</span><small>STUDIO</small></a><div class="studio-top-actions"><a href="index.html#updates">홈페이지 ↗</a><span id="studioAccount" hidden></span><button type="button" id="studioLogout" hidden>로그아웃</button></div></header>
+<header class="studio-header"><a class="studio-brand" href="index.html#home">SFC<span>.</span><small>STUDIO</small></a><div class="studio-top-actions"><a href="index.html#home">홈페이지 ↗</a><span id="studioAccount" hidden></span><button type="button" id="studioLogout" hidden>로그아웃</button></div></header>
 <main class="studio-main">
   <section class="studio-auth" id="studioSetup" hidden>
     <span class="eyebrow">SFC / ADMINISTRATION</span><h1>Studio 준비 중.</h1>
@@ -24,7 +24,7 @@
   </section>
   <section class="studio-auth" id="studioLogin" hidden>
     <span class="eyebrow">SFC / PRIVATE ACCESS</span>
-    <h1>Welcome back.</h1><p>승인된 학회 관리자만 로그인할 수 있습니다.</p>
+    <h1>Welcome back.</h1><p>등록된 최고관리자·관리자·회원 계정으로 로그인할 수 있습니다.</p>
     <form id="loginForm">
       <label>이메일<input id="loginEmail" type="email" required autocomplete="username" placeholder="admin@example.com"></label>
       <label>비밀번호<input id="loginPassword" type="password" required autocomplete="current-password" minlength="6"></label>
@@ -38,9 +38,15 @@
     <form id="resetForm"><label>새 비밀번호<input id="resetPassword" type="password" autocomplete="new-password" minlength="12" required></label>
       <button type="submit" class="primary">비밀번호 변경</button></form>
   </section>
+  <section class="studio-auth studio-member-home" id="studioMember" hidden>
+    <span class="eyebrow">SFC / MEMBER ACCESS</span><h1>Member space.</h1>
+    <p><strong id="studioMemberEmail"></strong> 계정으로 로그인했어. 일반 회원은 글 열람 권한을 가지고 있어. 글 작성과 게시 작업은 관리자 이상부터 가능해.</p>
+    <a href="index.html#updates">게시글 보러 가기 ↗</a>
+  </section>
   <section class="studio-panel" id="studioPanel" hidden>
-    <div class="studio-heading"><div><span class="eyebrow">CONTENT MANAGEMENT</span><h1>Editorial desk.</h1><p>리서치·공지·활동 소식을 작성하고 게시 상태를 관리합니다.</p></div><button id="newPost" type="button" class="primary">＋ 새 글 작성</button></div>
-    <div class="studio-layout">
+    <div class="studio-heading"><div><span class="eyebrow">CONTENT MANAGEMENT</span><h1>Editorial desk.</h1><p>리서치·공지·활동 소식을 작성하고 게시 상태를 관리합니다.</p></div>
+    <div class="studio-heading-actions"><button id="manageMembers" type="button" class="secondary" hidden>회원·권한 관리</button><button id="newPost" type="button" class="primary">＋ 새 글 작성</button></div></div>
+    <div class="studio-layout" id="studioLayout">
       <aside class="studio-sidebar">
         <div class="sidebar-header"><strong>게시글</strong><small id="postsCount">0 POSTS</small></div>
         <div class="sidebar-tabs" role="group" aria-label="게시글 상태">
@@ -71,6 +77,19 @@
         <div class="editor-danger"><button type="button" id="unpublishPost" hidden>게시 취소</button><button type="button" id="deletePost" hidden>글 삭제</button></div>
       </section>
     </div>
+    <section class="studio-roles" id="studioRoles" hidden aria-label="회원 권한 관리">
+      <div class="studio-roles-head"><div><span class="eyebrow">ACCESS CONTROL / SUPERADMIN ONLY</span><h2>People & permissions.</h2>
+      <p>최고관리자 최대 3명 · 관리자는 글 작성 및 관리 · 일반 회원은 읽기 전용</p></div>
+      <button type="button" id="returnPosts" class="secondary">← 글 관리로</button></div>
+      <div class="studio-role-stats"><div><small>최고관리자</small><strong id="superadminCount">0 / 3</strong></div><div><small>등록된 구성원</small><strong id="memberCount">0명</strong></div></div>
+      <form id="memberAddForm" class="studio-member-form">
+        <div><label for="memberEmail">기존 Auth 계정 이메일</label><input id="memberEmail" type="email" autocomplete="off" required placeholder="member@example.com"></div>
+        <div><label for="memberRole">부여할 권한</label><select id="memberRole"><option value="member">일반 회원</option><option value="admin">관리자</option><option value="superadmin">최고관리자 (최대 3명)</option></select></div>
+        <button type="submit" id="memberAddButton" class="primary">구성원 등록 →</button>
+      </form>
+      <p class="editor-hint">먼저 Supabase Authentication → Users에서 해당 이메일로 사용자를 생성하거나 초대해야 해. 비밀번호는 이곳에서 받지 않아. 계정이 없다면 등록되지 않아.</p>
+      <div class="studio-member-list" id="memberList" aria-live="polite"></div>
+    </section>
   </section>
   <div id="studioMessage" class="studio-message" role="status" aria-live="polite" hidden></div>
 </main>
