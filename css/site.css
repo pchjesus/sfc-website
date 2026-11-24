@@ -301,6 +301,12 @@ h1,h2,h3{letter-spacing:-.054em}
 .process-step{padding:16px 0}
 .process-step:nth-child(n+2){border-top:1px solid var(--line)}
 }
+
+/* Native-button reset for editorial rows */
+.work-link,.report-item{appearance:none;-webkit-appearance:none;width:100%;border-left:0;border-right:0;background:transparent;color:var(--ink);text-align:left;font-family:inherit}
+.work-link{border-top:0}
+.report-item{border-bottom:0}
+.report-item:hover,.work-link:hover{color:var(--ink)}
 @media(prefers-reduced-motion:reduce){
 html{scroll-behavior:auto}
 *,*:before,*:after{animation:none!important;transition:none!important}
