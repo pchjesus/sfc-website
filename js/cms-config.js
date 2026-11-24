@@ -4,6 +4,6 @@
  * NEVER put a service_role / secret key here.
  */
 window.SFC_CMS_CONFIG = Object.freeze({
-  url: "",
-  publishableKey: ""
+  url: "https://nnoicikkennbihjdoivt.supabase.co",
+  publishableKey: "sb_publishable_MKdH-3IDJC789C3mGqpxkw_zBYbkYYm"
 });

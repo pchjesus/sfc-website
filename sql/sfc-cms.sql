@@ -21,6 +21,7 @@ create table if not exists public.cms_posts (
 );
 create index if not exists cms_posts_public_idx on public.cms_posts (published_at desc) where status = 'published';
 create index if not exists cms_posts_manage_idx on public.cms_posts (updated_at desc);
+create index if not exists cms_posts_author_idx on public.cms_posts (author_id);
 
 create or replace function public.cms_posts_set_dates()
 returns trigger language plpgsql security invoker set search_path = ''
@@ -62,13 +63,15 @@ create policy "Admin can see own membership" on public.cms_admins
 for select to authenticated using (user_id = (select auth.uid()));
 
 drop policy if exists "Visitors read published posts" on public.cms_posts;
-create policy "Visitors read published posts" on public.cms_posts
-for select to anon, authenticated using (status = 'published');
-
 drop policy if exists "Admins read all posts" on public.cms_posts;
-create policy "Admins read all posts" on public.cms_posts
-for select to authenticated
-using (exists(select 1 from public.cms_admins a where a.user_id = (select auth.uid())));
+drop policy if exists "Public read published posts" on public.cms_posts;
+create policy "Public read published posts" on public.cms_posts
+for select to anon using (status = 'published');
+
+drop policy if exists "Authenticated read permitted posts" on public.cms_posts;
+create policy "Authenticated read permitted posts" on public.cms_posts
+for select to authenticated using (status = 'published'
+  or exists(select 1 from public.cms_admins a where a.user_id = (select auth.uid())));
 
 drop policy if exists "Admins create posts" on public.cms_posts;
 create policy "Admins create posts" on public.cms_posts
