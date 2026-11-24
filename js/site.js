@@ -1,4 +1,5 @@
 "use strict";
+document.documentElement.classList.add("js");
 const $=id=>document.getElementById(id);
 const pages=["home","about","research","activities","people","recruitment"];
 const navLabels=["HOME","ABOUT","RESEARCH","ACTIVITIES","PEOPLE","RECRUITMENT"];
