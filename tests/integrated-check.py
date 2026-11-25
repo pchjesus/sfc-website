@@ -112,6 +112,14 @@ try:
   expect(x.locator('#previewResearchNotes')).to_contain_text('비교 가능한 표본')
   ok('Studio template preserves existing text and previews methodology and limits')
   x.context.close()
+  x=page()
+  x.goto(base+'/#reader-demo-0')
+  expect(x.locator('#post.reader-demo')).to_be_visible()
+  expect(x.locator('#cmsPostTitle')).to_contain_text('반도체 산업')
+  expect(x.locator('#cmsPostMeta')).to_contain_text('DEMONSTRATION')
+  assert x.locator('#readerToc button').count()>=3
+  ok('direct deep link to clearly labeled demo Reader')
+  x.context.close()
   browser.close()
 finally:
  server.shutdown()
