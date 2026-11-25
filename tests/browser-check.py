@@ -219,8 +219,9 @@ with sync_playwright() as p:
  forward=swap('#reportResults','#reportFilters','교육자료',1)
  reverse=swap('#reportResults','#reportFilters','케이스',1)
  assert forward['duration']==reverse['duration']
- assert forward['frames'][0]['opacity']==reverse['frames'][0]['opacity']==0
- assert forward['frames'][-1]['opacity']==reverse['frames'][-1]['opacity']==1
+ assert [str(k.get('opacity')) for k in forward['frames']]==[str(k.get('opacity')) for k in reverse['frames']]
+ assert str(forward['frames'][0]['opacity']) in ('0','0.0')
+ assert str(forward['frames'][-1]['opacity']) in ('1','1.0')
  ok('research one-to-one replacement has identical forward/reverse keyframes')
  x.evaluate("navigate('activities')")
  x.locator('#scheduleTabs [data-value="application"]').click()
@@ -229,8 +230,9 @@ with sync_playwright() as p:
  forward=swap('#scheduleList','#scheduleTabs','research',2)
  reverse=swap('#scheduleList','#scheduleTabs','application',5)
  assert forward['duration']==reverse['duration']
- assert forward['frames'][0]['opacity']==reverse['frames'][0]['opacity']==0
- assert forward['frames'][-1]['opacity']==reverse['frames'][-1]['opacity']==1
+ assert [str(k.get('opacity')) for k in forward['frames']]==[str(k.get('opacity')) for k in reverse['frames']]
+ assert str(forward['frames'][0]['opacity']) in ('0','0.0')
+ assert str(forward['frames'][-1]['opacity']) in ('1','1.0')
  ok('activities disjoint 5-to-2 and 2-to-5 swaps share the same timeline')
  duration=x.evaluate("""()=>{navigate('recruitment');return document.querySelector('#recruitment').getAnimations()[0].effect.getTiming().duration}""")
  assert duration==570

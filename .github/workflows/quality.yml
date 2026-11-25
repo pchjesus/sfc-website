@@ -23,7 +23,6 @@ jobs:
           python-version: "3.12"
       - run: pip install playwright==1.51.0
       - run: python -m playwright install --with-deps chromium
-      - run: python tests/browser-check.py
       - run: python tests/preview-capture.py
         if: github.ref_name == 'preview/sfc-v2.4-about-activities'
       - uses: actions/upload-artifact@v4
@@ -33,3 +32,5 @@ jobs:
           path: preview/screenshots/*.png
           retention-days: 30
 
+
+      - run: python tests/browser-check.py
