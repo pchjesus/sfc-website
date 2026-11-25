@@ -110,8 +110,31 @@
     });
     const chosen=posts.filter(p=>activeFilter==="all"||p.kind===activeFilter),nodes=chosen.map(p=>card(p));
     if(!nodes.length){
-      const empty=element("p","cms-empty",loadError?"글을 불러오지 못했어요. 잠시 후 다시 접속해 주세요.":"현재 공개된 게시글이 없습니다.");
-      empty.dataset.motionKey="empty";nodes.push(empty);
+      const empty=element("div","cms-empty-state");
+      empty.dataset.motionKey="empty";
+      if(loadError){
+        empty.setAttribute("role","status");
+        empty.append(element("span","eyebrow","CONNECTION UNAVAILABLE"),
+          element("h3","","게시글을 불러오지 못했습니다."),
+          element("p","","네트워크 연결을 확인한 뒤 다시 시도해 주세요."));
+        const retry=element("button","","다시 시도");
+        retry.type="button";
+        retry.addEventListener("click",()=>{
+          retry.disabled=true;
+          empty.querySelector("p").textContent="게시글을 다시 불러오는 중입니다.";
+          void load();
+        });
+        empty.append(retry);
+      }else if(!posts.length){
+        empty.append(element("span","eyebrow","NO POSTS YET"),
+          element("h3","","아직 등록된 소식이 없습니다."),
+          element("p","","모집 일정과 학회 공지사항은 게시되는 대로 이곳에서 확인할 수 있습니다."));
+      }else{
+        empty.append(element("span","eyebrow","NO MATCHES"),
+          element("h3","","해당 분류에 등록된 게시글이 없습니다."),
+          element("p","","다른 유형을 선택하면 공개된 글을 확인할 수 있습니다."));
+      }
+      nodes.push(empty);
     }
     motion.reconcile(root,nodes,{reuse:"equal"});
   }
@@ -148,20 +171,16 @@
     siteConfig=v||{};
     if(v?.hero_description)window.SFC_HERO_EDIT?.(v.hero_description);
     setText(".about-photo-panel h2",v?.about_heading);
-    // Preserve the approved editorial line grouping if Studio's saved copy
-    // contains the same text. Otherwise honor the editor's own prose.
-    const intro=document.querySelector(".about-photo-panel p");
+    // Studio can override a genuinely customized introduction.
+    // A stored *legacy default* must not silently overwrite the owner-approved
+    // v2.7 public copy; preserve the two-sentence responsive DOM in that case.
+    const intro=document.querySelector(".about-photo-panel [data-about-intro]");
     if(intro&&typeof v?.about_body==="string"&&v.about_body.trim()){
-      const approved=["SFC(Sangmyung Financial Club)는 상명대학교 경영학부","기업재무분석 학술동아리입니다.","기업의 사업구조와 재무 데이터를 분석하고, 가치평가의 가정을 검증하며,","근거에 기반한 판단을 토론합니다."];
-      const normalized=text=>String(text).replace(/\s+/g," ").trim();
-      if(normalized(v.about_body)===normalized(approved.join(" "))){
-        intro.replaceChildren(...approved.map((text,i)=>{
-          const span=document.createElement("span");
-          span.className="about-line";
-          span.textContent=text+(i<approved.length-1?" ":"");
-          return span;
-        }));
-      }else intro.textContent=v.about_body;
+      const legacy="SFC(Sangmyung Financial Club)는 상명대학교 경영학부 기업재무분석 학술동아리입니다. 기업의 사업구조와 재무 데이터를 분석하고, 가치평가의 가정을 검증하며, 근거에 기반한 판단을 토론합니다.";
+      const approved="SFC는 상명대학교 경영학부 기업재무분석 학술동아리로, 기업의 사업구조를 살피고 재무제표와 가치평가 모델을 분석합니다. 팀별 토론과 최종 보고서 발표까지 이어지는 15주 과정으로 진행됩니다.";
+      const normalize=text=>String(text).replace(/\s+/g," ").trim();
+      const body=normalize(v.about_body);
+      if(body!==normalize(legacy)&&body!==normalize(approved))intro.textContent=v.about_body;
     }
     setText(".about-end p",v?.program_note);
     const email=String(v?.contact_email||"");
@@ -373,7 +392,7 @@
     try{
       const db=await cms.getPublicClient();
       publicDb=db;
-      if(!db){loaded=true;renderUpdates();return;}
+      if(!db){loadError="공개 게시글 연결을 확인할 수 없습니다.";loaded=true;renderUpdates();return;}
       const results=await Promise.allSettled([
         db.from("cms_posts").select(
           "id,kind,title,excerpt,published_at,research_sector,research_company,research_author"

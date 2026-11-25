@@ -24,8 +24,8 @@
   };
   root.innerHTML=`
     <div class="archive-intro">
-      <div><span class="eyebrow">SFC / RESEARCH LIBRARY</span><p>질문에서 근거와 해석까지, 연구의 과정을 탐색하세요.</p></div>
-      <span class="archive-mode" id="archiveMode">DEMONSTRATION / SAMPLE</span>
+      <div><span class="eyebrow">RESEARCH LIBRARY</span></div>
+      <span class="archive-mode" id="archiveMode">예시 자료 · 공식 발행 전</span>
     </div>
     <div class="archive-workspace">
       <div class="archive-search-row">
@@ -94,10 +94,13 @@
     const demo=mode==="demo";
     link.href=demo?"#reader-demo-"+item.index:"#post-"+item.id;
     link.dataset.motionKey=demo?"demo-"+item.index:"public-"+item.id;
-    const cap=node("span","archive-report-number",demo?"DEMO / 0"+(item.index+1):"SFC / PUBLICATION");
+    const cap=node("span","archive-report-number",demo?String(item.index+1).padStart(2,"0"):"SFC / PUBLICATION");
     const body=node("div","archive-report-copy");
-    const label=node("span","archive-report-label",demo?item.category+" / "+item.type.toUpperCase():
+    // The DEMO state and report type are one adjacent, immediately visible label.
+    // Keep the research discipline (e.g. EQUITY RESEARCH) instead of replacing it with SAMPLE.
+    const label=node("span","archive-report-label",demo?"DEMO / "+item.type.toUpperCase():
       [item.research_sector||"RESEARCH",item.research_company].filter(Boolean).join(" / "));
+    if(demo&&item.category)label.setAttribute("title",item.category);
     const title=node("h3","",item.title);
     const description=node("p","",demo?item.desc:
       item.excerpt||"발행된 연구의 세부 내용을 확인해 주세요.");
@@ -208,7 +211,7 @@
     const legacy=document.getElementById("demoResearchBlock");
     const oldLive=document.getElementById("liveResearch");
     if(legacy)legacy.hidden=true;if(oldLive)oldLive.hidden=true;
-    $("archiveMode").textContent=isLive?"OFFICIAL / PUBLISHED":"DEMONSTRATION / SAMPLE";
+    $("archiveMode").textContent=isLive?"OFFICIAL / PUBLISHED":"예시 자료 · 공식 발행 전";
     $("archiveDisclosure").textContent=isLive
       ?"PUBLIC RESEARCH / 각 연구의 방법·가정·한계와 원문을 확인할 수 있습니다."
       :"DEMO / 모든 제목과 날짜는 시연을 위한 예시이며 실제 SFC 연구 성과가 아닙니다.";

@@ -27,8 +27,9 @@
 <link rel="stylesheet" href="css/editorial.css?v=2.4.2">
 <link rel="stylesheet" href="css/integrated.css?v=2.6-preview">
 <link rel="stylesheet" href="css/people-recruitment.css?v=2.6.5-preview">
+<link rel="stylesheet" href="css/v2.7-review.css?v=2.7.2-review">
 <script defer src="js/motion.js?v=2.4"></script>
-<script defer src="js/research-platform.js?v=2.6-preview"></script>
+<script defer src="js/research-platform.js?v=2.7.2-review"></script>
 <script defer src="js/research-reader.js?v=2.6-preview"></script>
 <script defer src="js/site.js?v=2.6-preview"></script>
 <script defer src="js/cms-public.js?v=2.6-preview"></script>
@@ -75,24 +76,19 @@
     </div>
   </div>
   <div class="wrap">
-    <section class="home-value" aria-labelledby="homeValueTitle">
+    <section class="home-value home-value-compact" aria-labelledby="homeValueTitle">
       <div class="home-value-copy" data-motion="rise">
-        <span class="eyebrow">WHY SFC / YOUR NEXT STEP</span>
+        <span class="eyebrow">WHY SFC</span>
         <h2 id="homeValueTitle">숫자를 아는 것에서,<br><em>판단할 수 있는 사람으로.</em></h2>
-        <p class="editorial-copy"><span class="copy-sentence">기업을 이해하는 질문에서 출발해, 분석의 가정을 검증하고 자신의 논리로 설명하는 경험.</span> <span class="copy-sentence">SFC가 지향하는 한 학기의 배움입니다.</span></p>
-        <a class="home-value-link" href="#about">WHY JOIN SFC? <span aria-hidden="true">↗</span></a>
-      </div>
-      <div class="home-value-steps" aria-label="학회에서 경험할 역량" data-motion="right">
-        <div><span>01 / UNDERSTAND</span><strong>기업을 읽는 관점</strong><small>사업 구조 · 재무 흐름</small></div>
-        <div><span>02 / QUESTION</span><strong>가정을 검증하는 사고</strong><small>비교 기업 · 가치평가 모델</small></div>
-        <div><span>03 / COMMUNICATE</span><strong>근거로 설명하는 역량</strong><small>팀별 토론 · 연구 결과물</small></div>
+        <p class="editorial-copy">재무제표와 기업가치평가를 배우고, 실제 기업 사례를 분석하는 15주 과정.</p>
+        <a class="home-value-link" href="#about">ABOUT SFC <span aria-hidden="true">↗</span></a>
       </div>
     </section>
     <div class="home-section" data-motion="rise">
       <div class="section-head"><div><span class="eyebrow">01 / RESEARCH</span><h2>Selected work.</h2></div><a class="line-link" href="#research">ALL RESEARCH ↗</a></div>
       <a class="featured-work" href="#report-0" aria-label="샘플 리서치 보고서 상세 보기">
         <div class="featured-photo"><img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=1100&q=80" alt="건축적 구조와 공간" loading="lazy"></div>
-        <div class="featured-copy"><span class="eyebrow">FEATURED / DEMO RESEARCH</span><h3>반도체 산업의 구조적 변화와 기업가치 재평가</h3><p>Equity Research · 2027.05 / SAMPLE</p><span class="line-link">EXPLORE REPORT ↗</span></div>
+        <div class="featured-copy"><span class="eyebrow">DEMO / 실제 발행된 연구가 아닙니다</span><h3>반도체 산업의 구조적 변화와 기업가치 재평가</h3><p>Equity Research · SAMPLE</p><span class="line-link">VIEW SAMPLE ↗</span></div>
       </a>
       <div class="work-list" id="homeWorks"></div>
       <div id="homeLiveResearch" hidden></div>
@@ -118,14 +114,17 @@
     <div class="page-head" data-motion="rise"><span class="eyebrow">ABOUT / THE CLUB</span><h1>About SFC.</h1><p>재무 이론을 실제 기업분석에 적용하는 학술동아리.</p></div>
     <div class="about-grid about-photo-panel" data-motion="unveil">
       <h2>숫자를 읽고,<br>기업의 가치를<br>이해합니다.</h2>
-      <p class="editorial-copy about-manual-lines" data-about-intro><span class="about-line">SFC(Sangmyung Financial Club)는 상명대학교 경영학부 </span><span class="about-line">기업재무분석 학술동아리입니다. </span><span class="about-line">기업의 사업구조와 재무 데이터를 분석하고, 가치평가의 가정을 검증하며, </span><span class="about-line">근거에 기반한 판단을 토론합니다.</span></p>
+      <p class="editorial-copy about-manual-lines about-approved-copy" data-about-intro>
+        <span class="about-line">SFC는 상명대학교 경영학부 기업재무분석 학술동아리로,</span>
+        <span class="about-line">기업의 사업구조를 살피고 재무제표와 가치평가 모델을 분석합니다.</span>
+        <span class="about-line">팀별 토론과 최종 보고서 발표까지 이어지는 15주 과정으로 진행됩니다.</span>
+      </p>
       <small class="about-photo-credit">ILLUSTRATIVE BACKGROUND / 실제 학회 활동 공간 사진이 아닙니다.</small>
     </div>
     <section class="about-reasons" aria-labelledby="aboutReasonsTitle">
-      <div class="about-section-heading" data-motion="rise">
-        <span class="eyebrow">WHY JOIN / WHAT YOU PRACTICE</span>
-        <h2 id="aboutReasonsTitle">읽고, 검증하고,<br><em>설명하는 사람.</em></h2>
-        <p class="editorial-copy">학습 내용을 나열하는 데서 그치지 않고,<span class="copy-phrase"> 실제 기업을 둘러싼 질문에 답하는 과정을 계획하고 있습니다.</span></p>
+      <div class="about-section-heading about-reasons-heading" data-motion="rise">
+        <span class="eyebrow">WHAT YOU PRACTICE</span>
+        <h2 id="aboutReasonsTitle" class="sr-only">학회에서 경험할 활동</h2>
       </div>
       <div class="about-reason-grid">
         <article class="about-reason" data-motion="rise" data-motion-delay="0">
@@ -140,7 +139,7 @@
           </svg></div>
           <span>01 / FINANCIAL ANALYSIS</span>
           <h3>기업을 읽는 눈</h3>
-          <p>숫자 자체보다 숫자가 만들어진 사업구조와 재무적 맥락을 살펴봅니다.</p>
+          <p>사업 구조 · 재무 흐름</p>
         </article>
         <article class="about-reason" data-motion="rise" data-motion-delay="45">
           <div class="reason-art" aria-hidden="true"><svg viewBox="0 0 280 132" fill="none">
@@ -153,7 +152,7 @@
           </svg></div>
           <span>02 / CORPORATE VALUATION</span>
           <h3>가정을 검증하는 힘</h3>
-          <p>하나의 정답을 찾기보다, 평가 결과를 바꾸는 가정과 근거를 비교합니다.</p>
+          <p>비교기업 · 가치평가</p>
         </article>
         <article class="about-reason" data-motion="rise" data-motion-delay="90">
           <div class="reason-art" aria-hidden="true"><svg viewBox="0 0 280 132" fill="none">
@@ -166,7 +165,7 @@
           </svg></div>
           <span>03 / EQUITY RESEARCH</span>
           <h3>근거로 설명하는 경험</h3>
-          <p>분석과 토론을 거쳐 자신의 관점을 리포트로 정리하는 것을 목표로 합니다.</p>
+          <p>팀별 토론 · 보고서</p>
         </article>
       </div>
     </section>
@@ -174,7 +173,7 @@
       <div class="about-section-heading" data-motion="rise">
         <span class="eyebrow">THE SFC EXPERIENCE / A RESEARCH CYCLE</span>
         <h2 id="experienceTitle">질문 하나가<br><em>리포트가 되기까지.</em></h2>
-        <p class="editorial-copy"><span class="copy-sentence">네 단계의 분석 여정을 직접 살펴보세요.</span> <span class="copy-sentence">아래는 계획 중인 학습 과정의 개념적 예시이며, 실제 수행 성과를 뜻하지 않습니다.</span></p>
+        <p class="editorial-copy">단계를 누르면 해당 과정의 예시가 아래에 표시됩니다. 학습 계획을 설명하기 위한 자료이며 실제 연구 성과는 아닙니다.</p>
       </div>
       <div class="experience-layout" id="experienceLayout">
         <div class="experience-selector" role="tablist" aria-label="기업분석 과정">
@@ -240,12 +239,7 @@
         </div>
       </div>
     </section>
-    <section class="about-invitation" aria-labelledby="aboutInvitationTitle" data-motion="rise">
-      <div><span class="eyebrow">WHO IS THIS FOR?</span><h2 id="aboutInvitationTitle">완성된 전문가보다,<br>좋은 질문을 가진 사람.</h2></div>
-      <div><p class="editorial-copy about-manual-lines"><span class="about-line">기업을 자신의 관점으로 분석해보고 싶고, </span><span class="about-line">서로의 의견을 근거로 검증하는 과정에 관심 있다면 </span><span class="about-line">SFC의 학습 방향을 살펴보세요.</span></p>
-        <a class="line-link" href="#activities">EXPLORE THE PROGRAM ↗</a></div>
-    </section>
-    <div class="about-end reveal"><p>2027학년도 1학기, 주 1회 정기 세션과 팀별 기업분석을 중심으로 운영할 예정입니다.</p><a class="line-link" href="#recruitment">RECRUITMENT ↗</a></div>
+    <div class="about-end about-end-compact reveal"><p>연구에 관심 있다면 활동 계획과 모집 안내를 확인해 보세요.</p><a class="line-link" href="#recruitment">RECRUITMENT ↗</a></div>
   </div>
 </section>
 <!-- RESEARCH -->
@@ -298,14 +292,9 @@
     </div>
     <div class="people-lead people-editorial-lead" data-motion="rise">
       <h2>Behind the research.</h2>
-      <p class="editorial-copy" id="peopleIntro">연구와 운영이 연결되는 SFC의 역할 구조를 소개합니다.<span class="people-intro-tail"> 실제 구성원 정보는 공식 등록 이후 공개됩니다.</span></p>
+      <p class="editorial-copy" id="peopleIntro">운영 · 연구 · 지원 역할과 담당 업무를 확인해 보세요. 실제 구성원 정보는 등록 후 공개됩니다.</p>
     </div>
     <div id="peopleGraph" class="team-graph" aria-label="SFC 역할과 구성원 소개">
-      <div class="team-graph-center" aria-hidden="true">
-        <span class="eyebrow">A SHARED PURPOSE</span>
-        <strong>Research together.</strong>
-        <small>운영 · 연구 · 협업</small>
-      </div>
       <div id="roleList" class="team-node-grid" role="list" aria-label="운영진 및 담당 업무 전체 보기"></div>
     </div>
     <p class="role-notice" id="peopleDisclaimer">POSITION STRUCTURE / 현재는 역할 계획을 보여주는 시안이며 실제 운영진 프로필이 아닙니다.</p>
@@ -331,7 +320,7 @@
       <div class="recruit-intro-copy">
         <span class="status" id="recruitStatus" data-status="planned">모집 예정</span>
         <h2 id="recruitTitle">A place to<br>think deeper.</h2>
-        <p id="recruitMessage">2027년 3월 초 모집 예정이며 지원 일정과 방법은 추후 공지됩니다.</p>
+        <p id="recruitMessage">2027년 3월 초 모집 예정. 지원 일정과 제출 방법은 공식 공고에서 확인할 수 있습니다.</p>
       </div>
       <div class="recruit-fact-grid" aria-label="모집 기본 정보">
         <div class="recruit-fact"><strong>모집 대상</strong><span id="recruitAudiencePublic">전 학년 재학생</span></div>
@@ -393,7 +382,8 @@
 <!-- UPDATES / PUBLISHED ARTICLES -->
 <section class="view" id="updates">
   <div class="wrap">
-    <div class="page-head" data-motion="rise"><span class="eyebrow">SFC / PUBLICATIONS & NEWS</span><h1>Updates.</h1><p>학회의 공지사항, 활동 기록과 실제 게시된 리서치를 확인하세요.</p></div>
+    <div class="page-head" data-motion="rise"><span class="eyebrow">SFC / PUBLICATIONS & NEWS</span><h1>Updates.</h1><p>모집 안내, 공지사항, 학회 활동 기록을 확인하세요.</p></div>
+    <div class="updates-section-heading"><span class="eyebrow">LATEST NEWS</span><span>최신순</span></div>
     <div class="cms-filters" id="updatesFilters" role="group" aria-label="게시글 유형 필터"></div>
     <div class="cms-updates-list" id="updatesList" aria-live="polite"><p class="cms-empty">게시글을 불러오는 중입니다.</p></div>
   </div>
@@ -466,9 +456,9 @@
 </section>
 </main>
 <footer class="site-footer">
-<div><strong>SFC.</strong><p>SANGMYUNG FINANCIAL CLUB<br>Independent Research · Sangmyung University</p>
-<nav class="cms-footer-links" aria-label="추가 페이지"><a href="#updates">UPDATES</a><a id="siteContactLink" hidden></a></nav></div>
-<small>© 2027 SFC · DEMONSTRATION MATERIALS MARKED SEPARATELY</small>
+<div class="footer-brand-row"><img class="smu-mark smu-mark-footer" src="assets/sangmyung-university-mark.svg" alt="상명대학교 심볼" width="54" height="70"><div><strong>SFC.</strong><p>SANGMYUNG FINANCIAL CLUB<br>Independent Research · Sangmyung University</p>
+<nav class="cms-footer-links" aria-label="추가 페이지"><a href="#updates">UPDATES</a><a id="siteContactLink" hidden></a></nav></div></div>
+<small>© SFC · DEMONSTRATION MATERIALS MARKED SEPARATELY</small>
 </footer>
 </body>
 </html>

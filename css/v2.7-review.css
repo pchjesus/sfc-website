@@ -1,0 +1,222 @@
+/* SFC v2.7 — review-only refinements. No CMS, data, authorization or motion logic changes.
+ * Purpose: identify the club sooner, reduce decorative dominance, and make key text easier to read.
+ * Loaded only in the v2.7 review branch until explicitly approved.
+ */
+:root{--v27-ink:#172d41;--v27-text:#41596a}
+.hero{height:min(730px,calc(100svh - 76px));min-height:530px}
+.hero-copy .hero-identity{
+  display:block;margin:0 0 24px;color:#dce8ed;
+  font-size:clamp(12px,1.12vw,14px);line-height:1.7;
+  letter-spacing:.015em;font-weight:500;word-break:keep-all
+}
+.hero-copy #heroDescription{margin-bottom:7px}
+.hero h1{font-size:clamp(55px,7.8vw,110px);line-height:1.06;margin-bottom:24px}
+.hero-copy>p:not(.hero-identity){max-width:40rem}
+.home-value{padding-top:clamp(52px,6.5vw,82px);padding-bottom:clamp(53px,6.5vw,82px)}
+/* The former three-value stack is removed from Home to prevent About repetition. */
+#about .page-head,#research .page-head,#people .page-head,#recruitment .page-head,#updates .page-head,#post .page-head{padding-top:clamp(49px,5.1vw,64px)}
+#about .page-head h1,#research .page-head h1,#people .page-head h1,#recruitment .page-head h1,#updates .page-head h1{font-size:clamp(45px,5.5vw,76px)}
+#about .page-head p,#research .page-head p,#people .page-head p,#recruitment .page-head p,#updates .page-head p{font-size:15px;line-height:1.85;color:#526675}
+#home .eyebrow,#about .eyebrow,#research .eyebrow,#people .eyebrow,#recruitment .eyebrow,#updates .eyebrow,#post .eyebrow{font-size:11px;line-height:1.5}
+#home .line-link,#about .line-link,#research .line-link,#people .line-link,#recruitment .line-link,#updates .line-link,.home-value-link,.archive-reset,.people-join-link{font-size:12px}
+.archive-report-label{font-size:11px}
+.archive-report p{font-size:13px;line-height:1.72;color:#647b89}
+.archive-report-date{font-size:12px}
+.archive-disclosure{font-size:12px}
+.archive-search input{font-size:15px}
+.archive-sector,.archive-view-toggle button,.archive-sort-label select{min-height:44px}
+.archive-result-meta{font-size:11px}
+.reader-toc button{font-size:12px}
+#post.reader-active .cms-post-body p{font-size:15px;line-height:1.9}
+.team-node-index{font-size:11px;margin-bottom:18px}
+.team-node-role,.team-node-description{font-size:13px}
+#recruitment .process-step p{font-size:13px;line-height:1.72}
+#recruitment .process-step-code{font-size:11px}
+#recruitment .process-step{min-height:0}
+.recruitment-next-step{font-size:13px}
+@media(max-width:760px){
+  .hero{height:min(735px,calc(100svh - 68px));min-height:530px}
+  .hero h1{font-size:clamp(48px,10vw,76px)}
+  .hero-copy .hero-identity{font-size:12px;line-height:1.7;max-width:300px;margin-bottom:13px}
+  #about .page-head h1,#research .page-head h1,#people .page-head h1,#recruitment .page-head h1,#updates .page-head h1{font-size:clamp(42px,8.7vw,60px)}
+  .archive-search input{font-size:16px!important}
+  .archive-results.grid .archive-report p{font-size:13px}
+  .archive-report-date{font-size:11px}
+  #post.reader-active .cms-post-body p{font-size:15px}
+  #recruitment .process-step p{font-size:13px}
+  .team-node-description{font-size:13px}
+}
+@media(max-width:480px){
+  .hero{min-height:520px}
+  .hero h1{font-size:clamp(43px,10.5vw,55px)}
+  .hero-copy .hero-identity{max-width:275px}
+  #about .page-head h1,#research .page-head h1,#people .page-head h1,#recruitment .page-head h1,#updates .page-head h1{font-size:43px}
+  #recruitment .process-step{padding:19px 13px}
+}
+@media(prefers-reduced-motion:reduce){
+  .hero{scroll-behavior:auto}
+}
+/* Owner-approved section-by-section refinements. Activities is intentionally untouched. */
+#home .home-value-compact{display:block;max-width:100%;padding:clamp(38px,5vw,60px) 0 clamp(37px,4.8vw,58px)}
+#home .home-value-compact .home-value-copy{max-width:790px}
+#home .home-value-compact h2{font-size:clamp(34px,3.8vw,56px);line-height:1.23;margin:12px 0 15px}
+#home .home-value-compact p{max-width:48rem;margin-bottom:17px;font-size:15px;line-height:1.85}
+#home .home-value-compact+.home-section{padding-top:40px}
+#home .featured-work{min-height:258px}
+#home .featured-photo{min-height:258px}
+#home .featured-copy{min-height:0;padding-top:24px;padding-bottom:24px;gap:12px}
+#home .featured-copy h3{font-size:clamp(21px,2.45vw,32px);line-height:1.36}
+#home .featured-copy p{font-size:13px;line-height:1.75}
+#home .process-band{padding-top:36px;padding-bottom:38px}
+#home .process-layout h2{font-size:clamp(27px,3vw,39px)}
+#home .process-point{padding:11px 0}
+#home .join-strip{padding-top:37px;padding-bottom:41px}
+
+/* About: text is the approved original wording, presented as two natural sentences. */
+#about .about-approved-copy{max-width:none;font-size:clamp(14px,1.2vw,16px);line-height:1.93;letter-spacing:-.015em;word-break:keep-all;overflow-wrap:break-word;text-wrap:pretty}
+#about .about-approved-copy .about-line{display:block}
+#about .about-reasons{padding-top:clamp(32px,4vw,54px);padding-bottom:clamp(40px,4.7vw,62px)}
+#about .about-reasons-heading{margin-bottom:18px;display:block}
+#about .about-reasons-heading>.eyebrow{margin-bottom:0}
+#about .about-reasons-heading h2.sr-only{
+  position:absolute!important;width:1px!important;height:1px!important;padding:0!important;
+  margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;
+  white-space:nowrap!important;border:0!important
+}
+#about .about-reason>p{font-size:14px;line-height:1.75;max-width:none}
+#about .about-journey{padding-top:clamp(38px,4.5vw,59px)}
+#about .about-journey .about-section-heading p{max-width:34rem}
+#about .about-end-compact{background:transparent;border-top:1px solid #d1dadd;padding:21px 0;margin:0 0 clamp(45px,6vw,80px)}
+#about .about-end-compact p{font-size:14px;line-height:1.85}
+
+/* Research: information hierarchy and editorial labels remain, including Equity Research. */
+#research .archive-intro{margin-bottom:15px}
+#research .archive-result-meta{padding-top:14px}
+#research .archive-report{min-height:114px;padding-top:16px;padding-bottom:16px}
+#research .archive-report h3{margin:7px 0 5px}
+#research .archive-report-label{text-transform:uppercase}
+#research .archive-mode{font-size:11px;line-height:1.45}
+#post.reader-active .cms-post-body{overflow-wrap:break-word}
+
+/* People: remove purely decorative hierarchy, keep every role/person visible. */
+#people .team-graph{padding-top:15px;overflow:visible}
+#people .team-node-grid{padding-top:0;gap:clamp(14px,2.3vw,30px)}
+#people .team-node-grid::before,#people .team-node::before,#people .team-node::after{display:none!important}
+#people .people-editorial-lead{padding-bottom:26px}
+#people .people-editorial-lead p{font-size:14px;line-height:1.9}
+#people .team-node{padding-top:22px;padding-bottom:22px}
+#people .team-node-name{line-height:1.3}
+#people .team-node-description{line-height:1.85}
+#people .role-notice{margin-top:18px}
+
+/* Recruitment: only open applications deserve the large dark action block. */
+#recruitment .recruit-action-card[data-state="planned"]{
+  background:#f2f5f5;color:#17354a;border-top:1px solid #d5dfe3;border-bottom:1px solid #d5dfe3;
+  padding:24px clamp(20px,3vw,34px);gap:20px;margin-top:16px;margin-bottom:8px
+}
+#recruitment .recruit-action-card[data-state="planned"] .eyebrow{display:none}
+#recruitment .recruit-action-card[data-state="planned"] h3{font-size:clamp(21px,2.45vw,29px);margin:0 0 8px;color:#183a50}
+#recruitment .recruit-action-card[data-state="planned"] p{font-size:13px;color:#607681;margin:0 0 7px}
+#recruitment .recruit-action-card[data-state="planned"] small{color:#718692}
+#recruitment .recruit-action-card[data-state="planned"] #applicationTrigger{
+  background:transparent;border:0;border-bottom:1px solid #879caa;color:#234559;
+  min-width:0;min-height:44px;padding:10px 2px
+}
+#recruitment .recruit-action-card[data-state="planned"] #applicationTrigger:hover{
+  background:transparent;color:#aa634c;border-color:#aa634c
+}
+#recruitment .recruit-action-card[data-state="planned"] #applicationTrigger:focus-visible{outline:2px solid #e97858;outline-offset:3px}
+#recruitment .recruit-action-card[data-state="planned"] .recruit-secondary-trigger{color:#9c664f;border-color:#cfae9e}
+#recruitment .recruit-action-card[data-state="planned"] .recruit-secondary-trigger:hover{color:#173e53;border-color:#173e53}
+#recruitment .recruit-action-card[data-state="planned"] #applicationAvailability[hidden]{display:none}
+#recruitment .recruitment-process{padding-top:30px}
+#recruitment .recruitment-process-heading>p{max-width:340px}
+#recruitment .process-step p{font-size:13px;line-height:1.72}
+
+/* Updates: explicit chronological organization and no misleading blank list. */
+#updates .updates-section-heading{
+  display:flex;justify-content:space-between;align-items:center;gap:18px;
+  margin-top:27px;padding:0 0 13px;border-bottom:1px solid #d6dfe3
+}
+#updates .updates-section-heading .eyebrow{margin:0}
+#updates .updates-section-heading>span:last-child{font-size:12px;color:#687e8b}
+#updates .cms-empty-state{padding:clamp(38px,5vw,66px) 18px;text-align:center;border-bottom:1px solid #d5e0e5}
+#updates .cms-empty-state .eyebrow{font-size:11px;color:#a46a54;margin-bottom:11px}
+#updates .cms-empty-state h3{font-size:clamp(19px,2.15vw,25px);font-weight:500;line-height:1.5;letter-spacing:-.045em;margin:0}
+#updates .cms-empty-state p{font-size:14px;line-height:1.85;color:#647985;margin:10px auto 0;max-width:34rem;word-break:keep-all}
+#updates .cms-empty-state button{background:none;border:1px solid #9cb0bb;color:#213f51;padding:10px 17px;margin-top:16px;min-height:44px;font-size:13px}
+#updates .cms-empty-state button:hover{background:#eef3f5}
+#updates .cms-card h3{font-size:clamp(18px,1.7vw,23px)}
+#updates .cms-card p{font-size:13px;line-height:1.75}
+#updates .cms-card time{font-size:12px}
+
+@media(max-width:960px){
+  #about .about-approved-copy .about-line{display:inline}
+}
+@media(max-width:760px){
+  #home .home-value-compact{padding-top:36px;padding-bottom:39px}
+  #home .home-value-compact h2{font-size:clamp(31px,6vw,45px)}
+  #home .home-value-compact p{font-size:14px}
+  #home .home-value-compact+.home-section{padding-top:30px}
+  #home .featured-photo{height:220px;min-height:220px}
+  #home .featured-copy{padding:24px 25px;min-height:0}
+  #home .featured-copy h3{font-size:clamp(21px,5vw,28px)}
+  #about .about-approved-copy{font-size:14px;line-height:1.85}
+  #about .about-reasons{padding-top:30px;padding-bottom:45px}
+  #about .about-reasons-heading{margin-bottom:19px}
+  #about .about-reason>p{font-size:13px}
+  #about .about-end-compact{margin-bottom:50px}
+  #people .team-graph{padding-top:12px}
+  #people .people-editorial-lead{padding-bottom:21px}
+  #people .people-editorial-lead p{font-size:13px}
+  #recruitment .recruit-action-card[data-state="planned"]{padding:21px;gap:13px;margin-top:17px}
+  #recruitment .recruit-action-card[data-state="planned"] #applicationTrigger{width:fit-content;max-width:100%}
+  #recruitment .recruitment-process{padding-top:25px}
+  #updates .updates-section-heading{margin-top:20px}
+  #updates .cms-card{gap:11px}
+}
+@media(max-width:480px){
+  #home .home-value-compact h2{font-size:clamp(30px,8.15vw,38px)}
+  #home .featured-photo{height:195px;min-height:195px}
+  #research .archive-report{min-height:0}
+  #people .team-node{padding:18px}
+  #recruitment .recruit-action-card[data-state="planned"] h3{font-size:22px}
+  #updates .cms-empty-state{padding:36px 14px}
+}
+
+/* University symbol: selected footer placement for v2.7 release.
+ * Local asset based on the user-provided Sangmyung university symbol.
+ */
+#home .hero-copy .hero-identity{display:none}
+.smu-mark{display:block;object-fit:contain;flex:none}
+.footer-brand-row{display:flex;align-items:flex-start;gap:17px;min-width:0}
+.smu-mark-footer{width:54px;height:70px;margin-top:2px}
+.site-footer .footer-brand-row>div{min-width:0}
+@media(max-width:760px){
+  .smu-mark-footer{width:42px;height:56px}
+  .footer-brand-row{gap:12px}
+}
+
+/* v2.7.2 owner review fixes:
+ * Keep each approved About sentence line distinct on every viewport.
+ * Tablet layout gives the three lines enough width; phones may soft-wrap
+ * inside each span rather than reducing type to an unreadable size.
+ */
+#about .about-photo-panel .about-approved-copy{max-width:none;line-height:2;letter-spacing:-.018em}
+#about .about-photo-panel .about-approved-copy .about-line{
+  display:block!important;text-wrap:wrap;white-space:normal;word-break:keep-all
+}
+@media(min-width:1181px){
+  #about .about-photo-panel{grid-template-columns:minmax(0,.62fr) minmax(0,1.38fr)}
+  #about .about-photo-panel .about-approved-copy{font-size:clamp(14px,1.1vw,15px)}
+}
+@media(min-width:761px) and (max-width:1180px){
+  #about .about-photo-panel{grid-template-columns:1fr;gap:22px}
+  #about .about-photo-panel h2{max-width:560px}
+  #about .about-photo-panel .about-approved-copy{font-size:15px}
+}
+@media(max-width:760px){
+  #about .about-photo-panel .about-approved-copy{font-size:14px;line-height:1.9}
+}
+#research .archive-report-label{font-weight:700;letter-spacing:.09em;color:#b96a50}
+#research .archive-report-number{font-size:12px;color:#8da0ac}
