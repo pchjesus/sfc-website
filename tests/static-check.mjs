@@ -72,7 +72,7 @@ assert.match(publicHtml,/js\/about-experience\.js\?v=2\.8\.0/);
 assert.match(read('css/editorial.css'),/#about \.about-manual-lines \.about-line\{display:block\}/);
 assert.match(read('js/about-experience.js'),/copy\.replaceChildren/);
 assert.match(publicHtml,/id="homeValueTitle"/);
-assert.match(publicHtml,/class="copy-sentence"/);
+assert.ok(publicHtml.includes('about-approved-copy'),'Approved three-line About introduction required');
 assert.match(publicHtml,/href="css\/editorial\.css\?v=2\.4\.2"/);
 assert.match(read('css/editorial.css'),/text-wrap:pretty/);
 assert.match(read('js/motion.js'),/function filterRows\(/);
