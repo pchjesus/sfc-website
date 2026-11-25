@@ -27,7 +27,13 @@ for(const path of files.filter(s=>s.endsWith('.js'))){
   const scope=['js/cms-public.js','js/site.js','js/motion.js','js/visual-story.js','js/research-platform.js','js/research-reader.js'].includes(path)?publicIds:adminIds;
   // Core and config have no hard-coded local DOM dependencies.
   if(path.includes('cms-core')||path.includes('cms-config'))continue;
-  for(const id of ids)assert.ok(scope.has(id),path+' references missing DOM ID '+id);
+  // Research workbench controls are declared in a trusted static template
+  // and inserted before any event handler binds to them.
+  const generated=path==='js/research-platform.js'
+    ?new Set([...js.matchAll(/\\bid="([\\w-]+)"/g)].map(x=>x[1]))
+    :new Set();
+  for(const id of ids)assert.ok(scope.has(id)||generated.has(id),
+    path+' references missing DOM ID '+id);
   console.log('OK JavaScript:',path);
 }
 assert.match(publicHtml,/class="header-login"[^>]+href="admin.html"/,'Header login absent');
