@@ -63,6 +63,15 @@ function renderRoute(){
   if(reportMatch){
     const index=Number(reportMatch[1]);
     if(reports[index]){fillReport(index);target="detail";}else target="research";
+  }else if(/^reader-demo-([0-9]+)$/.test(route)){
+    const index=Number(/^reader-demo-([0-9]+)$/.exec(route)[1]);
+    if(!reports[index])target="research";
+    else{
+      target="post";
+      window.SFC_READER?.renderDemo(reports[index]);
+      const back=document.querySelector(".cms-post-back");
+      if(back){back.href="#research";back.textContent="← BACK TO RESEARCH";}
+    }
   }else if(postMatch){
     target="post";
     window.SFC_PUBLIC?.show(postMatch[1]);
@@ -81,7 +90,7 @@ function renderRoute(){
   });
   const from=history.state?.from||previous;
   document.querySelectorAll("#navLinks button").forEach(button=>{
-    const selected=button.dataset.page===(target==="detail"?"research":target==="post"?(from==="research"?"research":"updates"):target);
+    const selected=button.dataset.page===(target==="detail"?"research":target==="post"?(route.startsWith("reader-demo")||from==="research"?"research":"updates"):target);
     button.classList.toggle("active",selected);
     if(selected)button.setAttribute("aria-current","page");else button.removeAttribute("aria-current");
   });
@@ -474,7 +483,7 @@ window.SFC_DEMO=Object.freeze({
     if(notice)notice.textContent="※ 위 과정은 운영 기획안 기준이며 학기 일정에 따라 조정될 수 있습니다. 주차를 눌러 세부 내용을 볼 수 있습니다.";
   }
 });
-window.SFC_PLATFORM?.startDemo(reports,openReport);
+window.SFC_PLATFORM?.startDemo(reports,index=>navigate("reader-demo-"+index));
 renderHomeWorks();
 renderFilters();
 renderReports();
