@@ -35,31 +35,42 @@ def capture(browser,label,route,width=1440,height=900):
     errors=[]
     page.on("pageerror",lambda e:errors.append(str(e)))
     page.goto(base+"#"+route,wait_until="domcontentloaded")
-    page.wait_for_timeout(500)
+    page.wait_for_timeout(1450)
     if route=="home":
         page.locator(".hero-controls button").nth(1).click()
-        page.wait_for_timeout(1250)
+        page.wait_for_timeout(1450)
         page.locator(".hero-controls button").nth(2).click()
-        page.wait_for_timeout(1250)
+        page.wait_for_timeout(1450)
         page.evaluate("window.scrollTo({top:Math.min(700,document.documentElement.scrollHeight-innerHeight),behavior:'instant'})")
         page.wait_for_timeout(450)
     elif route=="about":
         for idx in [1,2,3,0]:
             page.locator('[data-experience-step="'+str(idx)+'"]').click()
-            page.wait_for_timeout(620)
+            page.wait_for_timeout(1100)
     elif route=="research":
         page.locator("#archiveGridButton").click()
-        page.wait_for_timeout(500)
+        page.wait_for_timeout(850)
         page.locator("#archiveListButton").click()
-        page.wait_for_timeout(500)
+        page.wait_for_timeout(850)
         page.locator("#archiveSearch").fill("기업")
         page.wait_for_timeout(530)
         page.locator("#archiveReset").click()
         page.wait_for_timeout(430)
+    elif route=="activities":
+        for stage in ["application","research","foundation","all"]:
+            page.locator('#scheduleTabs [data-value="'+stage+'"]').click()
+            page.wait_for_timeout(800)
+        page.locator('#scheduleList .session[data-active="true"] .session-button').first.click()
+        page.wait_for_timeout(850)
+    elif route=="recruitment":
+        page.locator('#recruitmentProcess').scroll_into_view_if_needed()
+        page.wait_for_timeout(1300)
+    elif route=="updates":
+        page.wait_for_timeout(850)
     elif route=="people":
         for target in ["recruitment","activities","updates"]:
             page.evaluate("(r)=>navigate(r)",target)
-            page.wait_for_timeout(520)
+            page.wait_for_timeout(1100)
     page.screenshot(path=str(OUT/(label+".png")),animations="disabled",full_page=True)
     video=page.video
     page.close()
@@ -76,6 +87,11 @@ try:
         capture(browser,"home-desktop","home")
         capture(browser,"about-desktop","about")
         capture(browser,"research-desktop","research")
+        capture(browser,"activities-desktop","activities")
+        capture(browser,"people-desktop","people")
+        capture(browser,"recruitment-desktop","recruitment")
+        capture(browser,"updates-desktop","updates")
+        capture(browser,"activities-mobile","activities",390,844)
         capture(browser,"navigation-mobile","people",390,844)
         browser.close()
 finally:
@@ -83,4 +99,4 @@ finally:
 
 if error_count:
     raise RuntimeError(f"Video capture page errors: {error_count}")
-print("PASS: 4 videos and 4 screenshots from real branch HTML and mock CMS")
+print("PASS: 9 videos and 9 screenshots from real branch HTML and mock CMS")
