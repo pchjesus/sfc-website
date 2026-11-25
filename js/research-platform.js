@@ -24,8 +24,8 @@
   };
   root.innerHTML=`
     <div class="archive-intro">
-      <div><span class="eyebrow">SFC / RESEARCH LIBRARY</span><p>질문에서 근거와 해석까지, 연구의 과정을 탐색하세요.</p></div>
-      <span class="archive-mode" id="archiveMode">DEMONSTRATION / SAMPLE</span>
+      <div><span class="eyebrow">RESEARCH LIBRARY</span></div>
+      <span class="archive-mode" id="archiveMode">예시 자료 · 공식 발행 전</span>
     </div>
     <div class="archive-workspace">
       <div class="archive-search-row">
@@ -208,7 +208,7 @@
     const legacy=document.getElementById("demoResearchBlock");
     const oldLive=document.getElementById("liveResearch");
     if(legacy)legacy.hidden=true;if(oldLive)oldLive.hidden=true;
-    $("archiveMode").textContent=isLive?"OFFICIAL / PUBLISHED":"DEMONSTRATION / SAMPLE";
+    $("archiveMode").textContent=isLive?"OFFICIAL / PUBLISHED":"예시 자료 · 공식 발행 전";
     $("archiveDisclosure").textContent=isLive
       ?"PUBLIC RESEARCH / 각 연구의 방법·가정·한계와 원문을 확인할 수 있습니다."
       :"DEMO / 모든 제목과 날짜는 시연을 위한 예시이며 실제 SFC 연구 성과가 아닙니다.";
