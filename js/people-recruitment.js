@@ -49,8 +49,8 @@
     roleRoot.dataset.peopleMode=live?"live":"planned";
     graph?.classList.toggle("has-live-people",live);
     $("peopleIntro").textContent=live
-      ?"공개된 SFC 운영진을 소개합니다. 각 구성원의 역할과 활동 내용을 한눈에 확인할 수 있습니다."
-      :"연구와 운영이 연결되는 SFC의 역할 구조를 소개합니다. 실제 구성원 정보는 공식 등록 이후 공개됩니다.";
+      ?"공개된 SFC 구성원과 담당 업무를 확인할 수 있습니다."
+      :"운영 · 연구 · 지원 역할과 담당 업무를 확인해 보세요. 실제 구성원 정보는 등록 후 공개됩니다.";
     $("peopleDisclaimer").textContent=live
       ?"OFFICIAL PEOPLE / 등록된 공개 프로필을 기준으로 표시합니다."
       :"POSITION STRUCTURE / 현재는 운영 기획상 역할을 보여주는 시안이며 실제 운영진 프로필이 아닙니다.";
@@ -62,10 +62,10 @@
   let ctaMode="activities";
   const actionTexts={
     planned:{
-      title:"모집 일정을 준비하고 있습니다.",
-      desc:"현재 공개된 활동 내용을 살펴보고, 지원 일정과 방법은 공식 공고에서 확인해 주세요.",
-      tag:"NEXT STEP / GET TO KNOW SFC",
-      button:"EXPLORE ACTIVITIES"
+      title:"모집 전, 활동 내용을 먼저 살펴보세요.",
+      desc:"15주 교육과 팀별 기업분석 계획을 확인할 수 있습니다.",
+      tag:"NEXT STEP / EXPLORE THE PROGRAM",
+      button:"ACTIVITIES"
     },
     open:{
       title:"함께 연구할 구성원을 모집합니다.",
@@ -102,6 +102,7 @@
     trigger.dataset.action=ctaMode;
     trigger.firstChild.textContent=label+" ";
     const availability=$("applicationAvailability");
+    availability.hidden=state==="planned"&&!hasForm;
     availability.textContent=hasPdf
       ?"PDF 양식 열람 가능"+(hasDocx?" · DOCX 제공":"")
       :hasDocx?"DOCX 양식 다운로드 가능"
