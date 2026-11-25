@@ -94,10 +94,13 @@
     const demo=mode==="demo";
     link.href=demo?"#reader-demo-"+item.index:"#post-"+item.id;
     link.dataset.motionKey=demo?"demo-"+item.index:"public-"+item.id;
-    const cap=node("span","archive-report-number",demo?"DEMO / 0"+(item.index+1):"SFC / PUBLICATION");
+    const cap=node("span","archive-report-number",demo?String(item.index+1).padStart(2,"0"):"SFC / PUBLICATION");
     const body=node("div","archive-report-copy");
-    const label=node("span","archive-report-label",demo?item.category+" / "+item.type.toUpperCase():
+    // The DEMO state and report type are one adjacent, immediately visible label.
+    // Keep the research discipline (e.g. EQUITY RESEARCH) instead of replacing it with SAMPLE.
+    const label=node("span","archive-report-label",demo?"DEMO / "+item.type.toUpperCase():
       [item.research_sector||"RESEARCH",item.research_company].filter(Boolean).join(" / "));
+    if(demo&&item.category)label.setAttribute("title",item.category);
     const title=node("h3","",item.title);
     const description=node("p","",demo?item.desc:
       item.excerpt||"발행된 연구의 세부 내용을 확인해 주세요.");
