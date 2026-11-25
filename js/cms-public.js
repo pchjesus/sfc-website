@@ -307,16 +307,18 @@
     if(status){status.hidden=!pdf;status.textContent=pdf?"미리보기를 불러오는 중…":"";}
     if(pdf){frame.src=pdf+"#toolbar=0";}else{frame.removeAttribute("src");}
     dialog.showModal();
-    modalTransition=motion.play(dialog,[{opacity:0,transform:"translateY(10px) scale(.98)"},{opacity:1,transform:"none"}],{duration:280});
+    modalTransition=motion.play(dialog,[{opacity:0,transform:"translateY(10px) scale(.98)"},{opacity:1,transform:"none"}],{duration:motion.timing.modal});
     $("applicationClose").focus({preventScroll:true});
   }
   function closeApplicationDialog(){
     const dialog=$("applicationDialog");
     if(!dialog?.open||dialog.dataset.closing==="true")return;
+    const currentOpacity=Number(getComputedStyle(dialog).opacity);
+    const currentTransform=getComputedStyle(dialog).transform;
     modalTransition?.cancel();
     dialog.dataset.closing="true";
     const finish=()=>{delete dialog.dataset.closing;if(dialog.open)dialog.close();};
-    modalTransition=motion.play(dialog,[{opacity:1,transform:"none"},{opacity:0,transform:"translateY(6px) scale(.985)"}],{duration:180});
+    modalTransition=motion.play(dialog,[{opacity:currentOpacity,transform:currentTransform},{opacity:0,transform:"translateY(6px) scale(.985)"}],{duration:motion.timing.close});
     if(modalTransition)modalTransition.finished.then(finish,finish);else finish();
   }
   $("applicationTrigger")?.addEventListener("click",openApplicationDialog);

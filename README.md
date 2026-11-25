@@ -93,3 +93,6 @@ stable CTA states, modal transitions, hero pause/progress and reduced motion.
 Codex's editor and responsive fixes are retained. Run `npm test` and
 `python3 tests/browser-check.py` (Playwright Chromium required) for regressions.
 See [Codex QA handoff](docs/CODEX_QA.md) for mock-versus-live scope.
+
+### v2.3.1 motion refinement
+Longer editorial entrances and symmetric filter dissolves, balanced three-button hero controls (active button toggles autoplay), matching progress track and contrasting Recruitment CTA. See QA report for timings and tests.

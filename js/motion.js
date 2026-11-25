@@ -2,7 +2,9 @@
 /* Shared motion system: persistent controls, keyed reflow, visible-only animation. */
 (function(){
   const media=matchMedia("(prefers-reduced-motion: reduce)");
-  const ease="cubic-bezier(.22,1,.36,1)";
+  const ease="cubic-bezier(.4,0,.2,1)";
+  const timing=Object.freeze({page:1040,recruitment:1450,reveal:1120,unveil:1350,layout:900,modal:620,close:480,hero:1050});
+  let pageAnimation=null;
   const running=new WeakMap();
   const handlers=new WeakMap();
   const seen=new WeakSet();
@@ -22,48 +24,60 @@
   function capture(root){
     const map=new Map();
     [...root.children].forEach(el=>{
-      if(el.dataset.motionKey)map.set(el.dataset.motionKey,{el,rect:el.getBoundingClientRect()});
+      if(el.dataset.motionKey)map.set(el.dataset.motionKey,{el,rect:el.getBoundingClientRect(),opacity:Number(getComputedStyle(el).opacity)});
     });
     return {rect:root.getBoundingClientRect(),map};
   }
   function transition(root,mutate,{animate=true,exit=true}={}){
-    const before=capture(root);
+    const before=capture(root),interrupted=running.has(root);
+    const can=animate&&!reduced()&&root.getClientRects().length>0&&before.rect.width>0&&before.map.size>0;
+    // Snapshot the old list in its original layout, not individual fixed-position
+    // buttons. This keeps the grid/typography intact in disjoint filter swaps.
+    const snapshot=can&&exit&&!interrupted?root.cloneNode(true):null;
     stop(root);
-    const can=animate&&!reduced()&&root.getClientRects().length>0&&before.rect.width>0;
-    // Clone only disappearing rows, detached from flow and never interactive.
-    const ghosts=[];
     mutate();
     if(!can)return;
-    const after=capture(root),animations=[];
+    const after=capture(root),animations=[],ghosts=[];
     const run=(el,frames,opts)=>{const a=play(el,frames,opts);if(a)animations.push(a);return a};
-    if(exit){
-      let count=0;
-      for(const [key,old] of before.map){
-        if(after.map.has(key)||count>=12||old.rect.bottom<0||old.rect.top>innerHeight)continue;
-        const ghost=old.el.cloneNode(true);
-        ghost.querySelectorAll("[id]").forEach(x=>x.removeAttribute("id"));
-        ghost.removeAttribute("id");ghost.inert=true;ghost.setAttribute("aria-hidden","true");
-        Object.assign(ghost.style,{position:"fixed",top:old.rect.top+"px",left:old.rect.left+"px",width:old.rect.width+"px",height:old.rect.height+"px",margin:"0",zIndex:"9",pointerEvents:"none",overflow:"hidden",background:getComputedStyle(root).backgroundColor==="rgba(0, 0, 0, 0)"?"#fff":getComputedStyle(root).backgroundColor});
-        document.body.append(ghost);ghosts.push(ghost);count++;
-        const a=run(ghost,[{opacity:1,transform:"translateY(0)"},{opacity:0,transform:"translateY(-5px)"}],{duration:160});
-        if(a)a.finished.then(()=>ghost.remove(),()=>ghost.remove());else ghost.remove();
-      }
+    const retained=[...after.map.keys()].filter(k=>before.map.has(k));
+    const removed=[...before.map.keys()].filter(k=>!after.map.has(k));
+    const added=[...after.map.keys()].filter(k=>!before.map.has(k));
+    const disjoint=retained.length===0;
+    if(snapshot&&removed.length){
+      snapshot.removeAttribute("id");
+      snapshot.querySelectorAll("[id]").forEach(x=>x.removeAttribute("id"));
+      snapshot.classList.add("motion-snapshot");
+      snapshot.dataset.motionSnapshot="true";
+      snapshot.inert=true;snapshot.setAttribute("aria-hidden","true");
+      // Shared rows stay real and travel; only removed rows appear in the exit layer.
+      [...snapshot.children].forEach(el=>{
+        if(!removed.includes(el.dataset.motionKey))el.style.visibility="hidden";
+      });
+      const wrapper=document.createElement("div");
+      wrapper.className="motion-snapshot-layer";
+      wrapper.inert=true;wrapper.setAttribute("aria-hidden","true");
+      Object.assign(wrapper.style,{top:(before.rect.top+scrollY)+"px",left:(before.rect.left+scrollX)+"px",width:before.rect.width+"px",height:before.rect.height+"px"});
+      Object.assign(snapshot.style,{width:"100%",margin:"0",height:"auto",transform:"none"});
+      wrapper.append(snapshot);document.body.append(wrapper);ghosts.push(wrapper);
+      // Direction-independent dissolve, so A→B and B→A are identical in rhythm.
+      const a=run(wrapper,[{opacity:1,offset:0},{opacity:0,offset:.48},{opacity:0,offset:1}],{duration:timing.layout,fill:"forwards"});
+      a?.finished.then(()=>wrapper.remove(),()=>wrapper.remove());
     }
-    let entering=0;
     for(const [key,next] of after.map){
       const old=before.map.get(key);
       if(old){
         const dx=old.rect.left-next.rect.left,dy=old.rect.top-next.rect.top;
-        const sx=next.rect.width?old.rect.width/next.rect.width:1;
-        // Position continuity without scaling text during list/grid changes.
-        if(Math.abs(dx)+Math.abs(dy)>1||Math.abs(sx-1)>.03)
-          run(next.el,[{transform:"translate("+dx+"px,"+dy+"px)"},{transform:"translate(0,0)"}],{duration:340});
-      }else if(next.rect.top<innerHeight+100){
-        run(next.el,[{opacity:0,transform:"translateY(9px)"},{opacity:1,transform:"translateY(0)"}],{duration:280,delay:Math.min(entering++*24,96),fill:"backwards"});
+        if(Math.abs(dx)+Math.abs(dy)>1||old.opacity<.99)
+          run(next.el,[{transform:"translate("+dx+"px,"+dy+"px)",opacity:old.opacity},{transform:"translate(0,0)",opacity:1}],{duration:timing.layout});
+      }else{
+        // No vertical replacement gesture for unrelated results, irrespective
+        // of whether their counts are equal or different.
+        const move=disjoint?"none":"translateY(6px)";
+        run(next.el,[{opacity:0,transform:move,offset:0},{opacity:0,transform:move,offset:interrupted?.12:.30},{opacity:1,transform:"none",offset:1}],{duration:timing.layout,fill:"backwards"});
       }
     }
-    if(before.map.size&&Math.abs(before.rect.height-after.rect.height)>2){
-      run(root,[{height:before.rect.height+"px"},{height:after.rect.height+"px"}],{duration:340});
+    if(Math.abs(before.rect.height-after.rect.height)>1){
+      run(root,[{height:before.rect.height+"px"},{height:after.rect.height+"px"}],{duration:timing.layout});
     }
     const state={animations,ghosts};running.set(root,state);
     Promise.allSettled(animations.map(a=>a.finished)).then(()=>{
@@ -135,9 +149,11 @@
         el.classList.add("visible");
         let kind=el.dataset.motion||"rise";
         if(innerWidth<760&&(kind==="left"||kind==="right"))kind="rise";
-        const starts={rise:"translateY(18px)",left:"translateX(-24px)",right:"translateX(24px)",scale:"scale(.975)",fade:"translateY(0)"};
-        if(kind==="unveil")play(el,[{opacity:.5,clipPath:"inset(0 0 12% 0)"},{opacity:1,clipPath:"inset(0 0 0 0)"}],{duration:610});
-        else play(el,[{opacity:.15,transform:starts[kind]||starts.rise},{opacity:1,transform:"none"}],{duration:520,delay:Math.min(Number(el.dataset.motionDelay)||0,120),fill:"backwards"});
+        const starts={rise:"translateY(14px)",left:"translateX(-18px)",right:"translateX(18px)",scale:"scale(.985)",fade:"translateY(0)"};
+        const recruitment=el.closest("#recruitment");
+        const duration=recruitment?timing.recruitment:timing.reveal;
+        if(kind==="unveil")play(el,[{opacity:.3,clipPath:"inset(0 0 9% 0)"},{opacity:1,clipPath:"inset(0 0 0 0)"}],{duration:timing.unveil});
+        else play(el,[{opacity:.28,transform:starts[kind]||starts.rise},{opacity:1,transform:"none"}],{duration,delay:Math.min((Number(el.dataset.motionDelay)||0)*1.7,220),fill:"backwards"});
       }
     },{threshold:.06});
     root.querySelectorAll(".reveal,[data-motion]").forEach(el=>{
@@ -153,10 +169,11 @@
   }
   function page(root){
     if(!root)return;
-    play(root,[{opacity:.65,transform:"translateY(5px)"},{opacity:1,transform:"none"}],{duration:320});
+    pageAnimation?.cancel();
+    pageAnimation=play(root,[{opacity:.16},{opacity:.72,offset:.58},{opacity:1}],{duration:root.id==="recruitment"?timing.recruitment:timing.page});
     reveal(root);
   }
-  window.SFC_MOTION=Object.freeze({reduced,play,reconcile,transition,controls,accordion,reveal,page,stop});
+  window.SFC_MOTION=Object.freeze({reduced,timing,play,reconcile,transition,controls,accordion,reveal,page,stop});
   media.addEventListener?.("change",()=>{if(reduced()){document.getAnimations().forEach(a=>a.cancel());document.querySelectorAll(".reveal,[data-motion]").forEach(el=>el.classList.add("visible"));}});
   window.addEventListener("resize",()=>reveal(),{passive:true});
 })();

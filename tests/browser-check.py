@@ -131,8 +131,8 @@ with sync_playwright() as p:
  x.evaluate("""()=>['research','all','application','foundation','research'].forEach(s=>document.querySelector('#scheduleTabs [data-value="'+s+'"]').click())""")
  expect(x.locator('#scheduleTabs [aria-pressed="true"]')).to_have_attribute('data-value','research')
  expect(x.locator('#scheduleList .session')).to_have_count(2)
- x.wait_for_timeout(500)
- assert x.evaluate("!document.querySelector('body > .session[aria-hidden=true]')")
+ expect(x.locator('.motion-snapshot-layer')).to_have_count(0)
+ x.wait_for_function("document.querySelector('#scheduleList').getAnimations({subtree:true}).length===0")
  x.locator('#scheduleList .session-button').first.click()
  expect(x.locator('#scheduleList .session-button').first).to_have_attribute('aria-expanded','true')
  x.locator('#scheduleList .session-button').last.click()
@@ -174,7 +174,14 @@ with sync_playwright() as p:
  ok('research list/grid transition and filter/scroll restoration')
  x.context.close()
  x=page('anonymous');x.goto(base)
- x.locator('#heroPause').click();expect(x.locator('#heroPause')).to_have_attribute('aria-pressed','true')
+ expect(x.locator('#heroPause')).to_have_count(0)
+ x.locator('.hero-controls button').first.click()
+ expect(x.locator('.hero-controls button').first).to_have_attribute('aria-label','1번 대표 이미지, 자동 재생 시작')
+ x.locator('.hero-controls button').first.click()
+ expect(x.locator('.hero-controls button').first).to_have_attribute('aria-label','1번 대표 이미지, 자동 재생 일시정지')
+ widths=x.locator('.hero-controls button').evaluate_all("(els)=>els.map(e=>e.getBoundingClientRect().width)")
+ assert max(widths)-min(widths)<1
+ assert abs(x.locator('.hero-controls').bounding_box()['width']-x.locator('.hero-progress-track').bounding_box()['width'])<1
  x.evaluate("document.querySelectorAll('.hero-controls button')[1].click()")
  expect(x.locator('#heroButton')).to_have_attribute('data-route','research')
  x.evaluate("document.querySelector('#heroButton').click()")
@@ -185,6 +192,48 @@ with sync_playwright() as p:
  expect(x.locator('#scheduleList .session')).to_have_count(2)
  x.wait_for_timeout(100)
  assert x.evaluate("document.querySelector('#scheduleList').getAnimations({subtree:true}).length===0")
- ok('hero pause/CTA synchronization and reduced-motion list behavior')
+ ok('three balanced hero controls, accessible pause, CTA synchronization and reduced motion')
+ x.context.close()
+ # Both equal-size replacements and unequal-size disjoint stage swaps use
+ # the same direction-neutral timeline. Inspect actual WAAPI keyframes.
+ x=page('anonymous');x.goto(base+'/#research')
+ expect(x.locator('#reportResults .report-item')).to_have_count(4)
+ def swap(root,control,value,expected):
+  result=x.evaluate("""([root,control,value])=>{
+    const b=[...document.querySelectorAll(control+' button')].find(e=>e.dataset.value===value);
+    b.click();
+    const list=document.querySelector(root);
+    return [...list.children].filter(e=>e.dataset.motionKey).map(e=>{
+      const a=e.getAnimations()[0];
+      return a?{duration:a.effect.getTiming().duration,frames:a.effect.getKeyframes().map(k=>({opacity:k.opacity,transform:k.transform,offset:k.offset}))}:null;
+    });
+  }""",[root,control,value])
+  assert len(result)==expected and all(a and a['duration']==900 for a in result),result
+  assert all(all(k['transform']=='none' for k in a['frames']) for a in result),result
+  expect(x.locator('.motion-snapshot-layer')).to_have_count(0)
+  x.wait_for_function("(root)=>document.querySelector(root).getAnimations({subtree:true}).length===0",arg=root)
+  return result[0]
+ x.locator('#reportFilters [data-value="케이스"]').click()
+ x.wait_for_function("document.querySelector('#reportResults').getAnimations({subtree:true}).length===0")
+ expect(x.locator('.motion-snapshot-layer')).to_have_count(0)
+ forward=swap('#reportResults','#reportFilters','교육자료',1)
+ reverse=swap('#reportResults','#reportFilters','케이스',1)
+ assert forward==reverse
+ ok('research one-to-one replacement has identical forward/reverse keyframes')
+ x.evaluate("navigate('activities')")
+ x.locator('#scheduleTabs [data-value="application"]').click()
+ x.wait_for_function("document.querySelector('#scheduleList').getAnimations({subtree:true}).length===0")
+ expect(x.locator('.motion-snapshot-layer')).to_have_count(0)
+ forward=swap('#scheduleList','#scheduleTabs','research',2)
+ reverse=swap('#scheduleList','#scheduleTabs','application',5)
+ assert forward==reverse
+ ok('activities disjoint 5-to-2 and 2-to-5 swaps share the same timeline')
+ duration=x.evaluate("""()=>{navigate('recruitment');return document.querySelector('#recruitment').getAnimations()[0].effect.getTiming().duration}""")
+ assert duration==1450
+ x.locator('#applicationTrigger').scroll_into_view_if_needed()
+ x.locator('#applicationTrigger').hover()
+ x.wait_for_timeout(650)
+ assert x.locator('#applicationTrigger').evaluate("e=>getComputedStyle(e).backgroundColor")=='rgb(237, 120, 87)'
+ ok('recruitment slow entrance and contrasting coral hover')
  x.context.close();browser.close()
 server.shutdown();print(f'{checks} browser scenarios passed; live Auth/RLS/Storage NOT exercised.')

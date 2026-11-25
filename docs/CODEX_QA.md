@@ -234,3 +234,12 @@ No SQL migrations or production data changes were made in this motion release.
   A test result is valid only if that specific workflow run succeeds.
   Browser fixture tests do not certify live Supabase, physical devices, Safari/Firefox,
   external photos/fonts, actual PDF bytes, or motion visual quality.
+
+## v2.3.1 — Motion pacing and symmetric swaps
+
+- Page 1040ms, Recruitment 1450ms, section reveal 1120ms, mask reveal 1350ms, filter reflow 900ms, photo fade 1650ms, modal 620/480ms. Buttons remain responsive; no intentional delay before state changes.
+- Disjoint result sets dissolve without a directional slide; shared items retain identity and move with the same layout timing. Old lists use a noninteractive document-positioned snapshot, removed on completion or interruption. No DB changes.
+- Hero pause button removed; three equal-width selection buttons and full-width progress. Click active number to toggle autoplay; focus/hover controls pause temporarily and reduced-motion disables autoplay.
+- Application CTA uses distinct coral hover and dark text. Fixed hover-induced horizontal movement in rows; slower disclosures and mobile navigation.
+- Three additional Chromium tests assert forward/reverse equal keyframes for one-to-one Research and unequal Activities swaps, and Recruitment duration/color. Existing tests updated to check hero controls and wait for transitions.
+- Real visual preference and actual device performance require user review; mock tests do not validate live Supabase.

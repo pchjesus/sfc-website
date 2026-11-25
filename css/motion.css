@@ -1,8 +1,8 @@
-/* SFC 2.3 — shared motion and interaction language */
+/* SFC 2.3.1 — slower, direction-independent editorial motion */
 :root{
-  --motion-ease:cubic-bezier(.22,1,.36,1);
-  --motion-fast:160ms;--motion-control:240ms;--motion-layout:340ms;
-  --motion-reveal:520ms;--motion-photo:900ms;
+  --motion-ease:cubic-bezier(.4,0,.2,1);
+  --motion-fast:300ms;--motion-control:500ms;--motion-layout:900ms;
+  --motion-reveal:1120ms;--motion-photo:1650ms;
   --action-ink:#172d41;--action-hover:#29465d;--action-coral:#ed7857;
 }
 .js .reveal,.js .reveal.visible{opacity:1;transform:none;transition:none}
@@ -28,7 +28,7 @@
 }
 .hero-button:hover span,.application-cta-button:hover span,.work-link:hover .row-arr,.detail-related-link:hover .detail-related-arrow{transform:translate(3px,-2px)}
 .application-cta-button,.application-primary{background:var(--action-ink);color:#fff;border-color:var(--action-ink)}
-.application-cta-button:hover,.application-primary:hover{background:var(--action-hover);color:#fff;border-color:var(--action-hover)}
+.application-cta-button:hover,.application-cta-button:focus-visible,.application-primary:hover,.application-primary:focus-visible{background:#ed7857;color:#172433;border-color:#ed7857}
 .application-secondary:hover{background:#edf1f3}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
   outline:2px solid #d56e4e;outline-offset:4px;
@@ -59,8 +59,11 @@ button:disabled{cursor:not-allowed;opacity:.55}
 .report-item,.cms-card,.work-link,.detail-related-link{
   transition:background-color var(--motion-fast),color var(--motion-fast),border-color var(--motion-fast);
 }
-.report-item:hover{padding-left:6px}
-@media(max-width:760px){.report-item:hover{padding-left:4px}}
+.report-list:not(.grid) .report-item:hover,.cms-card:hover{padding-left:6px}
+.report-list.grid .report-item:hover{padding-left:18px}
+.work-link:hover{padding-left:5px}
+.session-button:hover{padding-left:5px}
+@media(max-width:760px){.report-list:not(.grid) .report-item:hover,.session-button:hover{padding-left:4px}}
 .report-cover{overflow:hidden;transition:background-color var(--motion-control),transform var(--motion-control) var(--motion-ease)}
 .report-item:hover .report-cover{transform:scale(1.025)}
 /* Shared smooth disclosures, including actual CMS sessions and profiles. */
@@ -91,16 +94,18 @@ button:disabled{cursor:not-allowed;opacity:.55}
   .motion-controls{margin-inline:0}
 }
 /* Gentle ambient motion, driven by the actual slider timer. */
-.hero-control-group{display:flex;position:relative;align-items:center;gap:8px;padding-bottom:8px}
-.hero-pause{height:42px;width:42px;background:#101a2450;color:#fff;border:1px solid #ffffff80;font-size:12px;line-height:1}
-.hero-pause:hover{background:#ffffff22}
-.hero-progress-track{position:absolute;bottom:0;left:0;right:0;height:2px;background:#ffffff45;overflow:hidden}
+.hero-control-group{display:flex;position:relative;align-items:center;width:244px;max-width:100%;padding-bottom:10px}
+.hero-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;gap:7px}
+.hero-controls button{width:100%;min-width:0;height:44px;transition:background-color var(--motion-control),color var(--motion-control),border-color var(--motion-control)}
+.hero-controls button:not(.active):hover{background:#ffffff38}
+.hero-controls button.active:hover{filter:brightness(1.12)}
+.hero-progress-track{position:absolute;bottom:0;left:0;right:0;height:3px;background:#ffffff45;overflow:hidden}
 .hero-progress-track>span{display:block;height:100%;background:var(--action-coral);transform-origin:left;transform:scaleX(0)}
 .hero-photo{transition:opacity var(--motion-photo) var(--motion-ease)}
-.hero-motion-paused .hero-photo img{transition:none}
-.hero-motion-paused .hero-photo.active img{transform:scale(1)}
+.hero-photo img{transition:transform 10s linear}
+/* Avoid resetting photo scale when the timer is paused by a control. */
 /* Native dialog provides focus containment; visual transition is coordinated by JS. */
-.application-dialog::backdrop{background:rgba(8,22,32,.66);animation:backdrop-in 220ms ease-out}
+.application-dialog::backdrop{background:rgba(8,22,32,.66);animation:backdrop-in 560ms var(--motion-ease)}
 @keyframes backdrop-in{from{background:rgba(8,22,32,0);backdrop-filter:blur(0)}to{background:rgba(8,22,32,.66);backdrop-filter:blur(3px)}}
 .application-dialog-body{position:relative}
 .application-preview-status{position:absolute;left:25px;right:25px;top:20px;margin:0;padding:9px 12px;background:#f6f8f7;color:#52616d;font-size:12px;pointer-events:none}
@@ -114,4 +119,28 @@ button:disabled{cursor:not-allowed;opacity:.55}
   *,*::before,*::after{animation-duration:0.01ms!important;animation-delay:0ms!important;transition-duration:0.01ms!important;scroll-behavior:auto!important}
   .hero-photo img{transform:none!important}
   .hero-progress-track{display:none}
+}
+
+/* A detached snapshot is presentation only, never a duplicate interactive list.
+   It tracks document coordinates (not fixed viewport coordinates), so scrolling
+   while a filter changes does not leave fading rows floating on the screen. */
+.motion-snapshot-layer{position:absolute;z-index:8;pointer-events:none;overflow:hidden;contain:paint;user-select:none}
+.motion-snapshot{pointer-events:none;user-select:none}
+.motion-snapshot *{pointer-events:none!important;animation:none!important;transition:none!important}
+.motion-snapshot .report-item,.motion-snapshot .cms-card,.motion-snapshot .session-button{background:transparent}
+.motion-controls button.selected,.motion-controls button.active{background:#e9edf0!important;color:#172d41!important}
+.motion-controls button:focus-visible{outline-offset:-3px}
+.nav-links button:after{transition:right var(--motion-control) var(--motion-ease)}
+.header-login{transition:color var(--motion-fast)}
+.hero-button{transition:background-color var(--motion-control),color var(--motion-fast),transform var(--motion-control) var(--motion-ease),filter var(--motion-fast)}
+.hero-button:hover{transform:translateY(-2px)}
+.session-button,.work-link{transition:background-color var(--motion-fast),color var(--motion-fast)}
+.session-button .plus,.role-toggle-icon::before,.role-toggle-icon::after,.faq-button .plus{transition:transform var(--motion-control) var(--motion-ease)}
+@media(max-width:760px){
+ .nav-links{transition:transform 850ms var(--motion-ease)}
+ .hero-control-group{width:min(244px,100%)}
+}
+@media(prefers-reduced-motion:reduce){
+ .motion-snapshot-layer{display:none!important}
+ .hero-photo img{transform:none!important}
 }

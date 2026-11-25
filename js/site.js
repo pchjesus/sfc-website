@@ -129,8 +129,10 @@ const slides=[
   {heading:"Research<br>with purpose.",description:"실제 기업을 분석하고, 가설을 검증합니다.",label:"EXPLORE RESEARCH",route:"research",color:"#bfdcf0"},
   {heading:"Ideas become<br>insight.",description:"배움을 실전으로 연결하는 15주의 여정.",label:"OUR ACTIVITIES",route:"activities",color:"#e9e1a5"}
 ];
-let currentSlide=0,heroInterval=null,slideSwitchTimeout=null;
-let heroPaused=false,heroInView=true,heroProgress=null;
+let currentSlide=0,heroInterval=null;
+let heroPaused=false,heroInView=true,heroProgress=null,heroHovered=false;
+let heroRemaining=10000,heroStarted=null;
+const heroDuration=10000;
 const heroMotion=matchMedia("(prefers-reduced-motion: reduce)");
 window.SFC_HERO_EDIT = (description)=>{
   if(typeof description!=="string"||!description.trim())return;
@@ -138,7 +140,7 @@ window.SFC_HERO_EDIT = (description)=>{
   if(currentSlide===0)$("heroDescription").textContent=slides[0].description;
 };
 function setSlide(index){
-  if(index===currentSlide){resetSlideshow();return;}
+  if(index===currentSlide)return;
   currentSlide=index;
   const entry=slides[index],copy=$("heroCopy");
   document.querySelectorAll(".hero-photo").forEach((photo,i)=>photo.classList.toggle("active",i===index));
@@ -155,29 +157,43 @@ function setSlide(index){
   $("heroButton").style.backgroundColor=entry.color;
   $("heroButton").dataset.route=entry.route;
   copy.getAnimations().forEach(a=>a.cancel());
-  motion.play(copy,[{opacity:.2,transform:"translateY(10px)"},{opacity:1,transform:"none"}],{duration:460});
-  resetSlideshow();
+  motion.play(copy,[{opacity:.25,transform:"translateY(10px)"},{opacity:1,transform:"none"}],{duration:motion.timing.hero});
+  resetSlideshow(true);
 }
-function resetSlideshow(){
-  clearTimeout(heroInterval);heroProgress?.cancel();heroProgress=null;
-  const bar=$("heroProgress");
-  if(bar)bar.style.transform="scaleX(0)";
-  const canRun=!heroPaused&&!heroMotion.matches&&!document.hidden&&heroInView&&$("home").classList.contains("active");
+function syncHeroLabels(){
+  document.querySelectorAll(".hero-controls button").forEach((button,i)=>{
+    const active=i===currentSlide;
+    const label=(i+1)+"번 대표 이미지";
+    button.setAttribute("aria-label",active?label+(heroPaused?", 자동 재생 시작":", 자동 재생 일시정지"):label+" 선택");
+    button.title=active?(heroPaused?"자동 재생 시작":"자동 재생 일시정지"):label;
+  });
+}
+function resetSlideshow(restart=false){
+  if(heroStarted!==null)heroRemaining=Math.max(0,heroRemaining-(performance.now()-heroStarted));
+  heroStarted=null;clearTimeout(heroInterval);heroInterval=null;
+  heroProgress?.cancel();heroProgress=null;
+  if(restart===true||heroRemaining<=0)heroRemaining=heroDuration;
+  const fraction=1-heroRemaining/heroDuration,bar=$("heroProgress");
+  if(bar){bar.style.transform="scaleX("+fraction+")";bar.style.backgroundColor=slides[currentSlide].color;}
+  const focused=$("hero").contains(document.activeElement);
+  const canRun=!heroPaused&&!heroHovered&&!focused&&!heroMotion.matches&&!document.hidden&&heroInView&&$("home").classList.contains("active");
   $("hero").classList.toggle("hero-motion-paused",!canRun);
+  syncHeroLabels();
   if(canRun){
-    heroInterval=setTimeout(()=>setSlide((currentSlide+1)%slides.length),8200);
-    if(bar)heroProgress=motion.play(bar,[{transform:"scaleX(0)"},{transform:"scaleX(1)"}],{duration:8200,easing:"linear",fill:"forwards"});
+    heroStarted=performance.now();
+    heroInterval=setTimeout(()=>setSlide((currentSlide+1)%slides.length),heroRemaining);
+    if(bar)heroProgress=motion.play(bar,[{transform:"scaleX("+fraction+")"},{transform:"scaleX(1)"}],{duration:heroRemaining,easing:"linear",fill:"forwards"});
   }
 }
-document.querySelectorAll(".hero-controls button").forEach((button,i)=>button.addEventListener("click",()=>setSlide(i)));
+document.querySelectorAll(".hero-controls button").forEach((button,i)=>button.addEventListener("click",()=>{
+  if(i===currentSlide){heroPaused=!heroPaused;resetSlideshow();}else setSlide(i);
+}));
 $("heroButton").addEventListener("click",()=>navigate($("heroButton").dataset.route||"about"));
-$("heroPause").addEventListener("click",()=>{
-  heroPaused=!heroPaused;
-  $("heroPause").textContent=heroPaused?"▶":"Ⅱ";
-  $("heroPause").setAttribute("aria-label",heroPaused?"슬라이드 자동 재생":"슬라이드 일시정지");
-  $("heroPause").setAttribute("aria-pressed",String(heroPaused));
-  resetSlideshow();
-});
+const heroControls=document.querySelector(".hero-control-group");
+heroControls.addEventListener("pointerenter",event=>{if(event.pointerType==="mouse"){heroHovered=true;resetSlideshow();}});
+heroControls.addEventListener("pointerleave",()=>{heroHovered=false;resetSlideshow();});
+$("hero").addEventListener("focusin",()=>resetSlideshow());
+$("hero").addEventListener("focusout",()=>requestAnimationFrame(()=>resetSlideshow()));
 document.addEventListener("visibilitychange",resetSlideshow);
 heroMotion.addEventListener?.("change",resetSlideshow);
 if("IntersectionObserver" in window)new IntersectionObserver(entries=>{
