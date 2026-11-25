@@ -86,8 +86,8 @@
         break;
       case "research":
         track(gather(root.querySelector(".archive-intro"),"right",310,990,.58));
-        track(gather(root.querySelector(".archive-toolbar"),"left",400,990,.55));
-        track(gather(root.querySelector(".archive-filters"),"right",470,1000,.60));
+        track(gather(root.querySelector(".archive-search-row"),"left",400,990,.55));
+        track(gather(root.querySelector(".archive-controls"),"right",470,1000,.60));
         requestAnimationFrame(()=>firstList(root.querySelector("#archiveResults"),".archive-report",5));
         break;
       case "activities":
@@ -95,8 +95,11 @@
         track(gather(root.querySelector("#journeyContext"),"right",360,1080,.56));
         const stageButtons=[...root.querySelectorAll("#scheduleTabs button")];
         stageButtons.forEach((b,i)=>track(gather(b,i<2?"left":"right",520+i*95,950,.50)));
-        sequence(root,"#scheduleList>.session,#scheduleList>.cms-session","up",
-          {base:650,step:115,max:4,duration:950});
+        [...root.querySelectorAll("#scheduleList>.session:not([hidden]),#scheduleList>.cms-session:not([hidden])")]
+          .slice(0,4).forEach((row,i)=>track(tween(row,[
+            {opacity:.42,clipPath:"inset(0 0 12% 0)"},
+            {opacity:1,clipPath:"inset(0 0 0 0)"}
+          ],1010,670+i*115)));
         break;
       case "people":
         track(gather(root.querySelector(".people-editorial-lead h2"),"left",230,1080,.55));
@@ -182,8 +185,8 @@
     about:".experience-layout",
     activities:".session-list",
     people:".team-node",
-    recruitment:".recruitment-process,.recruitment-faq-heading,.process-step",
-    updates:".cms-card"
+    recruitment:".recruitment-process,.recruitment-faq-heading",
+    updates:""
   };
   const intersection=typeof IntersectionObserver!=="undefined"
     ?new IntersectionObserver(entries=>{
