@@ -4,7 +4,7 @@
   const media=matchMedia("(prefers-reduced-motion: reduce)");
   const ease="cubic-bezier(.22,1,.36,1)";
   // Fast controls and deliberate spatial reflow feel smoother than long full-page fades.
-  const timing=Object.freeze({page:280,recruitment:320,reveal:340,unveil:390,layout:355,modal:300,close:230,hero:260});
+  const timing=Object.freeze({page:280,recruitment:320,reveal:340,unveil:390,layout:355,modal:300,close:230,hero:350});
   const running=new WeakMap();
   const handlers=new WeakMap();
   const seen=new WeakSet();
@@ -67,8 +67,13 @@
       const old=before.map.get(key);
       if(old){
         const dx=old.rect.left-next.rect.left,dy=old.rect.top-next.rect.top;
-        if(Math.abs(dx)+Math.abs(dy)>1||old.opacity<.99)
-          run(next.el,[{transform:"translate("+dx+"px,"+dy+"px)",opacity:old.opacity},{transform:"translate(0,0)",opacity:1}],{duration:timing.layout});
+        if(Math.abs(dx)+Math.abs(dy)>1||old.opacity<.99){
+          // A soft optical settle keeps moving text legible and prevents
+          // list/grid cards from looking like hard overlapping duplicates.
+          const startOpacity=Math.hypot(dx,dy)>90?Math.min(old.opacity,.84):old.opacity;
+          run(next.el,[{transform:"translate("+dx+"px,"+dy+"px)",opacity:startOpacity},
+            {transform:"translate(0,0)",opacity:1}],{duration:timing.layout});
+        }
       }else{
         // No vertical replacement gesture for unrelated results, irrespective
         // of whether their counts are equal or different.
