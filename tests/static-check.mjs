@@ -66,7 +66,7 @@ assert.match(read('css/editorial.css'),/#about \.about-manual-lines \.about-line
 assert.match(read('js/about-experience.js'),/copy\.replaceChildren/);
 assert.match(publicHtml,/id="homeValueTitle"/);
 assert.match(publicHtml,/class="copy-sentence"/);
-assert.match(publicHtml,/href="css\/editorial\.css\?v=2\.4\.1"/);
+assert.match(publicHtml,/href="css\/editorial\.css\?v=2\.4\.2"/);
 assert.match(read('css/editorial.css'),/text-wrap:pretty/);
 assert.match(read('js/motion.js'),/function filterRows\(/);
 assert.match(read('js/site.js'),/motion\.filterRows\(root,selectedStage\)/);
