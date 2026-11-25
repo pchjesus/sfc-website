@@ -183,3 +183,20 @@
   #recruitment .recruit-action-card[data-state="planned"] h3{font-size:22px}
   #updates .cms-empty-state{padding:36px 14px}
 }
+
+/* Brand mark placement review: default in footer; use ?smuLogo=header for alternate.
+ * Uses the University's unmodified official symbol. Main is NOT deployed.
+ */
+#home .hero-copy .hero-identity{display:none}
+.smu-mark{display:block;object-fit:contain;flex:none}
+.smu-mark-header{display:none;width:30px;height:40px;margin-right:5px}
+.footer-brand-row{display:flex;align-items:flex-start;gap:17px;min-width:0}
+.smu-mark-footer{width:54px;height:70px;margin-top:2px}
+.smu-logo-header-preview .smu-mark-header{display:block}
+.smu-logo-header-preview .smu-mark-footer{display:none}
+.site-footer .footer-brand-row>div{min-width:0}
+@media(max-width:760px){
+  .smu-mark-header{width:24px;height:32px;margin-right:2px}
+  .smu-mark-footer{width:42px;height:56px}
+  .footer-brand-row{gap:12px}
+}
