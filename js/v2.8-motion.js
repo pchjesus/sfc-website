@@ -24,7 +24,7 @@
     return a;
   }
   function gather(el,side="up",delay=0,duration=1000,fromOpacity=.48){
-    const distance=isMobile()?18:side==="up"?34:side==="short"?12:52;
+    const distance=isMobile()?19:side==="up"?39:side==="short"?14:74;
     const x=side==="left"?-distance:side==="right"?distance:0;
     const y=side==="up"||side==="short"?distance:0;
     return tween(el,[
