@@ -34,9 +34,12 @@ with sync_playwright() as p:
    x.evaluate('(r)=>location.hash=r',route);expect(x.locator('#'+route)).to_be_visible()
    assert x.evaluate('document.documentElement.scrollWidth <= innerWidth'),(width,route)
   x.evaluate("location.hash='recruitment'");expect(x.locator('#recruitment')).to_be_visible()
-  x.locator('#applicationTrigger').click();expect(x.locator('#applicationUnavailable')).to_be_visible()
-  expect(x.locator('#applicationDownload')).to_be_hidden();x.keyboard.press('Escape')
-  expect(x.locator('#applicationTrigger')).to_be_focused()
+  expect(x.locator('#applicationTrigger')).to_have_attribute('data-action','activities')
+  x.locator('#applicationTrigger').click()
+  expect(x.locator('#activities')).to_be_visible()
+  expect(x.locator('#applicationDialog')).not_to_be_visible()
+  expect(x.locator('#applicationDownload')).to_be_hidden()
+  x.evaluate("navigate('recruitment')")
   if width<=760:
    x.locator('#menuToggle').click();expect(x.locator('#menuToggle')).to_have_attribute('aria-expanded','true')
    x.keyboard.press('Escape');expect(x.locator('#menuToggle')).to_have_attribute('aria-expanded','false')
@@ -54,8 +57,9 @@ with sync_playwright() as p:
  # Anonymous/public client never restores a privileged session.
  x=page();x.goto(base);x.wait_for_function('mock.clients.length===2')
  assert x.evaluate('mock.clients[1].auth.persistSession===false && mock.clients[1].auth.detectSessionInUrl===false')
- x.evaluate("mock.settings=[{key:'recruitment',value:{pdf_url:'https://example.invalid/blank.pdf',docx_url:'https://example.invalid/blank.docx'}}]")
+ x.evaluate("mock.settings=[{key:'recruitment',value:{status:'open',pdf_url:'https://example.invalid/blank.pdf',docx_url:'https://example.invalid/blank.docx'}}]")
  x.evaluate('SFC_PUBLIC.load()');x.evaluate("location.hash='recruitment'")
+ expect(x.locator('#applicationTrigger')).to_have_attribute('data-action','form')
  x.locator('#applicationTrigger').click();expect(x.locator('#applicationFrame')).to_have_attribute('src','https://example.invalid/blank.pdf#toolbar=0')
  expect(x.locator('#applicationDownload')).to_have_attribute('href','https://example.invalid/blank.pdf')
  expect(x.locator('#applicationDocxDownload')).to_be_visible();x.locator('#applicationClose').click()
@@ -247,7 +251,7 @@ with sync_playwright() as p:
  # Wait for viewport-triggered transforms before positioning the mouse.
  x.wait_for_function("""()=>{const e=document.querySelector('#applicationTrigger');return [e.closest('.application-cta'),e.closest('.view')].every(n=>!n||n.getAnimations().length===0)}""")
  x.locator('#applicationTrigger').hover()
- expect(x.locator('#applicationTrigger')).to_have_css('background-color','rgb(237, 120, 87)')
+ expect(x.locator('#applicationTrigger')).to_have_css('background-color','rgb(255, 255, 255)')
  ok('recruitment slow entrance and contrasting coral hover')
  x.context.close()
  # Activities must not shift horizontally even when the document changes

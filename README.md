@@ -112,3 +112,6 @@ The About introduction, study-stage descriptions and closing invitation now matc
 
 ## v2.5–v2.6 integrated preview branch
 The proposed visual story, unified Research Archive/Reader and safer Studio authoring improvements live exclusively in `preview/sfc-v2.5-v2.6-integrated`. Review [branch preview guide](docs/INTEGRATED_PREVIEW_V2.6.md). Do not merge without approval.
+
+### People & Recruitment preview (v2.6.5)
+A standalone branch \`preview/sfc-people-recruitment-v2.6.5\` introduces a single interactive, keyboard-accessible People Team Map and a status-driven Recruitment experience. Approval and live CMS/Auth checks are required before merging into main. See \`docs/PEOPLE_RECRUITMENT_PREVIEW.md\` for test cases and restrictions.

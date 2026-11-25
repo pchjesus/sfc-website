@@ -1,7 +1,7 @@
 name: SFC static checks
 on:
   push:
-    branches: [main, preview/sfc-v2.4-about-activities, preview/sfc-v2.5-v2.6-integrated]
+    branches: [main, preview/sfc-v2.4-about-activities, preview/sfc-v2.5-v2.6-integrated, preview/sfc-people-recruitment-v2.6.5]
   pull_request:
 jobs:
   qa:
@@ -24,14 +24,15 @@ jobs:
       - run: pip install playwright==1.51.0
       - run: python -m playwright install --with-deps chromium
       - run: python tests/preview-capture.py
-        if: github.ref_name == 'preview/sfc-v2.5-v2.6-integrated'
+        if: github.ref_name == 'preview/sfc-v2.5-v2.6-integrated' || github.ref_name == 'preview/sfc-people-recruitment-v2.6.5'
       - uses: actions/upload-artifact@v4
-        if: github.ref_name == 'preview/sfc-v2.5-v2.6-integrated'
+        if: github.ref_name == 'preview/sfc-v2.5-v2.6-integrated' || github.ref_name == 'preview/sfc-people-recruitment-v2.6.5'
         with:
-          name: sfc-v2.6-integrated-visual-previews
+          name: sfc-visual-branch-previews
           path: preview/screenshots/*.png
           retention-days: 30
 
 
       - run: python tests/browser-check.py
       - run: python tests/integrated-check.py
+      - run: python tests/people-recruitment-check.py

@@ -26,6 +26,7 @@
 <link rel="stylesheet" href="css/motion.css?v=2.3.3">
 <link rel="stylesheet" href="css/editorial.css?v=2.4.2">
 <link rel="stylesheet" href="css/integrated.css?v=2.6-preview">
+<link rel="stylesheet" href="css/people-recruitment.css?v=2.6.5-preview">
 <script defer src="js/motion.js?v=2.4"></script>
 <script defer src="js/research-platform.js?v=2.6-preview"></script>
 <script defer src="js/research-reader.js?v=2.6-preview"></script>
@@ -33,6 +34,7 @@
 <script defer src="js/cms-public.js?v=2.6-preview"></script>
 <script defer src="js/about-experience.js?v=2.4.2"></script>
 <script defer src="js/visual-story.js?v=2.5-preview"></script>
+<script defer src="js/people-recruitment.js?v=2.6.5-preview"></script>
 </head>
 <body>
 <header class="site-header">
@@ -289,45 +291,106 @@
 <!-- PEOPLE -->
 <section class="view" id="people">
   <div class="wrap">
-    <div class="page-head" data-motion="rise"><span class="eyebrow">PEOPLE / ORGANIZATION</span><h1>People.</h1><p>함께 분석하고 토론하는 학회. 운영진 역할을 소개합니다.</p></div>
-    <div class="people-lead" data-motion="left"><h2>Our team.</h2><p class="editorial-copy">운영진과 팀별 구성원 소개는 학회 구성 후 실제 정보로 교체합니다.</p></div>
-    <div id="roleList" aria-label="학회 운영진 역할 목록"></div>
-    <p class="role-notice">POSITION STRUCTURE / 기획서 기준 역할 목업이며 실제 운영진 프로필이 아닙니다. 역할을 누르면 담당 업무가 펼쳐집니다.</p>
+    <div class="page-head" data-motion="rise">
+      <span class="eyebrow">PEOPLE / SHARED PURPOSE</span>
+      <h1>People.</h1>
+      <p>서로 다른 관점이 만나 하나의 분석을 완성합니다.</p>
+    </div>
+    <div class="people-lead people-editorial-lead" data-motion="rise">
+      <h2>Behind the research.</h2>
+      <p class="editorial-copy" id="peopleIntro">연구와 운영이 연결되는 SFC의 역할 구조를 소개합니다.<span class="people-intro-tail"> 실제 구성원 정보는 공식 등록 이후 공개됩니다.</span></p>
+    </div>
+    <div id="peopleGraph" class="team-graph" aria-label="SFC 역할과 구성원 탐색">
+      <div class="team-graph-center" aria-hidden="true">
+        <span class="eyebrow">A SHARED PURPOSE</span>
+        <strong>Research together.</strong>
+        <small>운영 · 연구 · 협업</small>
+      </div>
+      <div id="roleList" class="team-node-grid" role="group" aria-label="역할을 선택해 설명 확인"></div>
+    </div>
+    <section id="peopleSpotlight" class="people-spotlight" aria-labelledby="peopleSpotlightTitle">
+      <div class="people-spotlight-aside">
+        <span class="eyebrow" id="peopleSpotlightKind">PLANNED ROLE / 01</span>
+        <span id="peopleSpotlightCounter">01 / 03</span>
+      </div>
+      <div class="people-spotlight-main">
+        <h3 id="peopleSpotlightTitle">President.</h3>
+        <p id="peopleSpotlightSubtitle">회장 · 운영 총괄</p>
+        <p id="peopleSpotlightDescription">학회 운영 및 세션 관리 등 운영 기획상 역할입니다.</p>
+      </div>
+      <span class="people-spotlight-mark" aria-hidden="true">↗</span>
+    </section>
+    <p class="role-notice" id="peopleDisclaimer">POSITION STRUCTURE / 현재는 역할 계획을 보여주는 시안이며 실제 운영진 프로필이 아닙니다.</p>
+    <div class="people-next-link" data-motion="rise">
+      <div>
+        <span class="eyebrow">TAKE PART / NEXT STEP</span>
+        <strong>다음 연구의 관점은 당신에게서 시작될 수 있습니다.</strong>
+      </div>
+      <a href="#recruitment" data-route="recruitment" class="people-join-link">RECRUITMENT <span aria-hidden="true">↗</span></a>
+    </div>
   </div>
 </section>
+
 <!-- RECRUITMENT -->
 <section class="view" id="recruitment">
   <div class="wrap">
-    <div class="page-head" data-motion="rise"><span class="eyebrow">RECRUITMENT / 2027 SPRING</span><h1>Join SFC.</h1><p>기업의 가치를 함께 연구할 신입회원을 기다립니다.</p></div>
-    <div class="recruit-layout" data-motion="rise">
-      <div><span class="status" id="recruitStatus" data-status="planned">모집 예정</span><h2 id="recruitTitle">A place to<br>think deeper.</h2><p id="recruitMessage">2027년 3월 초 모집 예정이며 지원 일정과 방법은 추후 공지됩니다.</p></div>
-      <div>
+    <div class="page-head" data-motion="rise">
+      <span class="eyebrow">RECRUITMENT / SFC</span>
+      <h1>Join SFC.</h1>
+      <p>기업을 이해하고, 근거를 검증하고, 자신의 논리로 설명하는 경험.</p>
+    </div>
+    <div class="recruit-layout recruit-intro" data-motion="rise">
+      <div class="recruit-intro-copy">
+        <span class="status" id="recruitStatus" data-status="planned">모집 예정</span>
+        <h2 id="recruitTitle">A place to<br>think deeper.</h2>
+        <p id="recruitMessage">2027년 3월 초 모집 예정이며 지원 일정과 방법은 추후 공지됩니다.</p>
+      </div>
+      <div class="recruit-fact-grid" aria-label="모집 기본 정보">
         <div class="recruit-fact"><strong>모집 대상</strong><span id="recruitAudiencePublic">전 학년 재학생</span></div>
         <div class="recruit-fact"><strong>활동 규모</strong><span id="recruitCapacityPublic">20–30명 예정</span></div>
         <div class="recruit-fact"><strong>활동 시간</strong><span id="recruitMeetingPublic">주 1회 · 약 2시간</span></div>
         <div class="recruit-fact"><strong>지원 방법</strong><span id="recruitMethodPublic">추후 공지</span></div>
       </div>
     </div>
-    <div class="application-cta" data-motion="scale"><div><span class="eyebrow">APPLICATION / PUBLIC DOWNLOAD</span>
-        <h3>Application form.</h3><p>로그인 없이 지원서 양식을 확인하고 내려받을 수 있습니다.</p><small id="applicationAvailability">공식 지원서 양식 등록 전</small></div>
-        <button type="button" id="applicationTrigger" class="application-cta-button">VIEW APPLICATION <span aria-hidden="true">↗</span></button>
-    </div><p class="recruit-instructions" id="recruitInstructionsPublic" hidden></p>
-    <div class="recruitment-status-track" id="recruitmentStatusTrack" data-state="planned" aria-label="현재 모집 상태">
+    <div class="application-cta recruit-action-card" id="recruitActionCard" data-motion="rise" data-state="planned">
+      <div class="recruit-action-copy">
+        <span class="eyebrow" id="recruitActionEyebrow">NEXT STEP / BEFORE APPLYING</span>
+        <h3 id="recruitActionTitle">모집 일정을 준비하고 있습니다.</h3>
+        <p id="recruitActionDescription">공식 공고에서 일정과 지원 방법을 확인할 수 있습니다.</p>
+        <small id="applicationAvailability">공식 지원서 양식 등록 전</small>
+      </div>
+      <button type="button" id="applicationTrigger" class="application-cta-button" data-action="activities">EXPLORE ACTIVITIES <span aria-hidden="true">↗</span></button>
+    </div>
+    <p class="recruit-instructions" id="recruitInstructionsPublic" hidden></p>
+    <div class="recruitment-status-track" id="recruitmentStatusTrack" data-state="planned" aria-label="현재 모집 상태" hidden>
       <div data-recruit-state="planned" class="current" aria-current="step"><span>01</span><strong>모집 준비</strong></div>
       <div data-recruit-state="open" aria-current="false"><span>02</span><strong>접수 진행</strong></div>
       <div data-recruit-state="closed" aria-current="false"><span>03</span><strong>모집 종료</strong></div>
     </div>
     <p class="recruitment-next-step" id="recruitmentNextStep" role="status">모집 일정과 지원 방법은 공식 공고에서 확정됩니다.</p>
-    <span class="eyebrow" style="margin-bottom:21px">RECRUITMENT PROCESS / PLANNED</span>
-    <div class="process-steps">
-      <div class="process-step" data-motion="rise" data-motion-delay="0"><small>01</small><strong>모집 공고</strong><p>3월 초 예정</p></div>
-      <div class="process-step" data-motion="rise" data-motion-delay="40"><small>02</small><strong>지원서</strong><p>서류 접수</p></div>
-      <div class="process-step" data-motion="rise" data-motion-delay="80"><small>03</small><strong>면접</strong><p>지원자 면담</p></div>
-      <div class="process-step" data-motion="rise" data-motion-delay="120"><small>04</small><strong>첫 세션</strong><p>3월 중순 목표</p></div>
+    <section class="recruitment-process" aria-labelledby="recruitmentProcessTitle">
+      <div class="section-head recruitment-process-heading">
+        <div><span class="eyebrow">THE PATH / PROPOSED</span><h2 id="recruitmentProcessTitle">How to join.</h2></div>
+        <p>지원의 흐름을 살펴보세요. 세부 절차와 일정은 최종 모집 공고에서 확정됩니다.</p>
+      </div>
+      <div class="process-steps" id="recruitmentProcess" role="group" aria-label="모집 절차 선택">
+        <div class="process-step"><button type="button" data-process-step="0" aria-pressed="true" aria-controls="processDetail"><small>01</small><strong>모집 공고</strong><span>NOTICE</span></button></div>
+        <div class="process-step"><button type="button" data-process-step="1" aria-pressed="false" aria-controls="processDetail"><small>02</small><strong>지원서</strong><span>APPLICATION</span></button></div>
+        <div class="process-step"><button type="button" data-process-step="2" aria-pressed="false" aria-controls="processDetail"><small>03</small><strong>면접</strong><span>DISCUSSION</span></button></div>
+        <div class="process-step"><button type="button" data-process-step="3" aria-pressed="false" aria-controls="processDetail"><small>04</small><strong>첫 세션</strong><span>WELCOME</span></button></div>
+      </div>
+      <div id="processDetail" class="process-detail" role="region" aria-label="선택한 모집 절차 안내" aria-live="polite">
+        <span id="processDetailNumber">01 / NOTICE</span>
+        <h3 id="processDetailTitle">모집 공고</h3>
+        <p id="processDetailDescription">지원 자격과 모집 일정, 제출 방법을 공식 공고에서 확인합니다.</p>
+      </div>
+    </section>
+    <div class="section-head recruitment-faq-heading">
+      <div><span class="eyebrow">QUESTIONS / BEFORE YOU APPLY</span><h2>Before you apply.</h2></div>
+      <p>지원 전 궁금한 내용을 확인하세요.</p>
     </div>
-    <div class="section-head"><h2>FAQ.</h2></div>
     <div class="faq-list" id="faqList"></div>
-    <p class="notice-inline" style="margin-bottom:70px">※ 선발 과정과 세부 일정은 최종 모집 공고에서 확정됩니다.</p>
+    <p class="notice-inline" style="margin-bottom:70px">※ 현재 공개된 내용은 운영 계획이며, 실제 선발 방식은 공식 모집 공고가 우선합니다.</p>
   </div>
 </section>
 <dialog id="researchPdfDialog" class="application-dialog reader-pdf-dialog" aria-labelledby="researchPdfTitle">

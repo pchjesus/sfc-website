@@ -173,6 +173,11 @@
   function publicPeople(){
     const root=$("roleList");if(!root)return;
     const sorted=allPeople.filter(x=>x.visible).sort((a,b)=>a.sort_order-b.sort_order);
+    if(window.SFC_PEOPLE_RECRUITMENT){
+      window.SFC_PEOPLE_RECRUITMENT.setPeople(sorted);
+      livePeopleMode=sorted.length>0;
+      return;
+    }
     if(!sorted.length){
       if(livePeopleMode){livePeopleMode=false;window.SFC_DEMO?.people();}
       return;
@@ -317,6 +322,7 @@
       doc.hidden=!editable;
       if(editable)doc.href=editable;else doc.removeAttribute("href");
     }
+    window.SFC_PEOPLE_RECRUITMENT?.syncRecruitment();
   }
   let modalTransition=null;
   function openApplicationDialog(){
@@ -324,8 +330,12 @@
     if(!dialog||dialog.open)return;
     modalTransition?.cancel();
     const pdf=cms.safeUrl(recruitConfig?.pdf_url);
+    const docx=cms.safeUrl(recruitConfig?.docx_url);
     const frame=$("applicationFrame"),fallback=$("applicationUnavailable"),status=$("applicationPreviewStatus");
     frame.hidden=!pdf;fallback.hidden=Boolean(pdf);
+    fallback.textContent=docx&&!pdf
+      ?"PDF 미리보기는 제공되지 않습니다. 아래에서 편집용 DOCX 파일을 내려받을 수 있습니다."
+      :"공식 지원서가 아직 등록되지 않았습니다. 모집 공고 이후 다시 확인해 주세요.";
     if(status){status.hidden=!pdf;status.textContent=pdf?"미리보기를 불러오는 중…":"";}
     if(pdf){frame.src=pdf+"#toolbar=0";}else{frame.removeAttribute("src");}
     dialog.showModal();
@@ -394,6 +404,6 @@
     clearInterval(refreshClock);
     refreshClock=setInterval(renderRecruitment,60_000);
   }
-  window.SFC_PUBLIC={show,load};
+  window.SFC_PUBLIC={show,load,openApplicationDialog};
   load();
 })();

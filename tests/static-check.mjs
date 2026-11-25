@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 
 const read=path=>fs.readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const files=['index.html','admin.html','css/site.css','css/cms-public.css','css/cms.css',
-  'js/motion.js','css/motion.css','css/editorial.css','css/integrated.css','js/about-experience.js','js/visual-story.js','js/research-platform.js','js/research-reader.js','js/site.js','js/cms-core.js','js/cms-public.js','js/cms-admin.js','js/cms-studio.js',
+  'js/motion.js','css/motion.css','css/editorial.css','css/integrated.css','css/people-recruitment.css','js/about-experience.js','js/visual-story.js','js/people-recruitment.js','js/research-platform.js','js/research-reader.js','js/site.js','js/cms-core.js','js/cms-public.js','js/cms-admin.js','js/cms-studio.js',
   'js/cms-config.js','sql/sfc-cms.sql','sql/sfc-roles-v1.4.sql',
   'sql/sfc-integrated-2.0.sql','robots.txt','sitemap.xml'];
 for(const path of files){assert.ok(read(path).length>0,path+' missing or empty');}
@@ -24,7 +24,7 @@ for(const path of files.filter(s=>s.endsWith('.js'))){
   const js=read(path);
   new vm.Script(js,{filename:path});
   const ids=[...js.matchAll(/\$\("([\w-]+)"\)/g)].map(x=>x[1]);
-  const scope=['js/cms-public.js','js/site.js','js/motion.js','js/visual-story.js','js/research-platform.js','js/research-reader.js'].includes(path)?publicIds:adminIds;
+  const scope=['js/cms-public.js','js/site.js','js/motion.js','js/visual-story.js','js/people-recruitment.js','js/research-platform.js','js/research-reader.js'].includes(path)?publicIds:adminIds;
   // Core and config have no hard-coded local DOM dependencies.
   if(path.includes('cms-core')||path.includes('cms-config'))continue;
   // Research workbench controls are declared in a trusted static template
@@ -90,4 +90,15 @@ assert.match(read('js/cms-public.js'),/\.maybeSingle\(\)/);
 assert.match(read('js/cms-public.js'),/\.limit\(80\)/);
 assert.match(adminHtml,/id="insertResearchOutline"/);
 assert.match(read('js/cms-admin.js'),/research_method/);
-console.log('PASS: baseline and v2.5–2.6 static, security and editorial contracts');
+assert.match(publicHtml,/id="peopleGraph"/);
+assert.match(publicHtml,/id="peopleSpotlight"/);
+assert.match(publicHtml,/id="recruitActionCard"/);
+assert.match(publicHtml,/id="recruitmentProcess"/);
+assert.match(publicHtml,/id="processDetail"/);
+assert.match(publicHtml,/href="css\/people-recruitment\.css\?v=2\.6\.5-preview"/);
+assert.match(publicHtml,/src="js\/people-recruitment\.js\?v=2\.6\.5-preview"/);
+assert.match(read('js/cms-public.js'),/SFC_PEOPLE_RECRUITMENT\.setPeople/);
+assert.match(read('js/cms-public.js'),/SFC_PEOPLE_RECRUITMENT\?\.syncRecruitment/);
+assert.match(read('js/people-recruitment.js'),/aria-pressed/);
+assert.match(read('css/people-recruitment.css'),/prefers-reduced-motion:reduce/);
+console.log('PASS: v2.6.5 People/Recruitment, security and editorial contracts');
