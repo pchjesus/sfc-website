@@ -30,7 +30,7 @@ for(const path of files.filter(s=>s.endsWith('.js'))){
   // Research workbench controls are declared in a trusted static template
   // and inserted before any event handler binds to them.
   const generated=path==='js/research-platform.js'
-    ?new Set([...js.matchAll(/\\bid="([\\w-]+)"/g)].map(x=>x[1]))
+    ?new Set([...js.matchAll(/id="([A-Za-z0-9-]+)"/g)].map(x=>x[1]))
     :new Set();
   for(const id of ids)assert.ok(scope.has(id)||generated.has(id),
     path+' references missing DOM ID '+id);
