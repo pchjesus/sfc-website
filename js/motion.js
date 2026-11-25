@@ -149,6 +149,9 @@
         filterAnimations.delete(row);
         row.hidden=!desired;
         row.style.overflow="";
+        // A finished fill:both WAAPI animation remains visible to
+        // getAnimations() and may retain layout effects until canceled.
+        animation.cancel();
       },()=>{});
     }
     root.dataset.filtered="true";
