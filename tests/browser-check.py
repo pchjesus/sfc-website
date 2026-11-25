@@ -165,6 +165,7 @@ with sync_playwright() as p:
  x.locator('#archiveGridButton').click()
  expect(x.locator('#archiveResults')).to_have_class('archive-results grid')
  x.evaluate("window.scrollTo(0,Math.min(220,document.documentElement.scrollHeight-innerHeight))")
+ x.locator('#archiveResults .archive-report').first.scroll_into_view_if_needed()
  x.wait_for_timeout(150);stored=x.evaluate('scrollY')
  x.locator('#archiveResults .archive-report').first.click()
  expect(x.locator('#post.reader-demo')).to_be_visible()
