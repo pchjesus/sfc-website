@@ -206,9 +206,10 @@
       if(liveSessionMode){liveSessionMode=false;liveOpen=null;window.SFC_DEMO?.schedule(liveStage);}
       return;
     }
-    liveSessionMode=true;
     const tabs=$("scheduleTabs"),root=$("scheduleList");
     if(!tabs||!root)return;
+    const firstLive=!liveSessionMode;
+    liveSessionMode=true;
     const title=document.querySelector(".schedule-header strong");
     if(title)title.textContent="SFC / CURRENT PROGRAM";
     const count=document.querySelector(".schedule-header small");
@@ -216,41 +217,57 @@
     const notice=document.querySelector("#activities .notice-inline");
     if(notice)notice.textContent="실제 공개된 교육과정입니다. 세부 내용은 변경될 수 있습니다.";
     const stages=[["all","전체"],["foundation","기초교육"],["application","기업분석 실습"],["research","최종 연구"]];
-    function render(){
+    if(firstLive){
+      const prior=tabs.querySelector('[aria-pressed="true"]')?.dataset.value;
+      if(stages.some(([v])=>v===prior))liveStage=prior;
+    }
+    if(!sessions.some(s=>s.id===liveOpen))liveOpen=null;
+    function toggleLive(id){
+      liveOpen=liveOpen===id?null:id;
+      const active=[...root.children].find(el=>el.dataset.motionKey==="live-session-"+liveOpen);
+      motion.accordion(root,".cms-session",active||null);
+    }
+    // Rebuild only when the underlying *data* changed, never on tab clicks.
+    const signature=JSON.stringify(sessions);
+    if(root.dataset.curriculumMode!=="live"||root.dataset.curriculumSource!==signature){
+      const nodes=sessions.map(s=>{
+        const section=element("div","cms-session");
+        section.dataset.motionKey="live-session-"+s.id;
+        section.dataset.stage=s.stage;
+        const button=element("button","cms-session-head");
+        button.type="button";
+        const expanded=liveOpen===s.id;
+        section.classList.toggle("open",expanded);
+        button.setAttribute("aria-expanded",String(expanded));
+        const panelId="live-session-panel-"+s.id;
+        button.setAttribute("aria-controls",panelId);
+        button.append(element("span","cms-session-week","W"+s.week_label),
+          element("strong","",s.title),element("span","cms-session-summary",s.summary||""),element("span","motion-plus","＋"));
+        const panel=element("div","motion-disclosure");
+        panel.id=panelId;panel.inert=!expanded;panel.setAttribute("aria-hidden",String(!expanded));
+        const inner=element("div","");
+        inner.append(element("p","cms-session-detail",s.detail||"세부 내용은 추후 안내됩니다."));
+        panel.append(inner);
+        button.addEventListener("click",()=>toggleLive(s.id));
+        section.append(button,panel);
+        return section;
+      });
+      root.replaceChildren(...nodes);
+      root.dataset.curriculumMode="live";
+      root.dataset.curriculumSource=signature;
+      delete root.dataset.filtered;
+    }
+    const render=()=>{
       motion.controls(tabs,stages,liveStage,value=>{
         if(value===liveStage)return;
         liveStage=value;
         if(!sessions.some(s=>s.id===liveOpen&&(value==="all"||s.stage===value)))liveOpen=null;
         render();
       });
-      const nodes=sessions.filter(x=>liveStage==="all"||x.stage===liveStage).map(s=>{
-        const section=element("div","cms-session");
-        section.dataset.motionKey="live-session-"+s.id;
-        const button=element("button","cms-session-head");
-        const expanded=liveOpen===s.id;
-        section.classList.toggle("open",expanded);
-        button.type="button";button.setAttribute("aria-expanded",String(expanded));
-        const panelId="live-session-panel-"+s.id;button.setAttribute("aria-controls",panelId);
-        button.append(element("span","cms-session-week","W"+s.week_label),
-          element("strong","",s.title),element("span","cms-session-summary",s.summary||""),element("span","motion-plus","＋"));
-        const panel=element("div","motion-disclosure");
-        panel.id=panelId;panel.inert=!expanded;panel.setAttribute("aria-hidden",String(!expanded));
-        const inner=element("div","");inner.append(element("p","cms-session-detail",s.detail||"세부 내용은 추후 안내됩니다."));
-        panel.append(inner);
-        button.addEventListener("click",()=>{
-          liveOpen=liveOpen===s.id?null:s.id;
-          const active=[...root.children].find(el=>el.dataset.motionKey==="live-session-"+liveOpen);
-          motion.accordion(root,".cms-session",active||null);
-        });
-        section.append(button,panel);return section;
-      });
-      if(!nodes.length){const empty=element("p","cms-empty","등록된 교육과정이 없습니다.");empty.dataset.motionKey="empty";nodes.push(empty);}
-      motion.reconcile(root,nodes,{reuse:"equal"});
-      motion.accordion(root,".cms-session",[...root.children].find(el=>el.dataset.motionKey==="live-session-"+liveOpen)||null);
-    }
-    // Keep an already selected sample-stage filter when actual data arrives.
-    const prior=tabs.querySelector('[aria-pressed="true"]')?.dataset.value;
-    if(stages.some(([v])=>v===prior))liveStage=prior;
+      motion.filterRows(root,liveStage);
+      const active=[...root.children].find(el=>el.dataset.motionKey==="live-session-"+liveOpen);
+      motion.accordion(root,".cms-session",active||null);
+    };
     render();
   }
   function computedRecruitStatus(){

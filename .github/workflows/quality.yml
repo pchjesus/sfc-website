@@ -1,7 +1,7 @@
 name: SFC static checks
 on:
   push:
-    branches: [main]
+    branches: [main, preview/sfc-v2.4-about-activities]
   pull_request:
 jobs:
   qa:
@@ -24,3 +24,12 @@ jobs:
       - run: pip install playwright==1.51.0
       - run: python -m playwright install --with-deps chromium
       - run: python tests/browser-check.py
+      - run: python tests/preview-capture.py
+        if: github.ref_name == 'preview/sfc-v2.4-about-activities'
+      - uses: actions/upload-artifact@v4
+        if: github.ref_name == 'preview/sfc-v2.4-about-activities'
+        with:
+          name: sfc-v2.4-visual-previews
+          path: preview/screenshots/*.png
+          retention-days: 30
+
