@@ -1,6 +1,7 @@
 "use strict";
 document.documentElement.classList.add("js");
 const $=id=>document.getElementById(id);
+const motion=window.SFC_MOTION;
 const pages=["home","about","research","activities","people","recruitment","updates"];
 const navLabels=["HOME","ABOUT","RESEARCH","ACTIVITIES","PEOPLE","RECRUITMENT","UPDATES"];
 const nav=$("navLinks");
@@ -12,8 +13,12 @@ pages.forEach((name,i)=>{
   button.addEventListener("click",()=>navigate(name));
   nav.appendChild(button);
 });
+const mobileMenu=matchMedia("(max-width: 760px)");
+function syncMenuAccess(){nav.inert=mobileMenu.matches&&!nav.classList.contains("open");}
+mobileMenu.addEventListener?.("change",()=>{closeMenu();});
 function closeMenu(){
   nav.classList.remove("open");
+  syncMenuAccess();
   $("scrim").classList.remove("open");
   $("menuToggle").setAttribute("aria-expanded","false");
   $("menuToggle").textContent="☰";
@@ -21,18 +26,37 @@ function closeMenu(){
 }
 function toggleMenu(){
   const opened=nav.classList.toggle("open");
+  syncMenuAccess();
   $("scrim").classList.toggle("open",opened);
   $("menuToggle").setAttribute("aria-expanded",String(opened));
   $("menuToggle").textContent=opened?"×":"☰";
   document.body.style.overflow=opened?"hidden":"";
+  if(opened)nav.querySelector("button.active,button")?.focus({preventScroll:true});
 }
+let activeRoute=null;
+let routeRevision=0;
+const scrollMemory=new Map();
+if("scrollRestoration" in history)history.scrollRestoration="manual";
+function currentHash(){
+  try{return decodeURIComponent(location.hash.slice(1)||"home");}
+  catch(_){return "home";}
+}
+function rememberScroll(){
+  if(activeRoute&&currentHash()===activeRoute)scrollMemory.set(activeRoute,window.scrollY);
+}
+window.addEventListener("scroll",rememberScroll,{passive:true});
 function navigate(route){
-  if(location.hash.slice(1)!==route)history.pushState({route},"","#"+route);
+  rememberScroll();
+  if(currentHash()===route){closeMenu();return;}
+  const previous=activeRoute;
+  history.pushState({route,from:previous},"","#"+route);
   renderRoute();
 }
 function renderRoute(){
-  let route;
-  try{route=decodeURIComponent(location.hash.slice(1)||"home");}catch(_){route="home";}
+  const route=currentHash();
+  if(route===activeRoute)return;
+  const previous=activeRoute;
+  const sequence=++routeRevision;
   let target=route;
   const reportMatch=/^report-(\d+)$/.exec(route);
   const postMatch=/^post-([0-9a-f-]{36})$/.exec(route);
@@ -42,24 +66,63 @@ function renderRoute(){
   }else if(postMatch){
     target="post";
     window.SFC_PUBLIC?.show(postMatch[1]);
+    const from=history.state?.from||previous;
+    const back=document.querySelector(".cms-post-back");
+    const dest=["research","updates","home"].includes(from)?from:"updates";
+    if(back){back.href="#"+dest;back.textContent="← BACK TO "+dest.toUpperCase();}
   }
   if(!pages.includes(target)&&target!=="detail"&&target!=="post")target="home";
-  document.querySelectorAll(".view").forEach(section=>section.classList.toggle("active",section.id===target));
+  document.querySelectorAll(".view").forEach(section=>{
+    if(section.id!==target){
+      section.querySelectorAll("#scheduleList,#reportResults,.cms-live-list,#updatesList").forEach(motion.stop);
+    }
+    section.classList.toggle("active",section.id===target);
+    section.inert=section.id!==target;
+  });
+  const from=history.state?.from||previous;
   document.querySelectorAll("#navLinks button").forEach(button=>{
-    const selected=button.dataset.page===(target==="detail"?"research":target==="post"?"updates":target);
+    const selected=button.dataset.page===(target==="detail"?"research":target==="post"?(from==="research"?"research":"updates"):target);
     button.classList.toggle("active",selected);
-    button.setAttribute("aria-current",selected?"page":"false");
+    if(selected)button.setAttribute("aria-current","page");else button.removeAttribute("aria-current");
   });
   document.title=(target==="home"?"SFC":target==="detail"?"Research":target==="post"?"Updates":target.charAt(0).toUpperCase()+target.slice(1))+" | Sangmyung Financial Club";
   closeMenu();
-  window.scrollTo({top:0,left:0,behavior:"instant"});
-  revealOnScroll();
+  activeRoute=route;
+  // Returning to a list retains its search/filter state and reading position.
+  const saved=scrollMemory.get(route)||0;
+  window.scrollTo({top:saved,left:0,behavior:"instant"});
+  requestAnimationFrame(()=>{
+    if(sequence!==routeRevision)return;
+    window.scrollTo({top:saved,left:0,behavior:"instant"});
+    motion.reveal(document.getElementById(target));updateReadingProgress();
+  });
+  motion.page(document.getElementById(target));
+  resetSlideshow();
 }
 window.addEventListener("popstate",renderRoute);
 window.addEventListener("hashchange",renderRoute);
+document.addEventListener("click",event=>{
+  if(event.defaultPrevented||event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
+  const a=event.target.closest('a[href^="#"]');
+  if(!a)return;
+  const route=a.getAttribute("href").slice(1);
+  if(pages.includes(route)||/^report-\d+$|^post-[0-9a-f-]{36}$/.test(route)){
+    event.preventDefault();navigate(route);
+  }
+});
+function updateReadingProgress(){
+  const el=$("readingProgress");if(!el)return;
+  const show=["research","activities","detail","post","updates"].some(x=>document.getElementById(x)?.classList.contains("active"));
+  const max=document.documentElement.scrollHeight-innerHeight;
+  el.hidden=!show||max<100;
+  el.style.transform="scaleX("+Math.max(0,Math.min(1,max>0?scrollY/max:0))+")";
+}
+let readingFrame=0;
+window.addEventListener("scroll",()=>{if(!readingFrame)readingFrame=requestAnimationFrame(()=>{readingFrame=0;updateReadingProgress();});},{passive:true});
+window.addEventListener("resize",updateReadingProgress,{passive:true});
 $("menuToggle").addEventListener("click",toggleMenu);
 $("scrim").addEventListener("click",closeMenu);
-document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMenu()});
+document.addEventListener("keydown",event=>{if(event.key==="Escape"&&nav.classList.contains("open")){closeMenu();$("menuToggle").focus({preventScroll:true});}});
 /* Home photo slider */
 const slides=[
   {heading:"See beyond<br>the numbers.",description:"기업의 숫자를 읽고, 가치의 근거를 찾다.",label:"DISCOVER SFC",route:"about",color:"#ed7857"},
@@ -67,52 +130,67 @@ const slides=[
   {heading:"Ideas become<br>insight.",description:"배움을 실전으로 연결하는 15주의 여정.",label:"OUR ACTIVITIES",route:"activities",color:"#e9e1a5"}
 ];
 let currentSlide=0,heroInterval=null,slideSwitchTimeout=null;
+let heroPaused=false,heroInView=true,heroProgress=null;
+const heroMotion=matchMedia("(prefers-reduced-motion: reduce)");
 window.SFC_HERO_EDIT = (description)=>{
   if(typeof description!=="string"||!description.trim())return;
   slides[0].description=description.trim();
   if(currentSlide===0)$("heroDescription").textContent=slides[0].description;
 };
 function setSlide(index){
-  if(index===currentSlide)return;
+  if(index===currentSlide){resetSlideshow();return;}
   currentSlide=index;
   const entry=slides[index],copy=$("heroCopy");
-  copy.classList.add("switching");
   document.querySelectorAll(".hero-photo").forEach((photo,i)=>photo.classList.toggle("active",i===index));
   document.querySelectorAll(".hero-controls button").forEach((button,i)=>{
     button.classList.toggle("active",i===index);
     button.setAttribute("aria-pressed",String(i===index));
   });
-  clearTimeout(slideSwitchTimeout);
-  slideSwitchTimeout=setTimeout(()=>{
-    $("heroNumber").textContent="SFC / 00"+(index+1);
-    $("heroNumber").style.color=entry.color;
-    $("heroHeading").innerHTML=entry.heading;
-    $("heroDescription").textContent=entry.description;
-    $("heroButton").firstChild.textContent=entry.label+" ";
-    $("heroButton").style.backgroundColor=entry.color;
-    $("heroButton").dataset.route=entry.route;
-    copy.classList.remove("switching");
-  },230);
+  // The CTA and image always refer to the same slide, even during rapid clicks.
+  $("heroNumber").textContent="SFC / 00"+(index+1);
+  $("heroNumber").style.color=entry.color;
+  $("heroHeading").innerHTML=entry.heading;
+  $("heroDescription").textContent=entry.description;
+  $("heroButton").firstChild.textContent=entry.label+" ";
+  $("heroButton").style.backgroundColor=entry.color;
+  $("heroButton").dataset.route=entry.route;
+  copy.getAnimations().forEach(a=>a.cancel());
+  motion.play(copy,[{opacity:.2,transform:"translateY(10px)"},{opacity:1,transform:"none"}],{duration:460});
   resetSlideshow();
 }
 function resetSlideshow(){
-  clearInterval(heroInterval);
-  if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches&&!document.hidden){
-    heroInterval=setInterval(()=>setSlide((currentSlide+1)%slides.length),8200);
+  clearTimeout(heroInterval);heroProgress?.cancel();heroProgress=null;
+  const bar=$("heroProgress");
+  if(bar)bar.style.transform="scaleX(0)";
+  const canRun=!heroPaused&&!heroMotion.matches&&!document.hidden&&heroInView&&$("home").classList.contains("active");
+  $("hero").classList.toggle("hero-motion-paused",!canRun);
+  if(canRun){
+    heroInterval=setTimeout(()=>setSlide((currentSlide+1)%slides.length),8200);
+    if(bar)heroProgress=motion.play(bar,[{transform:"scaleX(0)"},{transform:"scaleX(1)"}],{duration:8200,easing:"linear",fill:"forwards"});
   }
 }
 document.querySelectorAll(".hero-controls button").forEach((button,i)=>button.addEventListener("click",()=>setSlide(i)));
 $("heroButton").addEventListener("click",()=>navigate($("heroButton").dataset.route||"about"));
+$("heroPause").addEventListener("click",()=>{
+  heroPaused=!heroPaused;
+  $("heroPause").textContent=heroPaused?"▶":"Ⅱ";
+  $("heroPause").setAttribute("aria-label",heroPaused?"슬라이드 자동 재생":"슬라이드 일시정지");
+  $("heroPause").setAttribute("aria-pressed",String(heroPaused));
+  resetSlideshow();
+});
 document.addEventListener("visibilitychange",resetSlideshow);
+heroMotion.addEventListener?.("change",resetSlideshow);
+if("IntersectionObserver" in window)new IntersectionObserver(entries=>{
+  heroInView=entries[0].isIntersecting;resetSlideshow();
+},{threshold:.15}).observe($("hero"));
 let touchStart=null;
-$("hero").addEventListener("touchstart",event=>{touchStart=event.changedTouches[0].screenX},{passive:true});
+$("hero").addEventListener("touchstart",event=>{touchStart={x:event.changedTouches[0].screenX,y:event.changedTouches[0].screenY}},{passive:true});
 $("hero").addEventListener("touchend",event=>{
   if(touchStart===null)return;
-  const moved=event.changedTouches[0].screenX-touchStart;
-  if(Math.abs(moved)>55)setSlide((currentSlide+(moved<0?1:2))%3);
+  const dx=event.changedTouches[0].screenX-touchStart.x,dy=event.changedTouches[0].screenY-touchStart.y;
+  if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.5)setSlide((currentSlide+(dx<0?1:2))%3);
   touchStart=null;
 },{passive:true});
-resetSlideshow();
 /* All sample records are clearly marked as hypothetical. */
 const reports=[
   {title:"반도체 산업의 구조적 변화와 기업가치 재평가",type:"Equity Research",category:"기업분석",date:"2027.05",desc:"산업 구조 · 현금흐름 전망 · 상대가치평가",question:"반도체 산업의 성장 가정은 기업가치에 어떻게 반영되는가?",method:"산업 분석, 재무 추정, DCF 및 상대가치평가의 연결을 검토하는 구성안입니다.",risk:"산업 사이클, 설비투자, 수익성 추정 등 핵심 가정 변화에 대한 검증 영역입니다."},
@@ -173,14 +251,16 @@ function renderHomeWorks(){
   ).join("");
   $("homeWorks").querySelectorAll("button").forEach(button=>button.addEventListener("click",()=>openReport(Number(button.dataset.index))));
 }
-function setFilter(next){filter=next;renderFilters();renderReports()}
+function setFilter(next){if(filter===next)return;filter=next;renderFilters();renderReports()}
 function renderFilters(){
-  $("reportFilters").innerHTML=categories.map(category=>'<button type="button" class="'+(filter===category?'selected':'')+'" aria-pressed="'+(filter===category)+'">'+category+'</button>').join("");
-  $("reportFilters").querySelectorAll("button").forEach((button,i)=>button.addEventListener("click",()=>setFilter(categories[i])));
+  motion.controls($("reportFilters"),categories.map(c=>[c,c]),filter,setFilter);
 }
 function setLayout(next){
+  const results=$("reportResults");
+  if(next!==layout||results.classList.contains("grid")!==(next==="grid")){
+    motion.transition(results,()=>results.classList.toggle("grid",next==="grid"),{exit:false});
+  }
   layout=next;
-  $("reportResults").classList.toggle("grid",layout==="grid");
   document.querySelectorAll("[data-layout]").forEach(button=>{
     const on=button.dataset.layout===layout;
     button.classList.toggle("selected",on);
@@ -197,15 +277,16 @@ function renderReports(){
   else if(sort==="title")matches.sort((a,b)=>a.title.localeCompare(b.title,"ko"));
   $("reportCount").textContent=matches.length+" SAMPLE REPORT"+(matches.length===1?"":"S");
   const results=$("reportResults");
-  results.innerHTML=matches.length?matches.map(r=>
-    '<button type="button" class="report-item" data-index="'+r.index+'">'+
+  const template=document.createElement("template");
+  template.innerHTML=matches.length?matches.map(r=>
+    '<button type="button" class="report-item" data-motion-key="report-'+r.index+'" data-index="'+r.index+'">'+
       '<div class="report-cover k'+r.index+'"><small>SFC / DEMO 0'+(r.index+1)+'</small><b>'+r.type+'</b></div>'+
       '<div><span class="report-category">'+r.category+' / '+r.type.toUpperCase()+'</span><h3>'+r.title+'</h3><p>'+r.desc+'</p></div>'+
       '<time>'+r.date+' ↗</time></button>'
-  ).join(""):'<div class="empty-result"><p>조건에 맞는 예시 보고서가 없습니다.</p><button type="button" id="resetReports">검색 초기화 ↗</button></div>';
-  results.querySelectorAll(".report-item").forEach(button=>button.addEventListener("click",()=>openReport(Number(button.dataset.index))));
-  results.querySelector("#resetReports")?.addEventListener("click",()=>{filter="전체";query="";$("searchReports").value="";renderFilters();renderReports()});
-  setLayout(layout);
+  ).join(""):'<div data-motion-key="empty" class="empty-result"><p>조건에 맞는 예시 보고서가 없습니다.</p><button type="button" id="resetReports">검색 초기화 ↗</button></div>';
+  template.content.querySelectorAll(".report-item").forEach(button=>button.addEventListener("click",()=>openReport(Number(button.dataset.index))));
+  template.content.querySelector("#resetReports")?.addEventListener("click",()=>{filter="전체";query="";$("searchReports").value="";renderFilters();renderReports()});
+  motion.reconcile(results,[...template.content.children]);
 }
 $("searchReports").addEventListener("input",event=>{query=event.target.value;renderReports()});
 $("sortReports").addEventListener("change",event=>{sort=event.target.value;renderReports()});
@@ -285,37 +366,29 @@ const sessions=[
 ];
 let selectedStage="all",openedSession=-1;
 const stages=[["all","전체"],["foundation","기초교육"],["application","기업분석 실습"],["research","최종 연구"]];
-function chooseStage(stage){selectedStage=stage;openedSession=-1;renderSchedule()}
+function chooseStage(stage){
+  if(stage===selectedStage)return;
+  selectedStage=stage;
+  if(openedSession!==-1&&stage!=="all"&&sessions[openedSession][3]!==stage)openedSession=-1;
+  renderSchedule();
+}
 function toggleSession(i){
   const next=openedSession===i?-1:i;
   const list=$("scheduleList");
-  const previous=list.querySelector(".session.open");
-  if(previous){
-    previous.classList.remove("open");
-    previous.querySelector("button").setAttribute("aria-expanded","false");
-    previous.querySelector(".session-body").setAttribute("aria-hidden","true");
-  }
-  if(next!==-1){
-    const active=list.querySelector('[data-session="'+i+'"]');
-    if(active){
-      active.classList.add("open");
-      active.querySelector("button").setAttribute("aria-expanded","true");
-      active.querySelector(".session-body").setAttribute("aria-hidden","false");
-    }
-  }
+  motion.accordion(list,".session",next<0?null:list.querySelector('[data-session="'+next+'"]'));
   openedSession=next;
 }
 function renderSchedule(){
-  $("scheduleTabs").innerHTML=stages.map(([value,label])=>
-    '<button type="button" data-stage="'+value+'" class="'+(selectedStage===value?'selected':'')+'" aria-pressed="'+(selectedStage===value)+'">'+label+'</button>'
-  ).join("");
-  $("scheduleTabs").querySelectorAll("button").forEach(button=>button.addEventListener("click",()=>chooseStage(button.dataset.stage)));
-  $("scheduleList").innerHTML=sessions.map((s,i)=>({s,i})).filter(({s})=>selectedStage==="all"||s[3]===selectedStage).map(({s,i})=>
-    '<div class="session" data-session="'+i+'"><button class="session-button" type="button" data-index="'+i+'" aria-controls="session-panel-'+i+'" aria-expanded="false">'+
+  motion.controls($("scheduleTabs"),stages,selectedStage,chooseStage);
+  const template=document.createElement("template");
+  template.innerHTML=sessions.map((s,i)=>({s,i})).filter(({s})=>selectedStage==="all"||s[3]===selectedStage).map(({s,i})=>
+    '<div class="session'+(openedSession===i?' open':'')+'" data-motion-key="session-'+i+'" data-session="'+i+'"><button class="session-button" type="button" data-index="'+i+'" aria-controls="session-panel-'+i+'" aria-expanded="'+(openedSession===i)+'">'+
     '<span class="week">W'+s[0]+'</span><strong>'+s[1]+'</strong><span class="summary">'+s[2]+'</span><span class="plus" aria-hidden="true">＋</span></button>'+
-    '<div class="session-body" id="session-panel-'+i+'" aria-hidden="true"><div><p>'+s[4]+'</p></div></div></div>'
+    '<div class="session-body" id="session-panel-'+i+'" aria-hidden="'+(openedSession!==i)+'" '+(openedSession!==i?'inert':'')+'><div><p>'+s[4]+'</p></div></div></div>'
   ).join("");
-  $("scheduleList").querySelectorAll("button").forEach(button=>button.addEventListener("click",()=>toggleSession(Number(button.dataset.index))));
+  template.content.querySelectorAll("button").forEach(button=>button.addEventListener("click",()=>toggleSession(Number(button.dataset.index))));
+  motion.reconcile($("scheduleList"),[...template.content.children]);
+  motion.accordion($("scheduleList"),".session",openedSession<0?null:$("scheduleList").querySelector('[data-session="'+openedSession+'"]'));
 }
 /* Only one people section, expandable in place */
 const roles=[
@@ -326,21 +399,8 @@ const roles=[
 let openedRole=-1;
 function toggleRole(i){
   const next=openedRole===i?-1:i;
-  const list=$("roleList");
-  const old=list.querySelector(".role-row.open");
-  if(old){
-    old.classList.remove("open");
-    old.querySelector("button").setAttribute("aria-expanded","false");
-    old.querySelector(".role-detail").setAttribute("aria-hidden","true");
-  }
-  if(next!==-1){
-    const active=list.querySelector('[data-role="'+i+'"]');
-    if(active){
-      active.classList.add("open");
-      active.querySelector("button").setAttribute("aria-expanded","true");
-      active.querySelector(".role-detail").setAttribute("aria-hidden","false");
-    }
-  }
+  const root=$("roleList");
+  motion.accordion(root,".role-row",next<0?null:root.querySelector('[data-role="'+next+'"]'));
   openedRole=next;
 }
 function renderRoles(){
@@ -359,21 +419,8 @@ const faqs=[
 let openedFaq=-1;
 function toggleFaq(i){
   const next=openedFaq===i?-1:i;
-  const list=$("faqList");
-  const old=list.querySelector(".faq.open");
-  if(old){
-    old.classList.remove("open");
-    old.querySelector("button").setAttribute("aria-expanded","false");
-    old.querySelector(".faq-answer").setAttribute("aria-hidden","true");
-  }
-  if(next!==-1){
-    const active=list.querySelector('[data-faq="'+i+'"]');
-    if(active){
-      active.classList.add("open");
-      active.querySelector("button").setAttribute("aria-expanded","true");
-      active.querySelector(".faq-answer").setAttribute("aria-hidden","false");
-    }
-  }
+  const root=$("faqList");
+  motion.accordion(root,".faq",next<0?null:root.querySelector('[data-faq="'+next+'"]'));
   openedFaq=next;
 }
 function renderFaqs(){
@@ -383,24 +430,30 @@ function renderFaqs(){
   ).join("");
   $("faqList").querySelectorAll("button").forEach(button=>button.addEventListener("click",()=>toggleFaq(Number(button.dataset.index))));
 }
-/* Reveal only active view's visible elements. */
-let observer;
-function revealOnScroll(){
-  if(observer)observer.disconnect();
-  const targets=document.querySelectorAll(".view.active .reveal");
-  if(!("IntersectionObserver" in window)){
-    targets.forEach(el=>el.classList.add("visible"));return;
+/* Motion is viewport-triggered and shared by CMS and sample content. */
+window.SFC_DEMO=Object.freeze({
+  people(){
+    renderRoles();motion.accordion($("roleList"),".role-row",null);
+    const intro=document.querySelector(".people-lead p");
+    if(intro)intro.textContent="운영진과 팀별 구성원 소개는 학회 구성 후 실제 정보로 교체합니다.";
+    const disclaimer=document.querySelector(".role-notice");if(disclaimer)disclaimer.hidden=false;
+  },
+  schedule(stage){
+    selectedStage=stages.some(([v])=>v===stage)?stage:"all";openedSession=-1;
+    renderSchedule();
+    const title=document.querySelector(".schedule-header strong");if(title)title.textContent="2027 SPRING · 15-WEEK PROGRAM";
+    const count=document.querySelector(".schedule-header small");if(count)count.textContent="PLANNED CURRICULUM";
+    const notice=document.querySelector("#activities .notice-inline");
+    if(notice)notice.textContent="※ 위 과정은 운영 기획안 기준이며 학기 일정에 따라 조정될 수 있습니다. 주차를 눌러 세부 내용을 볼 수 있습니다.";
   }
-  observer=new IntersectionObserver(entries=>entries.forEach(entry=>{
-    if(entry.isIntersecting){entry.target.classList.add("visible");observer.unobserve(entry.target);}
-  }),{threshold:.08});
-  targets.forEach(el=>observer.observe(el));
-}
+});
 renderHomeWorks();
 renderFilters();
 renderReports();
 renderSchedule();
 renderRoles();
 renderFaqs();
+motion.accordion($("roleList"),".role-row",null);
+motion.accordion($("faqList"),".faq",null);
 if(!location.hash)history.replaceState({route:"home"},"","#home");
 renderRoute();

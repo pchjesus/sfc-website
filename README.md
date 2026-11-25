@@ -83,3 +83,13 @@ tests/static-check.mjs dependency-free source validation
 docs/CODEX_QA.md       browser integration and security QA matrix
 AGENTS.md              Codex instructions
 ```
+
+
+## Motion & interaction (v2.3)
+
+The public UI now shares `js/motion.js` and `css/motion.css` for contextual
+entrances, keyed filter transitions, layout changes, smooth disclosures,
+stable CTA states, modal transitions, hero pause/progress and reduced motion.
+Codex's editor and responsive fixes are retained. Run `npm test` and
+`python3 tests/browser-check.py` (Playwright Chromium required) for regressions.
+See [Codex QA handoff](docs/CODEX_QA.md) for mock-versus-live scope.

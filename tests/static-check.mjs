@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 
 const read=path=>fs.readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const files=['index.html','admin.html','css/site.css','css/cms-public.css','css/cms.css',
-  'js/site.js','js/cms-core.js','js/cms-public.js','js/cms-admin.js','js/cms-studio.js',
+  'js/motion.js','css/motion.css','js/site.js','js/cms-core.js','js/cms-public.js','js/cms-admin.js','js/cms-studio.js',
   'js/cms-config.js','sql/sfc-cms.sql','sql/sfc-roles-v1.4.sql',
   'sql/sfc-integrated-2.0.sql','robots.txt','sitemap.xml'];
 for(const path of files){assert.ok(read(path).length>0,path+' missing or empty');}
@@ -24,7 +24,7 @@ for(const path of files.filter(s=>s.endsWith('.js'))){
   const js=read(path);
   new vm.Script(js,{filename:path});
   const ids=[...js.matchAll(/\$\("([\w-]+)"\)/g)].map(x=>x[1]);
-  const scope=path==='js/cms-public.js'||path==='js/site.js'?publicIds:adminIds;
+  const scope=path==='js/cms-public.js'||path==='js/site.js'||path==='js/motion.js'?publicIds:adminIds;
   // Core and config have no hard-coded local DOM dependencies.
   if(path.includes('cms-core')||path.includes('cms-config'))continue;
   for(const id of ids)assert.ok(scope.has(id),path+' references missing DOM ID '+id);
@@ -49,4 +49,11 @@ assert.match(migration,/scheduled_at<=now\(\)/);
 assert.ok(read('js/cms-config.js').includes('sb_publishable_'),'Public config should contain publishable key');
 assert.doesNotMatch(read('js/cms-config.js'),/sb_secret_[A-Za-z0-9]/);
 assert.doesNotMatch(read('js/cms-config.js'),/service_role\s*:\s*["']/);
-console.log('PASS: static structure, client syntax, referenced IDs, access and editorial contracts');
+assert.match(publicHtml,/src="js\/motion\.js\?v=2\.3"/);
+assert.match(publicHtml,/id="heroPause"/);
+assert.match(publicHtml,/id="readingProgress"/);
+assert.match(read('js/motion.js'),/prefers-reduced-motion/);
+assert.match(read('js/site.js'),/motion\.reconcile\(\$\("scheduleList"\)/);
+assert.match(read('js/cms-public.js'),/getPublicClient\(\)/);
+assert.match(read('js/cms-public.js'),/scheduled_at\.lte/);
+console.log('PASS: static structure, client syntax, referenced IDs, access, motion and editorial contracts');

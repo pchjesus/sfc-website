@@ -1,0 +1,117 @@
+/* SFC 2.3 — shared motion and interaction language */
+:root{
+  --motion-ease:cubic-bezier(.22,1,.36,1);
+  --motion-fast:160ms;--motion-control:240ms;--motion-layout:340ms;
+  --motion-reveal:520ms;--motion-photo:900ms;
+  --action-ink:#172d41;--action-hover:#29465d;--action-coral:#ed7857;
+}
+.js .reveal,.js .reveal.visible{opacity:1;transform:none;transition:none}
+.view.active{animation:none}
+[data-motion],.reveal{will-change:auto}
+.reading-progress{position:fixed;top:75px;left:0;right:0;height:2px;background:#ed7857;transform-origin:left;transform:scaleX(0);z-index:60;pointer-events:none}
+@media(max-width:760px){.reading-progress{top:67px}}
+/* Buttons respond without moving adjacent elements. */
+.line-link,.cms-download,.detail-back,.cms-post-back{
+  transition:color var(--motion-fast),background-color var(--motion-fast),opacity var(--motion-fast);
+}
+.line-link:hover{color:#af553c;gap:17px}
+.hero-button,.application-cta-button,.application-primary,.application-secondary,
+.studio-main .primary,.studio-main .secondary,.studio-top-actions button{
+  transition:background-color var(--motion-fast),color var(--motion-fast),border-color var(--motion-fast),transform 100ms var(--motion-ease);
+}
+.hero-button:active,.application-cta-button:active,.application-primary:active,.application-secondary:active,
+.studio-main button.primary:active,.studio-main button.secondary:active{transform:scale(.985)}
+.hero-button{min-width:245px;justify-content:space-between}
+.hero-button:hover{filter:brightness(1.06)}
+.hero-button span,.application-cta-button span,.row-arr,.detail-related-arrow{
+  display:inline-block;transition:transform var(--motion-control) var(--motion-ease);
+}
+.hero-button:hover span,.application-cta-button:hover span,.work-link:hover .row-arr,.detail-related-link:hover .detail-related-arrow{transform:translate(3px,-2px)}
+.application-cta-button,.application-primary{background:var(--action-ink);color:#fff;border-color:var(--action-ink)}
+.application-cta-button:hover,.application-primary:hover{background:var(--action-hover);color:#fff;border-color:var(--action-hover)}
+.application-secondary:hover{background:#edf1f3}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:2px solid #d56e4e;outline-offset:4px;
+}
+button:disabled{cursor:not-allowed;opacity:.55}
+/* Segmented filters: no reconstruction, no expanding labels, one active marker. */
+.motion-controls{
+  position:relative;display:flex!important;flex-wrap:nowrap!important;
+  gap:4px;overflow-x:auto;scrollbar-width:thin;align-items:stretch;
+  isolation:isolate;padding-bottom:8px!important;
+}
+.motion-controls::after{
+  content:"";position:absolute;left:0;bottom:3px;height:2px;
+  background:var(--action-coral);width:var(--indicator-w,0px);
+  transform:translateX(var(--indicator-x,0px));
+  transition:transform var(--motion-layout) var(--motion-ease),width var(--motion-layout) var(--motion-ease);
+  pointer-events:none;z-index:2;
+}
+.motion-controls button{
+  flex:0 0 auto;min-height:44px;white-space:nowrap;
+  border:1px solid transparent!important;background:transparent!important;
+  color:#52616d!important;transition:background-color var(--motion-fast),color var(--motion-fast);
+}
+.motion-controls button:hover{background:#edf1f3!important;color:#172d41!important}
+.motion-controls button.selected,.motion-controls button.active{background:#e9edf0!important;color:#172d41!important}
+.motion-controls button:active{background:#dce4e9!important}
+#scheduleList,#reportResults,.cms-live-list,#updatesList{overflow-anchor:none;position:relative}
+.report-item,.cms-card,.work-link,.detail-related-link{
+  transition:background-color var(--motion-fast),color var(--motion-fast),border-color var(--motion-fast);
+}
+.report-item:hover{padding-left:6px}
+@media(max-width:760px){.report-item:hover{padding-left:4px}}
+.report-cover{overflow:hidden;transition:background-color var(--motion-control),transform var(--motion-control) var(--motion-ease)}
+.report-item:hover .report-cover{transform:scale(1.025)}
+/* Shared smooth disclosures, including actual CMS sessions and profiles. */
+.session-body,.role-detail,.faq-answer,.motion-disclosure{
+  transition:grid-template-rows var(--motion-layout) var(--motion-ease),opacity var(--motion-control) var(--motion-ease);
+}
+.session-body,.role-detail,.faq-answer{opacity:0}
+.session.open .session-body,.role-row.open .role-detail,.faq.open .faq-answer{opacity:1}
+.motion-disclosure{display:grid;grid-template-rows:0fr;opacity:0;min-width:0}
+.motion-disclosure>div{overflow:hidden;min-height:0}
+.open>.motion-disclosure,.open .cms-person-details>.motion-disclosure{grid-template-rows:1fr;opacity:1}
+.motion-plus{display:inline-block;color:#a75a43;font-size:18px;line-height:1;transition:transform var(--motion-control) var(--motion-ease)}
+.open .motion-plus{transform:rotate(45deg)}
+.cms-session-head{grid-template-columns:90px minmax(0,1fr) minmax(0,1fr) 24px;gap:16px;text-align:left;width:100%}
+.cms-session-head .motion-plus{justify-self:end}
+.cms-session-detail{margin-top:0}
+.cms-person-toggle{display:flex;width:100%;align-items:center;justify-content:space-between;gap:14px;background:transparent;border:0;text-align:left;color:var(--action-ink);padding:0;min-height:44px}
+.cms-person-info{display:flex;flex-direction:column;gap:6px;min-width:0}
+.cms-person-info strong{font-size:20px;line-height:1.35}
+.cms-person-info small{color:#65717c;font-size:12px}
+.cms-person-details{min-width:0}
+.cms-person-bio{padding:12px 0 4px;margin:0;white-space:pre-wrap}
+@media(max-width:760px){
+  .cms-session-head{grid-template-columns:55px minmax(0,1fr) 20px;gap:8px}
+  .cms-session-summary{grid-column:2;grid-row:2}
+  .cms-session-head .motion-plus{grid-column:3;grid-row:1/3}
+  .hero-button{min-width:0}
+  .motion-controls{margin-inline:0}
+}
+/* Gentle ambient motion, driven by the actual slider timer. */
+.hero-control-group{display:flex;position:relative;align-items:center;gap:8px;padding-bottom:8px}
+.hero-pause{height:42px;width:42px;background:#101a2450;color:#fff;border:1px solid #ffffff80;font-size:12px;line-height:1}
+.hero-pause:hover{background:#ffffff22}
+.hero-progress-track{position:absolute;bottom:0;left:0;right:0;height:2px;background:#ffffff45;overflow:hidden}
+.hero-progress-track>span{display:block;height:100%;background:var(--action-coral);transform-origin:left;transform:scaleX(0)}
+.hero-photo{transition:opacity var(--motion-photo) var(--motion-ease)}
+.hero-motion-paused .hero-photo img{transition:none}
+.hero-motion-paused .hero-photo.active img{transform:scale(1)}
+/* Native dialog provides focus containment; visual transition is coordinated by JS. */
+.application-dialog::backdrop{background:rgba(8,22,32,.66);animation:backdrop-in 220ms ease-out}
+@keyframes backdrop-in{from{background:rgba(8,22,32,0);backdrop-filter:blur(0)}to{background:rgba(8,22,32,.66);backdrop-filter:blur(3px)}}
+.application-dialog-body{position:relative}
+.application-preview-status{position:absolute;left:25px;right:25px;top:20px;margin:0;padding:9px 12px;background:#f6f8f7;color:#52616d;font-size:12px;pointer-events:none}
+.application-dialog-foot{min-height:86px}
+.application-unavailable{min-height:180px;display:grid;place-items:center}
+.application-unavailable[hidden],.application-preview-status[hidden]{display:none!important}
+.application-close{transition:background-color var(--motion-fast),color var(--motion-fast)}
+.application-close:hover{background:#e9edf0}
+.studio-main .primary,.studio-main .secondary{min-height:44px}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:0.01ms!important;animation-delay:0ms!important;transition-duration:0.01ms!important;scroll-behavior:auto!important}
+  .hero-photo img{transform:none!important}
+  .hero-progress-track{display:none}
+}

@@ -23,8 +23,10 @@
 <link rel="stylesheet" href="css/cms-public.css?v=2.0">
 <script defer src="js/cms-config.js?v=1.3"></script>
 <script defer src="js/cms-core.js?v=2.0"></script>
-<script defer src="js/site.js?v=2.0"></script>
-<script defer src="js/cms-public.js?v=2.0"></script>
+<link rel="stylesheet" href="css/motion.css?v=2.3">
+<script defer src="js/motion.js?v=2.3"></script>
+<script defer src="js/site.js?v=2.3"></script>
+<script defer src="js/cms-public.js?v=2.3"></script>
 </head>
 <body>
 <header class="site-header">
@@ -35,6 +37,7 @@
 <button class="menu-toggle" id="menuToggle" type="button" aria-label="메뉴 열기" aria-expanded="false">☰</button>
 </nav>
 </header>
+<div class="reading-progress" id="readingProgress" aria-hidden="true" hidden></div>
 <div class="scrim" id="scrim" aria-hidden="true"></div>
 <main>
 <!-- HOME -->
@@ -47,26 +50,29 @@
       <div class="hero-top"><span>INDEPENDENT RESEARCH / SANGMYUNG UNIVERSITY</span><span>2027 SPRING / SEOUL</span></div>
       <div class="hero-copy" id="heroCopy">
         <div class="hero-num" id="heroNumber">SFC / 001</div>
-        <h1 id="heroHeading">See beyond<br>the numbers.</h1>
+        <h1 id="heroHeading" data-motion="unveil">See beyond<br>the numbers.</h1>
         <p id="heroDescription">기업의 숫자를 읽고, 가치의 근거를 찾다.</p>
         <button class="hero-button" id="heroButton" type="button" data-route="about">DISCOVER SFC <span>↗</span></button>
       </div>
       <div class="hero-foot">
-        <div class="hero-controls" aria-label="대표 이미지 선택">
+        <div class="hero-control-group"><div class="hero-controls" aria-label="대표 이미지 선택">
           <button class="active" type="button" aria-label="첫 번째 이미지" aria-pressed="true">01</button>
           <button type="button" aria-label="두 번째 이미지" aria-pressed="false">02</button>
           <button type="button" aria-label="세 번째 이미지" aria-pressed="false">03</button>
+        </div>
+          <button type="button" id="heroPause" class="hero-pause" aria-label="슬라이드 일시정지" aria-pressed="false">Ⅱ</button>
+          <span class="hero-progress-track" aria-hidden="true"><span id="heroProgress"></span></span>
         </div>
         <span>SCROLL TO EXPLORE ↓</span>
       </div>
     </div>
   </div>
   <div class="wrap">
-    <div class="home-brief reveal">
-      <span class="eyebrow">SFC / OUR PURPOSE</span>
-      <h2>Understanding business.<br><span>Assessing value.</span></h2>
+    <div class="home-brief"><!-- Convergent editorial introduction -->
+      <span class="eyebrow" data-motion="left">SFC / OUR PURPOSE</span>
+      <h2 data-motion="right">Understanding business.<br><span>Assessing value.</span></h2>
     </div>
-    <div class="home-section reveal">
+    <div class="home-section" data-motion="rise">
       <div class="section-head"><div><span class="eyebrow">01 / RESEARCH</span><h2>Selected work.</h2></div><a class="line-link" href="#research">ALL RESEARCH ↗</a></div>
       <a class="featured-work" href="#report-0" aria-label="샘플 리서치 보고서 상세 보기">
         <div class="featured-photo"><img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=1100&q=80" alt="건축적 구조와 공간" loading="lazy"></div>
@@ -93,18 +99,18 @@
 <!-- ABOUT -->
 <section class="view" id="about">
   <div class="wrap">
-    <div class="page-head"><span class="eyebrow">ABOUT / THE CLUB</span><h1>About SFC.</h1><p>재무 이론을 실제 기업분석에 적용하는 학술동아리.</p></div>
-    <div class="about-grid about-photo-panel reveal">
+    <div class="page-head" data-motion="rise"><span class="eyebrow">ABOUT / THE CLUB</span><h1>About SFC.</h1><p>재무 이론을 실제 기업분석에 적용하는 학술동아리.</p></div>
+    <div class="about-grid about-photo-panel" data-motion="unveil">
       <h2>숫자를 읽고,<br>기업의 가치를 이해합니다.</h2>
       <p>SFC(Sangmyung Financial Club)는 상명대학교 경영학부 기업재무분석 학술동아리입니다. 기업의 사업구조와 재무 데이터를 분석하고, 가치평가의 가정을 검증하며, 근거에 기반한 판단을 토론합니다.</p>
       <small class="about-photo-credit">ILLUSTRATIVE BACKGROUND / 실제 학회 활동 공간 사진이 아닙니다.</small>
     </div>
     <div class="content-block">
       <span class="eyebrow">OUR FOCUS</span>
-      <div class="discipline-list reveal">
-        <div class="discipline"><span>01</span><strong>Financial Analysis</strong><p>재무제표, 재무비율, 현금흐름 분석</p></div>
-        <div class="discipline"><span>02</span><strong>Corporate Valuation</strong><p>상대가치평가, DCF, 가치평가 가정 검토</p></div>
-        <div class="discipline"><span>03</span><strong>Equity Research</strong><p>산업분석, 팀별 기업분석, 리포트 작성</p></div>
+      <div class="discipline-list">
+        <div class="discipline" data-motion="rise" data-motion-delay="0"><span>01</span><strong>Financial Analysis</strong><p>재무제표, 재무비율, 현금흐름 분석</p></div>
+        <div class="discipline" data-motion="rise" data-motion-delay="45"><span>02</span><strong>Corporate Valuation</strong><p>상대가치평가, DCF, 가치평가 가정 검토</p></div>
+        <div class="discipline" data-motion="rise" data-motion-delay="90"><span>03</span><strong>Equity Research</strong><p>산업분석, 팀별 기업분석, 리포트 작성</p></div>
       </div>
       <div class="about-end reveal"><p>2027학년도 1학기, 주 1회 정기 세션과 팀별 기업분석을 중심으로 운영할 예정입니다.</p><a class="line-link" href="#activities">OUR PROGRAM ↗</a></div>
     </div>
@@ -113,7 +119,7 @@
 <!-- RESEARCH -->
 <section class="view" id="research">
   <div class="wrap">
-    <div class="page-head"><span class="eyebrow">PUBLICATIONS / ARCHIVE</span><h1>Research.</h1><p>기업분석과 리서치 결과를 모으는 곳. 현재 자료는 화면 구성을 위한 예시입니다.</p></div>
+    <div class="page-head" data-motion="rise"><span class="eyebrow">PUBLICATIONS / ARCHIVE</span><h1>Research.</h1><p>기업분석과 리서치 결과를 모으는 곳. 현재 자료는 화면 구성을 위한 예시입니다.</p></div>
     <div class="cms-live" id="liveResearch" hidden></div>
     <div id="demoResearchBlock">
     <div class="report-toolbar">
@@ -134,7 +140,7 @@
 <!-- ACTIVITIES -->
 <section class="view" id="activities">
   <div class="wrap">
-    <div class="page-head"><span class="eyebrow">ACTIVITIES / 2027 SPRING</span><h1>Activities.</h1><p>15주간의 기초교육, 기업분석 실습, 리서치 발표.</p></div>
+    <div class="page-head" data-motion="rise"><span class="eyebrow">ACTIVITIES / 2027 SPRING</span><h1>Activities.</h1><p>15주간의 기초교육, 기업분석 실습, 리서치 발표.</p></div>
     <div class="schedule-header"><strong>2027 SPRING · 15-WEEK PROGRAM</strong><small>PLANNED CURRICULUM</small></div>
     <div class="schedule-tabs" id="scheduleTabs" role="group" aria-label="커리큘럼 단계"></div>
     <div class="session-list" id="scheduleList"></div>
@@ -144,8 +150,8 @@
 <!-- PEOPLE -->
 <section class="view" id="people">
   <div class="wrap">
-    <div class="page-head"><span class="eyebrow">PEOPLE / ORGANIZATION</span><h1>People.</h1><p>함께 분석하고 토론하는 학회. 운영진 역할을 소개합니다.</p></div>
-    <div class="people-lead"><h2>Our team.</h2><p>운영진과 팀별 구성원 소개는 학회 구성 후 실제 정보로 교체합니다.</p></div>
+    <div class="page-head" data-motion="rise"><span class="eyebrow">PEOPLE / ORGANIZATION</span><h1>People.</h1><p>함께 분석하고 토론하는 학회. 운영진 역할을 소개합니다.</p></div>
+    <div class="people-lead" data-motion="left"><h2>Our team.</h2><p>운영진과 팀별 구성원 소개는 학회 구성 후 실제 정보로 교체합니다.</p></div>
     <div id="roleList" aria-label="학회 운영진 역할 목록"></div>
     <p class="role-notice">POSITION STRUCTURE / 기획서 기준 역할 목업이며 실제 운영진 프로필이 아닙니다. 역할을 누르면 담당 업무가 펼쳐집니다.</p>
   </div>
@@ -153,8 +159,8 @@
 <!-- RECRUITMENT -->
 <section class="view" id="recruitment">
   <div class="wrap">
-    <div class="page-head"><span class="eyebrow">RECRUITMENT / 2027 SPRING</span><h1>Join SFC.</h1><p>기업의 가치를 함께 연구할 신입회원을 기다립니다.</p></div>
-    <div class="recruit-layout">
+    <div class="page-head" data-motion="rise"><span class="eyebrow">RECRUITMENT / 2027 SPRING</span><h1>Join SFC.</h1><p>기업의 가치를 함께 연구할 신입회원을 기다립니다.</p></div>
+    <div class="recruit-layout" data-motion="rise">
       <div><span class="status" id="recruitStatus" data-status="planned">모집 예정</span><h2 id="recruitTitle">A place to<br>think deeper.</h2><p id="recruitMessage">2027년 3월 초 모집 예정이며 지원 일정과 방법은 추후 공지됩니다.</p></div>
       <div>
         <div class="recruit-fact"><strong>모집 대상</strong><span id="recruitAudiencePublic">전 학년 재학생</span></div>
@@ -163,16 +169,16 @@
         <div class="recruit-fact"><strong>지원 방법</strong><span id="recruitMethodPublic">추후 공지</span></div>
       </div>
     </div>
-    <div class="application-cta"><div><span class="eyebrow">APPLICATION / PUBLIC DOWNLOAD</span>
+    <div class="application-cta" data-motion="scale"><div><span class="eyebrow">APPLICATION / PUBLIC DOWNLOAD</span>
         <h3>Application form.</h3><p>로그인 없이 지원서 양식을 확인하고 내려받을 수 있습니다.</p><small id="applicationAvailability">공식 지원서 양식 등록 전</small></div>
         <button type="button" id="applicationTrigger" class="application-cta-button">VIEW APPLICATION <span aria-hidden="true">↗</span></button>
     </div><p class="recruit-instructions" id="recruitInstructionsPublic" hidden></p>
     <span class="eyebrow" style="margin-bottom:21px">RECRUITMENT PROCESS / PLANNED</span>
     <div class="process-steps">
-      <div class="process-step"><small>01</small><strong>모집 공고</strong><p>3월 초 예정</p></div>
-      <div class="process-step"><small>02</small><strong>지원서</strong><p>서류 접수</p></div>
-      <div class="process-step"><small>03</small><strong>면접</strong><p>지원자 면담</p></div>
-      <div class="process-step"><small>04</small><strong>첫 세션</strong><p>3월 중순 목표</p></div>
+      <div class="process-step" data-motion="rise" data-motion-delay="0"><small>01</small><strong>모집 공고</strong><p>3월 초 예정</p></div>
+      <div class="process-step" data-motion="rise" data-motion-delay="40"><small>02</small><strong>지원서</strong><p>서류 접수</p></div>
+      <div class="process-step" data-motion="rise" data-motion-delay="80"><small>03</small><strong>면접</strong><p>지원자 면담</p></div>
+      <div class="process-step" data-motion="rise" data-motion-delay="120"><small>04</small><strong>첫 세션</strong><p>3월 중순 목표</p></div>
     </div>
     <div class="section-head"><h2>FAQ.</h2></div>
     <div class="faq-list" id="faqList"></div>
@@ -182,7 +188,7 @@
 <dialog id="applicationDialog" class="application-dialog" aria-labelledby="applicationDialogTitle">
 <div class="application-dialog-head"><div><span class="eyebrow">RECRUITMENT / APPLICATION</span><h2 id="applicationDialogTitle">지원서 양식 미리보기</h2></div>
 <button type="button" id="applicationClose" class="application-close" aria-label="미리보기 닫기">×</button></div>
-<div class="application-dialog-body"><iframe id="applicationFrame" title="SFC 지원서 PDF 미리보기" loading="lazy" hidden></iframe>
+<div class="application-dialog-body"><p id="applicationPreviewStatus" class="application-preview-status" role="status" hidden></p><iframe id="applicationFrame" title="SFC 지원서 PDF 미리보기" loading="lazy" hidden></iframe>
 <div id="applicationUnavailable" class="application-unavailable">공식 지원서가 아직 등록되지 않았습니다. 모집 공고 이후 다시 확인해 주세요.</div></div>
 <div class="application-dialog-foot"><p>양식을 확인한 후 파일을 내려받으세요.</p><div class="application-dialog-actions">
 <a id="applicationDocxDownload" class="application-secondary" target="_blank" rel="noopener noreferrer" hidden>편집용 DOCX ↗</a>
@@ -191,7 +197,7 @@
 <!-- UPDATES / PUBLISHED ARTICLES -->
 <section class="view" id="updates">
   <div class="wrap">
-    <div class="page-head"><span class="eyebrow">SFC / PUBLICATIONS & NEWS</span><h1>Updates.</h1><p>학회의 공지사항, 활동 기록과 실제 게시된 리서치를 확인하세요.</p></div>
+    <div class="page-head" data-motion="rise"><span class="eyebrow">SFC / PUBLICATIONS & NEWS</span><h1>Updates.</h1><p>학회의 공지사항, 활동 기록과 실제 게시된 리서치를 확인하세요.</p></div>
     <div class="cms-filters" id="updatesFilters" role="group" aria-label="게시글 유형 필터"></div>
     <div class="cms-updates-list" id="updatesList" aria-live="polite"><p class="cms-empty">게시글을 불러오는 중입니다.</p></div>
   </div>
@@ -200,7 +206,7 @@
 <section class="view" id="post">
   <div class="wrap">
     <a class="cms-post-back" href="#updates">← BACK TO UPDATES</a>
-    <header class="cms-post-head"><h1 id="cmsPostTitle">게시글을 불러오는 중입니다.</h1><p id="cmsPostMeta"></p></header>
+    <header class="cms-post-head" data-motion="rise"><h1 id="cmsPostTitle">게시글을 불러오는 중입니다.</h1><p id="cmsPostMeta"></p></header>
     <div class="cms-post-grid"><article class="cms-post-body" id="cmsPostBody"></article><aside class="cms-post-assets" id="cmsPostAssets"></aside></div>
   </div>
 </section>
@@ -211,13 +217,13 @@
       <button class="detail-back" type="button" onclick="navigate('research')">← BACK TO RESEARCH</button>
       <span>SFC RESEARCH / DEMONSTRATION</span>
     </div>
-    <header class="detail-masthead">
+    <header class="detail-masthead" data-motion="rise">
       <span class="eyebrow" id="detailType"></span>
       <h1 id="detailTitle"></h1>
       <p class="detail-deck" id="detailDeck"></p>
     </header>
     <div class="detail-data"><span id="detailMeta"></span><span class="detail-demo-label">SAMPLE ONLY · NOT AN INVESTMENT REPORT</span></div>
-    <div class="detail-body">
+    <div class="detail-body" data-motion="fade">
       <aside class="detail-aside" aria-label="보고서 정보">
         <span class="eyebrow">REPORT PROFILE</span>
         <div class="detail-aside-block"><small>STATUS</small><strong>Demonstration</strong></div>

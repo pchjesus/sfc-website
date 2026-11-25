@@ -210,3 +210,27 @@ Pages URL was denied by the network proxy with HTTP 403 before reaching the
 site. Thus the Git ref update is confirmed, while Pages build/deployment and
 served application content are **unverified**. The proxy response is not
 evidence of an application-level HTTP 403 or a failed Pages deployment.
+
+
+## v2.3 — Motion & interaction overhaul
+
+Integrated above Codex's verification commits; retain all editor save-state,
+anonymous-public-client, backup-order, malformed-hash and responsive fixes.
+No SQL migrations or production data changes were made in this motion release.
+
+- Shared keyed list reconciliation and position/height transitions for both
+  sample and CMS curriculum, Research filters/search/grid, and Updates filters.
+- Stable filter controls, animated selected marker, retained DOM when unchanged,
+  keyboard-visible focus, open-row identity, interruption/cancellation.
+- Contextual entry effects (rise, opposing sides, stagger, image mask), visible-only
+  hero motion with pause and synchronized CTA, scroll reading progress.
+- Consistent CTA and hover feedback, smooth disclosures and native modal transitions;
+  Escape, focus restoration, fallback when the official form is absent.
+- Preserve Research filter/layout/scroll on return; public fallback restored
+  when live curriculum/people/research is removed.
+- Added four mock-browser regression scenarios to the original 18 (motion,
+  reverse/rapid filter, sample/live switch, scroll return, reduced motion).
+- GitHub Actions runs the original static suite and the extended Chromium suite.
+  A test result is valid only if that specific workflow run succeeds.
+  Browser fixture tests do not certify live Supabase, physical devices, Safari/Firefox,
+  external photos/fonts, actual PDF bytes, or motion visual quality.
