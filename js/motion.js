@@ -2,9 +2,9 @@
 /* Shared motion system: persistent controls, keyed reflow, visible-only animation. */
 (function(){
   const media=matchMedia("(prefers-reduced-motion: reduce)");
-  const ease="cubic-bezier(.22,1,.36,1)";
+  const ease="cubic-bezier(.16,1,.3,1)";
   // Fast controls and deliberate spatial reflow feel smoother than long full-page fades.
-  const timing=Object.freeze({page:280,recruitment:320,reveal:340,unveil:390,layout:355,modal:300,close:230,hero:350});
+  const timing=Object.freeze({page:920,recruitment:1060,reveal:820,unveil:990,layout:620,modal:520,close:420,hero:800});
   const running=new WeakMap();
   const handlers=new WeakMap();
   const seen=new WeakSet();
@@ -208,10 +208,10 @@
         if(window.SFC_V28?.visible?.(el))continue;
         let kind=el.dataset.motion||"rise";
         if(innerWidth<760&&(kind==="left"||kind==="right"))kind="rise";
-        const starts={rise:"translateY(5px)",left:"translateX(-6px)",right:"translateX(6px)",scale:"scale(.995)",fade:"none"};
+        const starts={rise:"translateY(22px)",left:"translateX(-32px)",right:"translateX(32px)",scale:"scale(.97)",fade:"none"};
         const duration=kind==="unveil"?timing.unveil:timing.reveal;
-        play(el,[{opacity:.82,transform:starts[kind]||starts.rise},{opacity:1,transform:"none"}],
-          {duration,delay:Math.min(Number(el.dataset.motionDelay)||0,110)});
+        play(el,[{opacity:.51,transform:starts[kind]||starts.rise},{opacity:1,transform:"none"}],
+          {duration,delay:Math.min((Number(el.dataset.motionDelay)||0)*1.4,220)});
       }
     },{threshold:.06});
     root.querySelectorAll(".reveal,[data-motion]").forEach(el=>{
@@ -227,8 +227,9 @@
   }
   function page(root){
     if(!root)return;
-    // v2.8: avoid a second 520ms fade covering an entire otherwise-ready page.
-    // A page's own meaningful elements may settle, but the page itself is usable immediately.
+    // v2.8.2: cinematic composition restores a visible, smoothly settling
+    // scene on every route entry, with semantic child choreography.
+    // DOM state and pointer interaction remain available throughout.
     reveal(root);
     window.SFC_V28?.enter?.(root);
   }
