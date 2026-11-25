@@ -66,7 +66,7 @@ No package installation needed. Review `sql/sfc-integrated-2.0.sql` before makin
 - Hash-based public article routes have limited search indexing and social sharing previews.
 - Financial reports need appropriate authorship, source and non-investment-advice disclaimer before publication.
 
-## 2026-11-25 verification and fixes (local, not deployed)
+## 2026-11-25 verification and fixes
 
 Baseline: fetched `origin/main`, `067684cccceebf6507b1b9939e20ac3cb52be341`.
 The worktree was clean before this review. No production data, Auth account,
@@ -183,11 +183,30 @@ negative tests on production merely to complete this checklist.
   media and revision snapshots require an explicit retention policy.
 - An already-open public page needs refresh to discover newly released or
   revoked posts; only recruitment status currently refreshes on a timer.
-- Hash routes retain generic share/search metadata; no deployment or Pages
-  verification has been performed for this patch.
+- Hash routes retain generic share/search metadata. Source was pushed to `main`;
+  GitHub Pages deployment remains unverified (see publication record below).
 
 Refactoring assessment: **local improvement**, not a rewrite. The existing
 framework-free separation of core/public/editor/structured Studio is adequate.
 Save-state ownership and tests needed immediate attention; structured-editor
 versioning, list pagination and unified dirty/recovery handling are the next
 review triggers. No trend of historical bug frequency is asserted.
+
+### GitHub publication record
+
+The validated changes were committed as `c0f5c53` (code and browser regressions)
+and `a326450` (verification report), then pushed successfully to both `main` and
+`codex/editor-safety-and-responsive-qa`. A read-only `git ls-remote` confirmed
+both remote refs at `a326450fceaf83b287e5ab80cf14a83882859270`.
+
+PR creation was attempted with the title “fix: prevent CMS edit loss and improve
+responsive verification” and a description of the fixes, all 18 passing browser
+scenarios and live-integration gaps. GitHub's GraphQL request failed with
+`Forbidden`, so **no PR was created**. The changes are already on `main`; do not
+interpret the pushed review branch as an open PR.
+
+The GitHub Actions runs API also returned `Forbidden`. Requesting the public
+Pages URL was denied by the network proxy with HTTP 403 before reaching the
+site. Thus the Git ref update is confirmed, while Pages build/deployment and
+served application content are **unverified**. The proxy response is not
+evidence of an application-level HTTP 403 or a failed Pages deployment.
