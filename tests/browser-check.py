@@ -288,5 +288,23 @@ with sync_playwright() as p:
  expect(x.locator('[data-experience-step="1"]')).to_have_attribute('aria-selected','true')
  ok('About interactive research journey, keyboard tablist and honest copy')
  x.context.close()
+ # Copy readability: sentence blocks on desktop, natural reflow on phones,
+ # no clipped headings across all content-heavy public routes.
+ for width in [1440,900,768,390,360]:
+  x=page('anonymous',width)
+  x.goto(base+'/#home')
+  phrases=x.locator('.home-value-copy .copy-sentence')
+  expect(phrases).to_have_count(2)
+  assert phrases.first.inner_text().endswith('경험.')
+  first_display=phrases.first.evaluate("(e)=>getComputedStyle(e).display")
+  assert first_display==('block' if width>1000 else 'inline'),(width,first_display)
+  for route in ['home','about','research','activities','people','recruitment','updates']:
+   x.evaluate('(r)=>navigate(r)',route)
+   expect(x.locator('#'+route)).to_be_visible()
+   assert x.evaluate("document.documentElement.scrollWidth <= innerWidth+1"),(width,route)
+   assert x.evaluate("""()=>[...document.querySelectorAll('.view.active h1,.view.active h2,.view.active h3')]
+      .every(el=>el.getBoundingClientRect().right <= innerWidth+3)"""),(width,route)
+  x.context.close()
+ ok('semantic copy grouping and responsive line wrapping at 1440/900/768/390/360px')
  browser.close()
 server.shutdown();print(f'{checks} browser scenarios passed; live Auth/RLS/Storage NOT exercised.')

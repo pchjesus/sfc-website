@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 
 const read=path=>fs.readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const files=['index.html','admin.html','css/site.css','css/cms-public.css','css/cms.css',
-  'js/motion.js','css/motion.css','css/about-preview.css','js/about-experience.js','js/site.js','js/cms-core.js','js/cms-public.js','js/cms-admin.js','js/cms-studio.js',
+  'js/motion.js','css/motion.css','css/editorial.css','js/about-experience.js','js/site.js','js/cms-core.js','js/cms-public.js','js/cms-admin.js','js/cms-studio.js',
   'js/cms-config.js','sql/sfc-cms.sql','sql/sfc-roles-v1.4.sql',
   'sql/sfc-integrated-2.0.sql','robots.txt','sitemap.xml'];
 for(const path of files){assert.ok(read(path).length>0,path+' missing or empty');}
@@ -60,8 +60,11 @@ assert.match(read('js/cms-public.js'),/getPublicClient\(\)/);
 assert.match(read('js/cms-public.js'),/scheduled_at\.lte/);
 assert.match(publicHtml,/id="experienceLayout"/);
 assert.match(publicHtml,/id="homeValueTitle"/);
+assert.match(publicHtml,/class="copy-sentence"/);
+assert.match(publicHtml,/href="css\/editorial\.css\?v=2\.4\.1"/);
+assert.match(read('css/editorial.css'),/text-wrap:pretty/);
 assert.match(read('js/motion.js'),/function filterRows\(/);
 assert.match(read('js/site.js'),/motion\.filterRows\(root,selectedStage\)/);
 assert.match(read('js/cms-public.js'),/motion\.filterRows\(root,liveStage\)/);
-assert.match(read('css/about-preview.css'),/scrollbar-gutter:stable/);
+assert.match(read('css/editorial.css'),/scrollbar-gutter:stable/);
 console.log('PASS: static structure, client syntax, referenced IDs, access, stable curriculum filtering and editorial contracts');

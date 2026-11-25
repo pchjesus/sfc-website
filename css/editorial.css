@@ -1,0 +1,253 @@
+/* SFC v2.4 branch preview — editorial value story + stable curriculum filters.
+   Intentionally additive: no modifications to main's visual system or CMS schema. */
+
+/* Activity filters: maintain the exact same horizontal layout at every length.
+   Rows are persistent, so filtering never creates ghost overlays or translateX. */
+html{scrollbar-gutter:stable}
+body{overflow-x:clip}
+#scheduleList{width:100%;max-width:100%;min-width:0;overflow-anchor:none}
+#scheduleList>.session,#scheduleList>.cms-session{width:100%;max-width:100%;box-sizing:border-box;transform:none}
+#scheduleList>.session[hidden],#scheduleList>.cms-session[hidden]{display:none!important}
+#scheduleList>.session[data-active="false"],#scheduleList>.cms-session[data-active="false"]{pointer-events:none}
+#scheduleList .session-button,#scheduleList .cms-session-head{transform:none!important}
+#scheduleList>.session,#scheduleList>.cms-session{contain:layout style}
+
+/* Home: tell a visitor why the club matters before asking them to browse. */
+.home-value{display:grid;grid-template-columns:minmax(0,1.24fr) minmax(300px,.84fr);gap:clamp(36px,7vw,95px);align-items:center;padding:clamp(60px,7.5vw,100px) 0;border-bottom:1px solid var(--line)}
+.home-value-copy{min-width:0}
+.home-value-copy h2{font-size:clamp(36px,4.45vw,67px);font-weight:500;line-height:1.18;letter-spacing:-.061em;margin:18px 0 22px;word-break:keep-all}
+.home-value-copy h2 em{font-style:normal;color:#648195}
+.home-value-copy>p{max-width:600px;font-size:14px;line-height:2;color:#60717e;word-break:keep-all;margin:0 0 27px}
+.home-value-link{display:inline-flex;gap:30px;align-items:center;color:#172d41;border-bottom:1px solid #8aa0ad;padding:0 0 11px;font-size:12px;font-weight:700;letter-spacing:.075em;transition:color .23s,border-color .23s}
+.home-value-link span{color:#bb6650;font-size:22px;line-height:1;transition:transform .35s}
+.home-value-link:hover{color:#b55e46;border-color:#b55e46}
+.home-value-link:hover span{transform:translate(3px,-2px)}
+.home-value-steps{min-width:0;border-top:1px solid #cbd4d8}
+.home-value-steps>div{padding:23px 2px;border-bottom:1px solid #cbd4d8;display:grid;grid-template-columns:1fr;gap:7px}
+.home-value-steps span{font-size:10px;font-weight:700;letter-spacing:.13em;color:#b8674e}
+.home-value-steps strong{font-size:clamp(19px,2vw,27px);font-weight:500;letter-spacing:-.045em;color:#1d3242}
+.home-value-steps small{font-size:12px;color:#7b8b95}
+.home-value+.home-section{padding-top:66px}
+
+/* About: a deliberate hierarchy rather than another block of mission copy. */
+.about-reasons,.about-journey{padding:clamp(58px,7vw,95px) 0;border-bottom:1px solid #d5dde0}
+.about-section-heading{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(260px,.78fr);column-gap:48px;align-items:end;max-width:1100px;margin:0 0 38px}
+.about-section-heading>.eyebrow{grid-column:1/-1;margin-bottom:16px}
+.about-section-heading h2{margin:0;font-size:clamp(34px,4.1vw,58px);font-weight:500;letter-spacing:-.055em;line-height:1.22;word-break:keep-all}
+.about-section-heading h2 em{font-style:normal;color:#638198}
+.about-section-heading p{font-size:13px;line-height:2;color:#657580;max-width:440px;margin:0;word-break:keep-all}
+.about-reason-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(17px,3vw,39px)}
+.about-reason{min-width:0;border-top:1px solid #b9c6cc;padding-top:18px}
+.reason-art{height:clamp(135px,13vw,174px);display:flex;align-items:center;justify-content:center;background:#f4f6f6;overflow:hidden;margin-bottom:22px}
+.reason-art svg{width:min(100%,280px);height:auto;max-height:100%}
+.about-reason>span{font-size:10px;font-weight:700;color:#b76b55;letter-spacing:.09em}
+.about-reason h3{font-weight:500;font-size:clamp(19px,2.15vw,29px);letter-spacing:-.045em;margin:11px 0 10px}
+.about-reason>p{font-size:13px;line-height:1.95;color:#687b86;margin:0;word-break:keep-all}
+.about-journey{padding-bottom:clamp(55px,6vw,85px)}
+.experience-layout{display:grid;grid-template-columns:minmax(160px,.32fr) minmax(0,1fr);border:1px solid #d6dfe3;background:#f7f9f9;min-height:375px}
+.experience-selector{display:grid;grid-template-rows:repeat(4,minmax(0,1fr));border-right:1px solid #d6dfe3}
+.experience-step{display:grid;grid-template-columns:40px 1fr;grid-template-rows:1fr 1fr;column-gap:10px;align-items:center;text-align:left;border:0;border-bottom:1px solid #d6dfe3;background:transparent;padding:13px 19px;color:#243a49;position:relative;transition:background .32s,color .32s}
+.experience-step:last-child{border-bottom:0}
+.experience-step small{grid-row:1/3;font-size:12px;color:#af644d;font-weight:700}
+.experience-step strong{align-self:end;font-size:clamp(16px,1.75vw,21px);font-weight:500}
+.experience-step span{align-self:start;font-size:11px;color:#81929e;margin-top:4px}
+.experience-step.selected{background:#172d41;color:#fff}
+.experience-step.selected span{color:#bbcbd5}
+.experience-step.selected small{color:#ed7857}
+.experience-step:hover:not(.selected){background:#e8eef1}
+.experience-step.selected::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#ed7857}
+.experience-panel{min-width:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.9fr);align-items:center;gap:clamp(18px,3vw,45px);padding:clamp(20px,3.3vw,48px)}
+.experience-figure{min-width:0;align-self:stretch;display:flex;flex-direction:column;justify-content:space-between;gap:14px}
+.experience-figure>.eyebrow{font-size:9px;color:#8599a4;line-height:1.65}
+.experience-visual{width:100%;height:auto;max-height:240px;overflow:visible}
+.experience-visual-stage{opacity:0;visibility:hidden;transform:translateY(5px);transform-origin:center;transition:opacity .38s ease,transform .38s ease,visibility 0s .38s}
+.experience-visual-stage.active{opacity:1;visibility:visible;transform:translateY(0);transition:opacity .38s ease,transform .38s ease}
+.experience-figure-foot{font-size:9px;line-height:1.6;letter-spacing:.08em;color:#8b9aa5}
+.experience-description{min-width:0}
+#experienceKicker{font-size:10px;color:#bb6a51;font-weight:700;letter-spacing:.1em}
+.experience-description h3{font-size:clamp(25px,2.75vw,40px);line-height:1.3;font-weight:500;letter-spacing:-.05em;word-break:keep-all;margin:15px 0}
+.experience-description>p{font-size:13px;line-height:1.95;color:#617480;word-break:keep-all;margin:0}
+.experience-output{margin:25px 0 27px;padding-top:18px;border-top:1px solid #d3dde1}
+.experience-output small{display:block;font-size:9px;font-weight:700;letter-spacing:.1em;color:#8b9aa5;margin-bottom:8px}
+.experience-output strong{font-weight:600;font-size:13px;color:#2c4d61}
+.experience-actions{display:flex;align-items:center;justify-content:space-between;gap:15px}
+.experience-actions>span{font-size:11px;color:#718794}
+.experience-actions button{display:inline-flex;align-items:center;justify-content:space-between;gap:20px;padding:12px 3px;color:#152d3e;border:0;border-bottom:1px solid #829aa8;background:transparent;font-size:10px;font-weight:700;letter-spacing:.08em;transition:color .23s,border-color .23s}
+.experience-actions button:hover{color:#b75e47;border-color:#b75e47}
+.about-invitation{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.72fr);gap:clamp(30px,6vw,90px);align-items:end;padding:65px 0 48px;border-bottom:1px solid #d1d9dc}
+.about-invitation h2{font-size:clamp(29px,3.6vw,52px);font-weight:500;letter-spacing:-.055em;line-height:1.25;margin:16px 0 0;word-break:keep-all}
+.about-invitation p{font-size:13px;line-height:2;color:#617481;margin:0 0 23px;word-break:keep-all}
+.about-invitation .line-link{display:inline-block}
+.about-end{margin-top:34px;padding:25px 32px}
+#about .about-photo-panel{margin-bottom:0}
+
+/* The original 15-week overview is retained, not duplicated in Home. */
+@media(max-width:1050px){
+ .experience-layout{grid-template-columns:190px minmax(0,1fr)}
+ .experience-panel{grid-template-columns:1fr;gap:15px;padding:25px 31px}
+ .experience-visual{height:150px}
+ .experience-figure{gap:5px}
+ .experience-description h3{font-size:clamp(24px,3vw,32px)}
+}
+@media(max-width:760px){
+ .home-value{grid-template-columns:1fr;gap:35px;padding:55px 0 58px}
+ .home-value-copy h2{font-size:clamp(35px,6.8vw,52px)}
+ .home-value-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}
+ .home-value-steps>div{padding:15px 9px;gap:10px;min-width:0;border-right:1px solid #cbd4d8}
+ .home-value-steps>div:last-child{border-right:0}
+ .home-value-steps span{font-size:9px;line-height:1.6}
+ .home-value-steps strong{font-size:16px;word-break:keep-all}
+ .home-value-steps small{font-size:10px;line-height:1.6}
+ .home-value+.home-section{padding-top:53px}
+ .about-section-heading{display:block}
+ .about-section-heading h2{margin:18px 0}
+ .about-section-heading p{max-width:600px}
+ .about-reason-grid{grid-template-columns:1fr;gap:25px}
+ .about-reason{display:grid;grid-template-columns:112px 1fr;grid-template-rows:auto auto 1fr;gap:0 17px;padding-top:16px}
+ .reason-art{grid-row:1/4;height:127px;margin:0}
+ .about-reason>span{font-size:9px}
+ .about-reason h3{margin:7px 0 3px;font-size:22px}
+ .about-reason p{font-size:12px}
+ .experience-layout{grid-template-columns:1fr}
+ .experience-selector{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:1fr;border-right:0;border-bottom:1px solid #d6dfe3}
+ .experience-step{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:5px;padding:13px 10px;min-width:0;border-bottom:0;border-right:1px solid #d6dfe3}
+ .experience-step:last-child{border-right:0}
+ .experience-step strong{font-size:14px;line-height:1.3}
+ .experience-step span{font-size:10px;margin:0}
+ .experience-panel{padding:25px}
+ .experience-figure{gap:11px}
+ .experience-visual{height:175px}
+ .experience-description h3{font-size:28px}
+ .about-invitation{grid-template-columns:1fr;gap:17px;padding:47px 0 38px}
+}
+@media(max-width:480px){
+ .home-value-steps{grid-template-columns:1fr}
+ .home-value-steps>div{display:grid;grid-template-columns:120px 1fr;gap:5px 10px;border-right:0;padding:13px 0}
+ .home-value-steps span{grid-row:1/3;align-self:center}
+ .home-value-steps strong{font-size:18px}
+ .home-value-steps small{font-size:11px}
+ .about-reason{grid-template-columns:100px 1fr;gap:0 13px}
+ .reason-art{height:112px}
+ .about-reason h3{font-size:20px}
+ .about-reason p{font-size:11px;line-height:1.75}
+ .experience-selector{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .experience-step{padding:11px 7px}
+ .experience-step strong{font-size:12px}
+ .experience-step span{font-size:9px}
+ .experience-panel{padding:19px}
+ .experience-visual{height:143px}
+ .experience-description h3{font-size:27px}
+}
+@media(prefers-reduced-motion:reduce){
+ .experience-visual-stage,.experience-step,.home-value-link,.home-value-link span{transition:none!important}
+}
+
+@media(max-width:480px){.about-grid.about-photo-panel h2{font-size:clamp(24px,6.1vw,28px);line-height:1.33}}
+
+/* v2.4.1 — Semantic Korean editorial line breaks and readable prose.
+   Explicit sentence breaks apply only where there is enough horizontal room;
+   CMS-supplied paragraphs receive the same fluid typography without rewriting text. */
+.view :is(
+  .home-value-copy > p,
+  .about-photo-panel p,
+  .about-section-heading p,
+  .about-reason > p,
+  .experience-description > p,
+  .about-invitation p,
+  .about-end p,
+  .recruit-layout p,
+  .recruit-fact span,
+  .recruit-instructions,
+  .application-cta p,
+  .process-step p,
+  .page-head > p,
+  .people-lead p,
+  .role-detail p,
+  .faq-answer p,
+  .notice-inline,
+  .detail-deck,
+  .detail-content p,
+  .cms-post-body,
+  .cms-session-detail,
+  .session-body p,
+  .report-item p,
+  .featured-copy p,
+  .cms-card p,
+  .cms-post-body p,
+  .cms-person-bio,
+  .cms-research-notes p,
+  .cms-session-summary,
+  .cms-empty,
+  .recruit-instructions,
+  .recruit-instructions p
+) {
+  word-break:keep-all;
+  overflow-wrap:break-word;
+  text-wrap:pretty;
+}
+.view :is(
+  .home-value-copy h2,
+  .about-section-heading h2,
+  .about-grid h2,
+  .about-reason h3,
+  .about-invitation h2,
+  .page-head h1,
+  .page-head h2,
+  .recruit-layout h2,
+  .experience-description h3,
+  .featured-copy h3,
+  .report-item h3,
+  .detail-masthead h1,
+  .cms-post-head h1,
+  .cms-post-body h2,
+  .cms-card h3,
+  .session-button strong,
+  .cms-session-head strong,
+  .cms-person-info strong
+) {
+  word-break:keep-all;
+  overflow-wrap:break-word;
+  text-wrap:balance;
+}
+.home-value-copy > p {max-width:44rem;line-height:1.94}
+.about-photo-panel p {max-width:38rem;line-height:1.95}
+.about-section-heading p {max-width:32rem;line-height:1.93}
+.about-invitation p {max-width:34rem}
+.about-reason > p {max-width:34ch}
+.experience-description > p {max-width:36ch}
+.page-head > p {max-width:51rem}
+.recruit-layout p {max-width:41ch}
+.application-cta p {max-width:46ch}
+/* Deliberate end-of-sentence break: the next thought gets its own line. */
+.editorial-copy .copy-sentence {display:block}
+.editorial-copy .copy-sentence + .copy-sentence {margin-top:.17em}
+.editorial-copy .copy-phrase{display:inline}
+@media(max-width:1000px){
+  .home-value-copy .copy-sentence,
+  .about-photo-panel .copy-sentence,
+  .about-invitation .copy-sentence,
+  .about-journey .copy-sentence {display:inline}
+  .home-value-copy .copy-sentence + .copy-sentence,
+  .about-photo-panel .copy-sentence + .copy-sentence,
+  .about-invitation .copy-sentence + .copy-sentence,
+  .about-journey .copy-sentence + .copy-sentence {margin-top:0}
+}
+@media(max-width:760px){
+  .home-value-copy > p {max-width:100%;font-size:13px;line-height:1.88}
+  .about-photo-panel p {max-width:100%;font-size:13px;line-height:1.86}
+  .about-section-heading p {max-width:100%}
+  .about-reason > p {max-width:none}
+  .experience-description > p {max-width:100%}
+  .page-head > p {max-width:100%;line-height:1.85}
+  .recruit-layout p {max-width:100%}
+}
+@media(max-width:480px){
+  .home-value-copy h2 {font-size:clamp(31px,8.4vw,39px);line-height:1.26}
+  .home-value-copy > p {font-size:12.8px;line-height:1.94}
+  .about-section-heading h2 {font-size:clamp(30px,8.5vw,38px);line-height:1.28}
+  .about-photo-panel p {font-size:12.5px}
+  .about-invitation h2 {font-size:clamp(27px,7.6vw,34px)}
+  .experience-description h3 {font-size:clamp(24px,7.5vw,29px);line-height:1.33}
+  .recruit-fact {align-items:flex-start}
+  .recruit-fact span {min-width:0;max-width:67%}
+}
