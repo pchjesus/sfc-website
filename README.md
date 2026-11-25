@@ -109,3 +109,6 @@ Home and About copy is grouped by meaning on wider screens, with natural wrappin
 
 ### v2.4.2 — approved About copy
 The About introduction, study-stage descriptions and closing invitation now match the editorially approved Korean line groups. Desktop grouping is responsive; mobile copy flows naturally. The public CMS preserves manual grouping for the same About intro text and permits custom Studio text to replace it. No database changes.
+
+## v2.5–v2.6 integrated preview branch
+The proposed visual story, unified Research Archive/Reader and safer Studio authoring improvements live exclusively in `preview/sfc-v2.5-v2.6-integrated`. Review [branch preview guide](docs/INTEGRATED_PREVIEW_V2.6.md). Do not merge without approval.

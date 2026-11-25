@@ -286,6 +286,21 @@
     $("previewTitle").textContent=v.title||"제목 없음";
     $("previewExcerpt").textContent=v.excerpt||"";
     cms.renderBody($("previewBody"),v.body);
+    const notes=$("previewResearchNotes"),meta=$("previewResearchMeta");
+    notes.replaceChildren();
+    if(v.kind==="research"){
+      meta.textContent=[v.research_sector,v.research_company,v.research_author].filter(Boolean).join(" / ");
+      if(v.research_method){
+        const head=document.createElement("h2"),text=document.createElement("p");
+        head.textContent="분석 방법";text.textContent=v.research_method;
+        notes.append(head,text);
+      }
+      if(v.research_limitations){
+        const head=document.createElement("h2"),text=document.createElement("p");
+        head.textContent="가정과 한계";text.textContent=v.research_limitations;
+        notes.append(head,text);
+      }
+    }else meta.textContent="";
     $("postForm").hidden=true;$("previewPanel").hidden=false;
   }
   async function checkUser(){
@@ -383,6 +398,35 @@
   $("deletePost").addEventListener("click",purgePost);
   $("historyButton").addEventListener("click",loadHistory);
   $("historyClose").addEventListener("click",()=>$("historyPanel").hidden=true);
+  $("insertResearchOutline")?.addEventListener("click",()=>{
+    const field=$("postBody");
+    if(field.value.trim()){
+      notify("기존 본문을 보호하기 위해 빈 편집기에만 템플릿을 삽입할 수 있습니다.",true);
+      field.focus();return;
+    }
+    field.value=[
+      "# 연구 질문",
+      "분석하려는 질문과 범위를 작성해 주세요.",
+      "",
+      "## 분석 방법과 자료",
+      "분석 방법과 사용한 자료의 출처를 작성해 주세요.",
+      "",
+      "## 핵심 근거",
+      "검토한 재무 자료와 주요 관찰 사항을 작성해 주세요.",
+      "",
+      "## 주요 가정 및 검증",
+      "가정의 근거와 민감한 변수를 작성해 주세요.",
+      "",
+      "## 해석과 한계",
+      "가능한 다른 해석과 분석상 제약을 작성해 주세요.",
+      "",
+      "## 참고자료",
+      "원문 자료의 제목, 발행기관, 날짜와 URL을 작성해 주세요."
+    ].join("\n");
+    field.dispatchEvent(new Event("input",{bubbles:true}));
+    field.focus();
+    notify("연구 구성 템플릿을 입력했습니다. 안내 문구를 실제 분석 내용으로 교체하세요.");
+  });
   $("previewButton").addEventListener("click",preview);
   $("closePreview").addEventListener("click",()=>{$("previewPanel").hidden=true;$("postForm").hidden=false;});
   $("postForm").addEventListener("submit",event=>event.preventDefault());

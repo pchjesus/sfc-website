@@ -22,6 +22,10 @@ try:
             ("home-desktop","home",1440,900,None),
             ("about-desktop","about",1440,900,2),
             ("activities-desktop","activities",1440,900,"research"),
+            ("research-archive-desktop","research",1440,900,None),
+            ("research-grid-desktop","research",1440,900,"grid"),
+            ("recruitment-desktop","recruitment",1440,900,None),
+            ("research-mobile","research",390,844,None),
             ("about-mobile","about",390,844,1),
         ]
         for filename,route,width,height,selection in shots:
@@ -34,6 +38,8 @@ try:
                 page.locator('[data-experience-step="'+str(selection)+'"]').click()
             elif route=="activities" and selection:
                 page.locator('#scheduleTabs [data-value="'+selection+'"]').click()
+            elif route=="research" and selection=="grid":
+                page.locator('#archiveGridButton').click()
             page.evaluate("window.scrollTo({top:0,left:0,behavior:'instant'})")
             page.wait_for_timeout(120)
             page.screenshot(path=str(OUT/(filename+".png")),full_page=True,animations="disabled")

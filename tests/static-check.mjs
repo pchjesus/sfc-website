@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 
 const read=path=>fs.readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const files=['index.html','admin.html','css/site.css','css/cms-public.css','css/cms.css',
-  'js/motion.js','css/motion.css','css/editorial.css','js/about-experience.js','js/site.js','js/cms-core.js','js/cms-public.js','js/cms-admin.js','js/cms-studio.js',
+  'js/motion.js','css/motion.css','css/editorial.css','css/integrated.css','js/about-experience.js','js/visual-story.js','js/research-platform.js','js/research-reader.js','js/site.js','js/cms-core.js','js/cms-public.js','js/cms-admin.js','js/cms-studio.js',
   'js/cms-config.js','sql/sfc-cms.sql','sql/sfc-roles-v1.4.sql',
   'sql/sfc-integrated-2.0.sql','robots.txt','sitemap.xml'];
 for(const path of files){assert.ok(read(path).length>0,path+' missing or empty');}
@@ -24,7 +24,7 @@ for(const path of files.filter(s=>s.endsWith('.js'))){
   const js=read(path);
   new vm.Script(js,{filename:path});
   const ids=[...js.matchAll(/\$\("([\w-]+)"\)/g)].map(x=>x[1]);
-  const scope=path==='js/cms-public.js'||path==='js/site.js'||path==='js/motion.js'?publicIds:adminIds;
+  const scope=['js/cms-public.js','js/site.js','js/motion.js','js/visual-story.js','js/research-platform.js','js/research-reader.js'].includes(path)?publicIds:adminIds;
   // Core and config have no hard-coded local DOM dependencies.
   if(path.includes('cms-core')||path.includes('cms-config'))continue;
   for(const id of ids)assert.ok(scope.has(id),path+' references missing DOM ID '+id);
@@ -72,4 +72,16 @@ assert.match(read('js/motion.js'),/function filterRows\(/);
 assert.match(read('js/site.js'),/motion\.filterRows\(root,selectedStage\)/);
 assert.match(read('js/cms-public.js'),/motion\.filterRows\(root,liveStage\)/);
 assert.match(read('css/editorial.css'),/scrollbar-gutter:stable/);
-console.log('PASS: static structure, client syntax, referenced IDs, access, stable curriculum filtering and editorial contracts');
+assert.match(publicHtml,/id="researchWorkbench"/);
+assert.match(publicHtml,/id="readerToc"/);
+assert.match(publicHtml,/id="journeyContext"/);
+assert.match(publicHtml,/id="recruitmentStatusTrack"/);
+assert.match(publicHtml,/src="js\/research-platform\.js\?v=2\.6-preview"/);
+assert.match(publicHtml,/src="js\/research-reader\.js\?v=2\.6-preview"/);
+assert.match(publicHtml,/src="js\/visual-story\.js\?v=2\.5-preview"/);
+assert.match(read('js/research-platform.js'),/\.range\(from,from\+limit-1\)/);
+assert.match(read('js/cms-public.js'),/\.maybeSingle\(\)/);
+assert.match(read('js/cms-public.js'),/\.limit\(80\)/);
+assert.match(adminHtml,/id="insertResearchOutline"/);
+assert.match(read('js/cms-admin.js'),/research_method/);
+console.log('PASS: baseline and v2.5–2.6 static, security and editorial contracts');

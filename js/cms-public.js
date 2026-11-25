@@ -5,7 +5,8 @@
   const motion=window.SFC_MOTION;
   const $=id=>document.getElementById(id);
   let posts=[],loaded=false,loadError="",allPeople=[],allSessions=[],researchSector="all",researchSearch="";
-  let recruitConfig={status:"planned"},siteConfig={},refreshClock=null;
+  let recruitConfig={status:"planned"},siteConfig={},refreshClock=null,publicDb=null;
+  const detailCache=new Map();let showRevision=0;
   const element=(tag,cls,text)=>{
     const el=document.createElement(tag);
     if(cls)el.className=cls;
@@ -56,6 +57,10 @@
   }
   function renderResearch(){
     const root=$("liveResearch");if(!root)return;
+    if(window.SFC_PLATFORM){
+      root.hidden=true;const demo=$("demoResearchBlock");if(demo)demo.hidden=true;
+      return;
+    }
     const research=posts.filter(p=>p.kind==="research");
     root.hidden=!research.length;
     const sample=$("demoResearchBlock");
@@ -110,42 +115,28 @@
     }
     motion.reconcile(root,nodes,{reuse:"equal"});
   }
-  function show(id){
-    const article=posts.find(p=>p.id===id);
-    const title=$("cmsPostTitle"),meta=$("cmsPostMeta"),body=$("cmsPostBody"),assets=$("cmsPostAssets");
-    if(!title||!meta||!body||!assets)return;
-    body.replaceChildren();assets.replaceChildren();
-    if(!article){
-      title.textContent=loaded?"게시글을 찾을 수 없습니다.":"게시글을 불러오는 중입니다.";
-      meta.textContent=loaded?"삭제되었거나 공개되지 않은 글입니다.":"";
-      return;
-    }
-    title.textContent=article.title;
-    const description=[cms.kindNames[article.kind]||article.kind,article.research_sector,
-      article.research_company,article.research_author,cms.dateText(article.published_at)].filter(Boolean);
-    meta.textContent=description.join(" / ");
-    cms.renderBody(body,article.body);
-    if(article.excerpt)body.prepend(element("p","cms-post-deck",article.excerpt));
-    if(article.kind==="research"&&(article.research_method||article.research_limitations)){
-      const section=element("section","cms-research-notes");
-      if(article.research_method){
-        section.append(element("h2","","분석 방법"),element("p","",article.research_method));
+  async function show(id){
+    const revision=++showRevision;
+    window.SFC_READER?.status("게시글을 불러오는 중입니다.","");
+    try{
+      const db=publicDb||await cms.getPublicClient();
+      if(!db)throw new Error("Public client unavailable");
+      let article=detailCache.get(id);
+      if(!article){
+        const response=await db.from("cms_posts").select(
+          "id,kind,title,excerpt,body,cover_url,attachment_url,published_at,research_sector,research_company,research_author,research_method,research_limitations"
+        ).eq("id",id).eq("status","published").is("deleted_at",null)
+          .or("scheduled_at.is.null,scheduled_at.lte."+new Date().toISOString()).maybeSingle();
+        if(response.error)throw response.error;
+        article=response.data;
+        if(article)detailCache.set(id,article);
       }
-      if(article.research_limitations){
-        section.append(element("h2","","가정과 한계"),element("p","",article.research_limitations));
-      }
-      body.append(section);
-    }
-    const cover=cms.safeUrl(article.cover_url),file=cms.safeUrl(article.attachment_url);
-    if(cover){
-      const img=element("img","cms-post-cover");
-      img.src=cover;img.alt="게시글 대표 이미지";img.loading="lazy";
-      assets.append(img);
-    }
-    if(file){
-      const link=element("a","cms-download","첨부 PDF 열기 ↗");
-      link.href=file;link.target="_blank";link.rel="noopener noreferrer";
-      assets.append(link);
+      if(revision!==showRevision||location.hash.slice(1)!=="post-"+id)return;
+      if(article)window.SFC_READER?.render(article,cms);
+      else window.SFC_READER?.status("게시글을 찾을 수 없습니다.","삭제되었거나 공개되지 않은 글입니다.");
+    }catch(_error){
+      if(revision===showRevision)window.SFC_READER?.status(
+        "게시글을 불러오지 못했습니다.","연결 상태를 확인하고 다시 시도해 주세요.");
     }
   }
   function setText(selector,value){
@@ -371,13 +362,14 @@
     if(!cms)return;
     try{
       const db=await cms.getPublicClient();
+      publicDb=db;
       if(!db){loaded=true;renderUpdates();return;}
       const results=await Promise.allSettled([
         db.from("cms_posts").select(
-          "id,kind,title,excerpt,body,cover_url,attachment_url,published_at,research_sector,research_company,research_author,research_method,research_limitations"
+          "id,kind,title,excerpt,published_at,research_sector,research_company,research_author"
         ).eq("status","published").is("deleted_at",null)
           .or("scheduled_at.is.null,scheduled_at.lte."+new Date().toISOString())
-          .order("published_at",{ascending:false}).limit(300),
+          .order("published_at",{ascending:false}).limit(80),
         db.from("cms_site_settings").select("key,value"),
         db.from("cms_people").select("id,name,position,term,bio,sort_order,visible").eq("visible",true).order("sort_order"),
         db.from("cms_sessions").select("id,week_label,title,summary,detail,stage,sort_order,visible").eq("visible",true).order("sort_order")
@@ -396,6 +388,7 @@
     }catch(e){loadError=String(e.message||e);}
     loaded=true;
     renderHome();renderHomeUpdates();renderResearch();renderUpdates();publicPeople();publicSessions();renderRecruitment();motion.reveal();
+    if(publicDb)void window.SFC_PLATFORM?.connect(publicDb);
     const route=/^post-([0-9a-f-]{36})$/.exec(location.hash.slice(1));
     if(route)show(route[1]);
     clearInterval(refreshClock);

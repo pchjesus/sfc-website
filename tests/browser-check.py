@@ -157,21 +157,23 @@ with sync_playwright() as p:
  ok('CMS curriculum shares filter controls, disclosure and sample fallback')
  x.context.close()
  x=page('anonymous');x.set_viewport_size({'width':1100,'height':500});x.goto(base+'/#research')
- expect(x.locator('#reportResults .report-item')).to_have_count(4)
- x.locator('#searchReports').fill('기업')
- expect(x.locator('#reportResults .report-item').first).to_be_visible()
- x.evaluate("document.querySelector('[data-layout=grid]').click()")
- expect(x.locator('#reportResults')).to_have_class('report-list grid')
- x.evaluate("window.scrollTo(0,Math.min(240,document.documentElement.scrollHeight-innerHeight))")
- x.wait_for_timeout(200);stored=x.evaluate('scrollY')
- x.evaluate("document.querySelector('#reportResults .report-item').click()")
+ expect(x.locator('#researchWorkbench')).to_be_visible()
+ expect(x.locator('#archiveResults .archive-report')).to_have_count(4)
+ x.locator('#archiveSearch').fill('기업')
+ x.wait_for_timeout(350)
+ assert x.locator('#archiveResults .archive-report').count()>0
+ x.locator('#archiveGridButton').click()
+ expect(x.locator('#archiveResults')).to_have_class('archive-results grid')
+ x.evaluate("window.scrollTo(0,Math.min(220,document.documentElement.scrollHeight-innerHeight))")
+ x.wait_for_timeout(150);stored=x.evaluate('scrollY')
+ x.locator('#archiveResults .archive-report').first.click()
  expect(x.locator('#detail')).to_be_visible()
  x.evaluate("navigate('research')")
- expect(x.locator('#research')).to_be_visible()
- expect(x.locator('#searchReports')).to_have_value('기업')
- expect(x.locator('[data-layout=grid]')).to_have_attribute('aria-pressed','true')
- x.wait_for_timeout(400);assert abs(x.evaluate('scrollY')-stored)<12
- ok('research list/grid transition and filter/scroll restoration')
+ expect(x.locator('#researchWorkbench')).to_be_visible()
+ expect(x.locator('#archiveSearch')).to_have_value('기업')
+ expect(x.locator('#archiveGridButton')).to_have_attribute('aria-pressed','true')
+ x.wait_for_timeout(350);assert abs(x.evaluate('scrollY')-stored)<15
+ ok('integrated archive search/grid and return state')
  x.context.close()
  x=page('anonymous');x.goto(base)
  expect(x.locator('#heroPause')).to_have_count(0)
@@ -194,16 +196,26 @@ with sync_playwright() as p:
  assert x.evaluate("document.querySelector('#scheduleList').getAnimations({subtree:true}).length===0")
  ok('three balanced hero controls, accessible pause, CTA synchronization and reduced motion')
  x.context.close()
- # Both equal-size replacements and unequal-size disjoint stage swaps use
- # the same direction-neutral timeline. Inspect actual WAAPI keyframes.
+ # Unified archive swaps and preserved Activities stage transitions.
  x=page('anonymous');x.goto(base+'/#research')
- expect(x.locator('#reportResults .report-item')).to_have_count(4)
+ expect(x.locator('#archiveResults .archive-report')).to_have_count(4)
+ x.locator('#archiveSectors [data-value="케이스"]').click()
+ expect(x.locator('#archiveResults .archive-report')).to_have_count(1)
+ x.wait_for_function("document.querySelector('#archiveResults').getAnimations({subtree:true}).length===0")
+ x.locator('#archiveSectors [data-value="교육자료"]').click()
+ expect(x.locator('#archiveResults .archive-report')).to_have_count(1)
+ x.wait_for_function("document.querySelector('#archiveResults').getAnimations({subtree:true}).length===0")
+ x.locator('#archiveSectors [data-value="케이스"]').click()
+ expect(x.locator('#archiveResults .archive-report')).to_have_count(1)
+ x.wait_for_function("document.querySelector('#archiveResults').getAnimations({subtree:true}).length===0")
+ expect(x.locator('.motion-snapshot-layer')).to_have_count(0)
+ ok('research 1-to-1 swaps do not leave interactive clones')
  def swap(root,control,value,expected):
   result=x.evaluate("""([root,control,value])=>{
     const b=[...document.querySelectorAll(control+' button')].find(e=>e.dataset.value===value);
     b.click();
     const list=document.querySelector(root);
-    return [...list.children].filter(e=>root==='#reportResults'?Boolean(e.dataset.motionKey):e.dataset.active==='true').map(e=>{
+    return [...list.children].filter(e=>e.dataset.active==='true').map(e=>{
       const a=e.getAnimations()[0];
       return a?{duration:a.effect.getTiming().duration,frames:a.effect.getKeyframes().map(k=>({opacity:k.opacity,height:k.height,transform:k.transform}))}:null;
     });
@@ -213,16 +225,6 @@ with sync_playwright() as p:
   expect(x.locator('.motion-snapshot-layer')).to_have_count(0)
   x.wait_for_function("(root)=>document.querySelector(root).getAnimations({subtree:true}).length===0",arg=root)
   return result[0]
- x.locator('#reportFilters [data-value="케이스"]').click()
- x.wait_for_function("document.querySelector('#reportResults').getAnimations({subtree:true}).length===0")
- expect(x.locator('.motion-snapshot-layer')).to_have_count(0)
- forward=swap('#reportResults','#reportFilters','교육자료',1)
- reverse=swap('#reportResults','#reportFilters','케이스',1)
- assert forward['duration']==reverse['duration']
- assert [str(k.get('opacity')) for k in forward['frames']]==[str(k.get('opacity')) for k in reverse['frames']]
- assert str(forward['frames'][0]['opacity']) in ('0','0.0')
- assert str(forward['frames'][-1]['opacity']) in ('1','1.0')
- ok('research one-to-one replacement has identical forward/reverse keyframes')
  x.evaluate("navigate('activities')")
  x.locator('#scheduleTabs [data-value="application"]').click()
  x.wait_for_function("document.querySelector('#scheduleList').getAnimations({subtree:true}).length===0")

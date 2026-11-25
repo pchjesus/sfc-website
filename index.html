@@ -25,10 +25,14 @@
 <script defer src="js/cms-core.js?v=2.0"></script>
 <link rel="stylesheet" href="css/motion.css?v=2.3.3">
 <link rel="stylesheet" href="css/editorial.css?v=2.4.2">
+<link rel="stylesheet" href="css/integrated.css?v=2.6-preview">
 <script defer src="js/motion.js?v=2.4"></script>
-<script defer src="js/site.js?v=2.4"></script>
-<script defer src="js/cms-public.js?v=2.4"></script>
+<script defer src="js/research-platform.js?v=2.6-preview"></script>
+<script defer src="js/site.js?v=2.6-preview"></script>
+<script defer src="js/research-reader.js?v=2.6-preview"></script>
+<script defer src="js/cms-public.js?v=2.6-preview"></script>
 <script defer src="js/about-experience.js?v=2.4.2"></script>
+<script defer src="js/visual-story.js?v=2.5-preview"></script>
 </head>
 <body>
 <header class="site-header">
@@ -246,6 +250,7 @@
 <section class="view" id="research">
   <div class="wrap">
     <div class="page-head" data-motion="rise"><span class="eyebrow">PUBLICATIONS / ARCHIVE</span><h1>Research.</h1><p>기업분석과 리서치 결과를 모으는 곳. 현재 자료는 화면 구성을 위한 예시입니다.</p></div>
+    <section id="researchWorkbench" class="archive-workbench" aria-label="리서치 아카이브" hidden></section>
     <div class="cms-live" id="liveResearch" hidden></div>
     <div id="demoResearchBlock">
     <div class="report-toolbar">
@@ -268,6 +273,14 @@
   <div class="wrap">
     <div class="page-head" data-motion="rise"><span class="eyebrow">ACTIVITIES / 2027 SPRING</span><h1>Activities.</h1><p>15주간의 기초교육, 기업분석 실습, 리서치 발표.</p></div>
     <div class="schedule-header"><strong>2027 SPRING · 15-WEEK PROGRAM</strong><small>PLANNED CURRICULUM</small></div>
+    <div class="journey-context" id="journeyContext" aria-live="polite">
+      <div><span class="eyebrow">THE LEARNING JOURNEY / 01—15</span>
+        <h2 id="journeyCurrent">전체 학습 과정</h2>
+        <p id="journeyDescription">기초 역량을 쌓고, 기업분석을 연습한 뒤, 팀별 연구로 연결되는 학기 운영 계획입니다.</p>
+      </div>
+      <span class="journey-week" id="journeyRange">W01 — 15</span>
+    </div>
+    <div class="journey-progress" id="journeyProgress" aria-hidden="true" data-stage="all"><span></span></div>
     <div class="schedule-tabs" id="scheduleTabs" role="group" aria-label="커리큘럼 단계"></div>
     <div class="session-list" id="scheduleList"></div>
     <p class="notice-inline" style="margin-bottom:90px">※ 위 과정은 운영 기획안 기준이며 학기 일정에 따라 조정될 수 있습니다. 주차를 눌러 세부 내용을 볼 수 있습니다.</p>
@@ -299,6 +312,12 @@
         <h3>Application form.</h3><p>로그인 없이 지원서 양식을 확인하고 내려받을 수 있습니다.</p><small id="applicationAvailability">공식 지원서 양식 등록 전</small></div>
         <button type="button" id="applicationTrigger" class="application-cta-button">VIEW APPLICATION <span aria-hidden="true">↗</span></button>
     </div><p class="recruit-instructions" id="recruitInstructionsPublic" hidden></p>
+    <div class="recruitment-status-track" id="recruitmentStatusTrack" data-state="planned" aria-label="현재 모집 상태">
+      <div data-recruit-state="planned" class="current" aria-current="step"><span>01</span><strong>모집 준비</strong></div>
+      <div data-recruit-state="open" aria-current="false"><span>02</span><strong>접수 진행</strong></div>
+      <div data-recruit-state="closed" aria-current="false"><span>03</span><strong>모집 종료</strong></div>
+    </div>
+    <p class="recruitment-next-step" id="recruitmentNextStep" role="status">모집 일정과 지원 방법은 공식 공고에서 확정됩니다.</p>
     <span class="eyebrow" style="margin-bottom:21px">RECRUITMENT PROCESS / PLANNED</span>
     <div class="process-steps">
       <div class="process-step" data-motion="rise" data-motion-delay="0"><small>01</small><strong>모집 공고</strong><p>3월 초 예정</p></div>
@@ -311,6 +330,11 @@
     <p class="notice-inline" style="margin-bottom:70px">※ 선발 과정과 세부 일정은 최종 모집 공고에서 확정됩니다.</p>
   </div>
 </section>
+<dialog id="researchPdfDialog" class="application-dialog reader-pdf-dialog" aria-labelledby="researchPdfTitle">
+  <div class="application-dialog-head"><div><span class="eyebrow">RESEARCH / DOCUMENT</span><h2 id="researchPdfTitle">연구보고서 PDF</h2></div><button type="button" id="researchPdfClose" class="application-close" aria-label="PDF 미리보기 닫기">×</button></div>
+  <div class="application-dialog-body"><iframe id="researchPdfFrame" title="연구보고서 PDF 미리보기" loading="lazy"></iframe></div>
+  <div class="application-dialog-foot"><p>공개된 연구보고서 원문 파일입니다.</p><a id="researchPdfDownload" class="application-primary" target="_blank" rel="noopener noreferrer">PDF 열기 ↗</a></div>
+</dialog>
 <dialog id="applicationDialog" class="application-dialog" aria-labelledby="applicationDialogTitle">
 <div class="application-dialog-head"><div><span class="eyebrow">RECRUITMENT / APPLICATION</span><h2 id="applicationDialogTitle">지원서 양식 미리보기</h2></div>
 <button type="button" id="applicationClose" class="application-close" aria-label="미리보기 닫기">×</button></div>
@@ -333,7 +357,18 @@
   <div class="wrap">
     <a class="cms-post-back" href="#updates">← BACK TO UPDATES</a>
     <header class="cms-post-head" data-motion="rise"><h1 id="cmsPostTitle">게시글을 불러오는 중입니다.</h1><p id="cmsPostMeta"></p></header>
-    <div class="cms-post-grid"><article class="cms-post-body" id="cmsPostBody"></article><aside class="cms-post-assets" id="cmsPostAssets"></aside></div>
+    <div class="reader-overview" id="readerOverview" hidden>
+      <span class="eyebrow">RESEARCH / INTRODUCTION</span>
+      <p id="readerOverviewText"></p>
+    </div>
+    <div class="reader-layout">
+      <nav id="readerToc" class="reader-toc" aria-label="리서치 목차" hidden></nav>
+      <div class="cms-post-grid"><article class="cms-post-body" id="cmsPostBody"></article><aside class="cms-post-assets" id="cmsPostAssets"></aside></div>
+    </div>
+    <div class="reader-actions" id="readerActions" hidden>
+      <button type="button" id="readerCopyLink">COPY REPORT LINK ↗</button>
+      <span id="readerShareFeedback" role="status"></span>
+    </div>
   </div>
 </section>
 <!-- REPORT DETAIL -->

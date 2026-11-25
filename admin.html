@@ -12,6 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/cms.css?v=2.0.1">
 <link rel="stylesheet" href="css/motion.css?v=2.3.3">
+<link rel="stylesheet" href="css/integrated.css?v=2.6-preview">
 <script defer src="js/cms-config.js?v=2.0"></script>
 <script defer src="js/cms-core.js?v=2.0"></script>
 <script defer src="js/cms-admin.js?v=2.0"></script>
@@ -65,6 +66,11 @@
 <label>작성자<input id="researchAuthor" maxlength="160" placeholder="연구팀 / 작성자"></label>
 <label>분석 방법<textarea id="researchMethod" rows="3" maxlength="2000"></textarea></label>
 <label>가정과 한계<textarea id="researchLimitations" rows="3" maxlength="2000"></textarea></label>
+<div class="studio-research-guide" id="researchGuide">
+  <strong>연구보고서 구성 안내</strong>
+  <p>연구 질문과 분석 방법, 데이터 출처, 주요 가정, 결과의 해석 및 한계를 구분해서 작성해 주세요. 독자는 소제목을 목차로 이동할 수 있습니다.</p>
+  <button type="button" id="insertResearchOutline">빈 본문에 연구 구성 템플릿 넣기</button>
+</div>
 </div>
 <label>본문<textarea id="postBody" rows="15" maxlength="50000" placeholder="# 제목&#10;&#10;본문을 입력해 주세요.&#10;&#10;## 소제목&#10;- 핵심 항목"></textarea></label>
 <p class="editor-hint"># 제목 · ## 소제목 · - 목록 · 빈 줄 지원. HTML은 실행되지 않습니다.</p>
@@ -77,7 +83,9 @@
 <label>예약 발행 (선택, 현지 시간)<input type="datetime-local" id="postSchedule"><span class="form-help">미래 시각을 지정한 뒤 '게시'하면 해당 시각부터 공개돼요. 빈칸이면 즉시 게시합니다.</span></label>
 <div class="editor-toolbar"><button type="button" id="previewButton" class="secondary">미리보기</button><button type="button" id="saveDraft" class="secondary">임시저장</button><button type="button" id="publishPost" class="primary">게시하기 ↗</button></div>
 </form>
-<div id="previewPanel" class="preview-panel" hidden><span class="eyebrow">ARTICLE PREVIEW</span><h2 id="previewTitle"></h2><p id="previewExcerpt"></p><div class="cms-richtext" id="previewBody"></div><button type="button" id="closePreview" class="secondary">편집으로 돌아가기</button></div>
+<div id="previewPanel" class="preview-panel" hidden><span class="eyebrow">ARTICLE PREVIEW</span><h2 id="previewTitle"></h2><p id="previewExcerpt"></p><p id="previewResearchMeta" class="editor-hint"></p>
+<div class="cms-richtext" id="previewBody"></div>
+<div id="previewResearchNotes" class="cms-richtext"></div><button type="button" id="closePreview" class="secondary">편집으로 돌아가기</button></div>
 <div class="editor-danger"><button type="button" id="unpublishPost" hidden>게시 취소</button><button type="button" id="trashPost" hidden>휴지통으로</button><button type="button" id="restorePost" hidden>복구하기</button><button type="button" id="deletePost" hidden>영구 삭제</button><button type="button" id="historyButton" hidden>수정 이력</button></div>
 <div id="historyPanel" class="studio-history" hidden><div class="studio-history-head"><h3>수정 이력</h3><button type="button" id="historyClose">닫기</button></div><p class="editor-hint">이전을 선택하면 편집기에 불러와져요. 실제 복원은 다시 저장한 후 적용됩니다.</p><div id="historyList"></div></div>
 </section></div></section>

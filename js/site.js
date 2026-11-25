@@ -474,6 +474,7 @@ window.SFC_DEMO=Object.freeze({
     if(notice)notice.textContent="※ 위 과정은 운영 기획안 기준이며 학기 일정에 따라 조정될 수 있습니다. 주차를 눌러 세부 내용을 볼 수 있습니다.";
   }
 });
+window.SFC_PLATFORM?.startDemo(reports,openReport);
 renderHomeWorks();
 renderFilters();
 renderReports();
