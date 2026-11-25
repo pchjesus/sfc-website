@@ -34,6 +34,8 @@ try:
                 page.locator('[data-experience-step="'+str(selection)+'"]').click()
             elif route=="activities" and selection:
                 page.locator('#scheduleTabs [data-value="'+selection+'"]').click()
+            page.evaluate("window.scrollTo({top:0,left:0,behavior:'instant'})")
+            page.wait_for_timeout(120)
             page.screenshot(path=str(OUT/(filename+".png")),full_page=True,animations="disabled")
             print("PREVIEW "+filename+": "+str(OUT/(filename+".png")))
             context.close()

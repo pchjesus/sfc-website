@@ -141,3 +141,5 @@ body{overflow-x:clip}
 @media(prefers-reduced-motion:reduce){
  .experience-visual-stage,.experience-step,.home-value-link,.home-value-link span{transition:none!important}
 }
+
+@media(max-width:480px){.about-grid.about-photo-panel h2{font-size:clamp(24px,6.1vw,28px);line-height:1.33}}
