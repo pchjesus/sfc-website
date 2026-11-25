@@ -200,3 +200,27 @@
   .smu-mark-footer{width:42px;height:56px}
   .footer-brand-row{gap:12px}
 }
+
+/* v2.7.2 owner review fixes:
+ * Keep each approved About sentence line distinct on every viewport.
+ * Tablet layout gives the three lines enough width; phones may soft-wrap
+ * inside each span rather than reducing type to an unreadable size.
+ */
+#about .about-photo-panel .about-approved-copy{max-width:none;line-height:2;letter-spacing:-.018em}
+#about .about-photo-panel .about-approved-copy .about-line{
+  display:block!important;text-wrap:wrap;white-space:normal;word-break:keep-all
+}
+@media(min-width:1181px){
+  #about .about-photo-panel{grid-template-columns:minmax(0,.62fr) minmax(0,1.38fr)}
+  #about .about-photo-panel .about-approved-copy{font-size:clamp(14px,1.1vw,15px)}
+}
+@media(min-width:761px) and (max-width:1180px){
+  #about .about-photo-panel{grid-template-columns:1fr;gap:22px}
+  #about .about-photo-panel h2{max-width:560px}
+  #about .about-photo-panel .about-approved-copy{font-size:15px}
+}
+@media(max-width:760px){
+  #about .about-photo-panel .about-approved-copy{font-size:14px;line-height:1.9}
+}
+#research .archive-report-label{font-weight:700;letter-spacing:.09em;color:#b96a50}
+#research .archive-report-number{font-size:12px;color:#8da0ac}
