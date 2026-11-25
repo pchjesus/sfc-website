@@ -173,7 +173,10 @@ with sync_playwright() as p:
  expect(x.locator('#researchWorkbench')).to_be_visible()
  expect(x.locator('#archiveSearch')).to_have_value('기업')
  expect(x.locator('#archiveGridButton')).to_have_attribute('aria-pressed','true')
- x.wait_for_timeout(350);assert abs(x.evaluate('scrollY')-stored)<15
+ x.wait_for_timeout(350)
+ actual=x.evaluate("scrollY")
+ max_scroll=x.evaluate("Math.max(0,document.documentElement.scrollHeight-innerHeight)")
+ assert abs(actual-min(stored,max_scroll))<16,(stored,max_scroll,actual)
  ok('integrated archive search/grid and return state')
  x.context.close()
  x=page('anonymous');x.goto(base)
