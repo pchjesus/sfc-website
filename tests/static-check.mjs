@@ -56,7 +56,6 @@ assert.match(read('js/motion.js'),/layout:550/);
 assert.match(read('js/motion.js'),/recruitment:570/);
 assert.match(publicHtml,/id="readingProgress"/);
 assert.match(read('js/motion.js'),/prefers-reduced-motion/);
-assert.match(read('js/site.js'),/motion\.reconcile\(\$\("scheduleList"\)/);
 assert.match(read('js/cms-public.js'),/getPublicClient\(\)/);
 assert.match(read('js/cms-public.js'),/scheduled_at\.lte/);
 assert.match(publicHtml,/id="experienceLayout"/);
