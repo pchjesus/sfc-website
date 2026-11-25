@@ -136,7 +136,8 @@
       }
       nodes.push(empty);
     }
-    motion.reconcile(root,nodes,{reuse:"equal"});
+    motion.reconcile(root,nodes,{reuse:"equal",exit:false});
+    if(chosen.length)window.SFC_V28?.firstList(root,".cms-card",3);
   }
   async function show(id){
     const revision=++showRevision;
