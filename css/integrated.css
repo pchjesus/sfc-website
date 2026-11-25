@@ -200,3 +200,11 @@
  .experience-visual-stage.active rect{animation:none!important}
  .journey-progress>span{transition:none!important}
 }
+
+/* v2.6 preview visual QA: avoid repeated progress bars and status strips. */
+.archive-intro{margin-bottom:17px;align-items:center}
+.archive-intro p{margin-top:9px;max-width:42rem}
+.archive-workspace{padding-top:16px}
+.journey-progress{display:none}
+.recruitment-status-track{display:none!important}
+.recruitment-next-step{margin:19px 0 39px;padding:13px 0;border-top:1px solid #d8e1e5;border-bottom:1px solid #d8e1e5}

@@ -24,7 +24,7 @@
   };
   root.innerHTML=`
     <div class="archive-intro">
-      <div><span class="eyebrow">SFC / RESEARCH LIBRARY</span><h2>Ideas, examined.</h2><p>하나의 질문이 분석과 검증을 거쳐 연구로 정리되는 과정을 살펴보세요.</p></div>
+      <div><span class="eyebrow">SFC / RESEARCH LIBRARY</span><p>질문에서 근거와 해석까지, 연구의 과정을 탐색하세요.</p></div>
       <span class="archive-mode" id="archiveMode">DEMONSTRATION / SAMPLE</span>
     </div>
     <div class="archive-workspace">
