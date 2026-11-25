@@ -57,8 +57,8 @@
     animation?.cancel();animation=null;
     if(!reduced.matches&&panel.animate){
       animation=panel.querySelector(".experience-description").animate(
-        [{opacity:.78},{opacity:1}],
-        {duration:230,easing:"cubic-bezier(.22,1,.36,1)"}
+        [{opacity:.49,transform:"translateX(16px)"},{opacity:1,transform:"none"}],
+        {duration:760,easing:"cubic-bezier(.16,1,.3,1)"}
       );
     }
     window.SFC_V28?.stage(index);
