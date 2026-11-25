@@ -1,0 +1,64 @@
+/* SFC v2.7 — review-only refinements. No CMS, data, authorization or motion logic changes.
+ * Purpose: identify the club sooner, reduce decorative dominance, and make key text easier to read.
+ * Loaded only in the v2.7 review branch until explicitly approved.
+ */
+:root{--v27-ink:#172d41;--v27-text:#41596a}
+.hero{height:min(730px,calc(100svh - 76px));min-height:530px}
+.hero-copy .hero-identity{
+  display:block;margin:0 0 16px;color:#f2f5f6;
+  font-size:clamp(12px,1.12vw,14px);line-height:1.65;
+  letter-spacing:.025em;font-weight:600;word-break:keep-all
+}
+.hero-identity .hero-identity-separator{color:#f1ab92;margin:0 .55em}
+.hero h1{font-size:clamp(55px,7.8vw,110px);line-height:1.06;margin-bottom:24px}
+.hero-copy>p:not(.hero-identity){max-width:40rem}
+.home-value{padding-top:clamp(52px,6.5vw,82px);padding-bottom:clamp(53px,6.5vw,82px)}
+.home-value-steps>div{transition:none}
+.home-value-steps>div::before{display:none}
+@media(hover:hover) and (min-width:761px){
+  .home-value-steps>div:hover{padding-left:2px;background:transparent}
+}
+.page-head{padding-top:clamp(49px,5.1vw,64px)}
+.page-head h1{font-size:clamp(45px,5.5vw,76px)}
+.page-head p{font-size:15px;line-height:1.85;color:#526675}
+.eyebrow{font-size:11px;line-height:1.5}
+.line-link,.home-value-link,.archive-reset,.people-join-link{font-size:12px}
+.archive-report-label{font-size:11px}
+.archive-report p{font-size:13px;line-height:1.72;color:#647b89}
+.archive-report-date{font-size:12px}
+.archive-disclosure{font-size:12px}
+.archive-search input{font-size:15px}
+.archive-sector,.archive-view-toggle button,.archive-sort-label select{min-height:44px}
+.archive-result-meta{font-size:11px}
+.reader-toc button{font-size:12px}
+#post.reader-active .cms-post-body p{font-size:15px;line-height:1.9}
+.team-node-index{font-size:11px;margin-bottom:18px}
+.team-node-role,.team-node-description{font-size:13px}
+#recruitment .process-step p{font-size:13px;line-height:1.72}
+#recruitment .process-step-code{font-size:11px}
+#recruitment .process-step{min-height:0}
+.recruitment-next-step{font-size:13px}
+@media(max-width:760px){
+  .hero{height:min(735px,calc(100svh - 68px));min-height:530px}
+  .hero h1{font-size:clamp(48px,10vw,76px)}
+  .hero-copy .hero-identity{font-size:12px;line-height:1.7;max-width:300px;margin-bottom:13px}
+  .page-head h1{font-size:clamp(42px,8.7vw,60px)}
+  .home-value-steps>div:hover{background:transparent}
+  .archive-search input{font-size:16px!important}
+  .archive-results.grid .archive-report p{font-size:13px}
+  .archive-report-date{font-size:11px}
+  #post.reader-active .cms-post-body p{font-size:15px}
+  #recruitment .process-step p{font-size:13px}
+  .team-node-description{font-size:13px}
+}
+@media(max-width:480px){
+  .hero{min-height:520px}
+  .hero h1{font-size:clamp(43px,10.5vw,55px)}
+  .hero-copy .hero-identity{max-width:275px}
+  .page-head h1{font-size:43px}
+  .home-value-steps>div:hover{padding-left:0}
+  #recruitment .process-step{padding:19px 13px}
+}
+@media(prefers-reduced-motion:reduce){
+  .hero{scroll-behavior:auto}
+}
