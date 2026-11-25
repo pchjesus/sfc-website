@@ -251,3 +251,26 @@ body{overflow-x:clip}
   .recruit-fact {align-items:flex-start}
   .recruit-fact span {min-width:0;max-width:67%}
 }
+
+/* v2.4.2 — approved line composition for About only.
+   Preserve the authored logical line breaks at wide widths; let text reflow
+   naturally on narrower viewports to avoid clipping or one-word orphans. */
+#about .about-manual-lines{white-space:normal;word-break:keep-all;overflow-wrap:break-word;text-wrap:pretty}
+#about .about-manual-lines .about-line{display:block}
+#about .about-photo-panel .about-manual-lines{max-width:none}
+#about .about-photo-panel{grid-template-columns:minmax(0,.74fr) minmax(0,1.26fr)}
+#about .about-photo-panel h2{min-width:0}
+#about .about-photo-panel .about-manual-lines{min-width:0}
+#about .experience-description .about-manual-lines{max-width:none}
+#about .about-invitation .about-manual-lines{max-width:none}
+@media(max-width:1280px){
+  #about .about-photo-panel .about-line{display:inline}
+}
+@media(max-width:960px){
+  #about .experience-description .about-line,
+  #about .about-invitation .about-line{display:inline}
+}
+@media(max-width:760px){
+  #about .about-photo-panel{grid-template-columns:1fr}
+  #about .about-manual-lines .about-line{display:inline}
+}

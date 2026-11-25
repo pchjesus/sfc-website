@@ -106,3 +106,6 @@ Fine adjustment of animation durations toward 1.3–1.8 times v2.3 baseline; pre
 ### v2.4.1: polished editorial copy and responsive rhythm
 
 Home and About copy is grouped by meaning on wider screens, with natural wrapping on mobile. A shared editorial stylesheet also adjusts Research, Activities, People, Recruitment, Updates and published article body copy. The 2027 learning plan remains explicitly planned; the Supabase and administrator schema are unchanged.
+
+### v2.4.2 — approved About copy
+The About introduction, study-stage descriptions and closing invitation now match the editorially approved Korean line groups. Desktop grouping is responsive; mobile copy flows naturally. The public CMS preserves manual grouping for the same About intro text and permits custom Studio text to replace it. No database changes.

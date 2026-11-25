@@ -157,7 +157,21 @@
     siteConfig=v||{};
     if(v?.hero_description)window.SFC_HERO_EDIT?.(v.hero_description);
     setText(".about-photo-panel h2",v?.about_heading);
-    setText(".about-photo-panel p",v?.about_body);
+    // Preserve the approved editorial line grouping if Studio's saved copy
+    // contains the same text. Otherwise honor the editor's own prose.
+    const intro=document.querySelector(".about-photo-panel p");
+    if(intro&&typeof v?.about_body==="string"&&v.about_body.trim()){
+      const approved=["SFC(Sangmyung Financial Club)는 상명대학교 경영학부","기업재무분석 학술동아리입니다.","기업의 사업구조와 재무 데이터를 분석하고, 가치평가의 가정을 검증하며,","근거에 기반한 판단을 토론합니다."];
+      const normalized=text=>String(text).replace(/\s+/g," ").trim();
+      if(normalized(v.about_body)===normalized(approved.join(" "))){
+        intro.replaceChildren(...approved.map((text,i)=>{
+          const span=document.createElement("span");
+          span.className="about-line";
+          span.textContent=text+(i<approved.length-1?" ":"");
+          return span;
+        }));
+      }else intro.textContent=v.about_body;
+    }
     setText(".about-end p",v?.program_note);
     const email=String(v?.contact_email||"");
     if(email&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){

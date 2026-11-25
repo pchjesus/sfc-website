@@ -14,16 +14,16 @@
   const reduced=matchMedia("(prefers-reduced-motion: reduce)");
   const stages=[
     {kicker:"01 / OBSERVE",heading:"이 기업은 어떻게 가치를 만들까?",
-     copy:"제품과 고객, 산업 구조를 살피며 재무 데이터 이전에 기업의 사업을 이해하는 질문부터 시작합니다.",
+     lines:["제품과 고객, 산업 구조를 살피며 재무 데이터 이전에","기업의 사업을 이해하는 질문부터 시작합니다."],
      outcome:"사업모델과 산업 구조 이해"},
     {kicker:"02 / ANALYZE",heading:"재무 수치는 무엇을 설명할까?",
-     copy:"재무제표와 현금흐름의 연결을 확인하고, 수익성 변화가 발생한 이유를 분석하는 과정을 연습합니다.",
+     lines:["재무제표와 현금흐름의 연결을 확인하고,","수익성 변화가 발생한 이유를 분석하는 과정을 연습합니다."],
      outcome:"재무 흐름과 핵심 위험요인 파악"},
     {kicker:"03 / VALUE",heading:"가정이 바뀌면 가치는 어떻게 달라질까?",
-     copy:"비교기업과 현금흐름 가정의 적절성을 따지며, 다양한 가치평가 결과를 검증합니다.",
+     lines:["비교기업과 현금흐름 가정의 적절성을 따지며,","다양한 가치평가 결과를 검증합니다."],
      outcome:"근거를 설명할 수 있는 평가 과정"},
     {kicker:"04 / DEFEND",heading:"분석을 다른 사람에게 설득할 수 있을까?",
-     copy:"팀별 토론과 발표를 통해 가정과 한계를 검토하고, 분석 결과를 하나의 리포트로 정리하는 것을 목표로 합니다.",
+     lines:["팀별 토론과 발표를 통해 가정과 한계를 검토하고,","분석 결과를 하나의 리포트로 정리하는 것을 목표로 합니다."],
      outcome:"연구 결과를 정리하고 설명하는 경험"}
   ];
   let current=0,animation=null;
@@ -40,7 +40,12 @@
     panel.setAttribute("aria-labelledby",tabs[index].id);
     kicker.textContent=stage.kicker;
     heading.textContent=stage.heading;
-    copy.textContent=stage.copy;
+    copy.replaceChildren(...stage.lines.flatMap((text,i)=>{
+      const span=document.createElement("span");
+      span.className="about-line";
+      span.textContent=text+(i<stage.lines.length-1?" ":"");
+      return [span];
+    }));
     outcome.textContent=stage.outcome;
     counter.textContent=String(index+1).padStart(2,"0")+" / 04";
     next.textContent=index===stages.length-1?"BACK TO START ↗":"NEXT STEP ↗";

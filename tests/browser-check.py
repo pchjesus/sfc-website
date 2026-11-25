@@ -306,5 +306,28 @@ with sync_playwright() as p:
       .every(el=>el.getBoundingClientRect().right <= innerWidth+3)"""),(width,route)
   x.context.close()
  ok('semantic copy grouping and responsive line wrapping at 1440/900/768/390/360px')
+ # User-approved About copy: exact Korean wording, desktop line grouping,
+ # and natural mobile reflow across all four interactive learning stages.
+ expected_intro=["SFC(Sangmyung Financial Club)는 상명대학교 경영학부","기업재무분석 학술동아리입니다.","기업의 사업구조와 재무 데이터를 분석하고, 가치평가의 가정을 검증하며,","근거에 기반한 판단을 토론합니다."]
+ expected_invite=["기업을 자신의 관점으로 분석해보고 싶고,","서로의 의견을 근거로 검증하는 과정에 관심 있다면","SFC의 학습 방향을 살펴보세요."]
+ expected_stages=[["제품과 고객, 산업 구조를 살피며 재무 데이터 이전에","기업의 사업을 이해하는 질문부터 시작합니다."],["재무제표와 현금흐름의 연결을 확인하고,","수익성 변화가 발생한 이유를 분석하는 과정을 연습합니다."],["비교기업과 현금흐름 가정의 적절성을 따지며,","다양한 가치평가 결과를 검증합니다."],["팀별 토론과 발표를 통해 가정과 한계를 검토하고,","분석 결과를 하나의 리포트로 정리하는 것을 목표로 합니다."]]
+ for width in [1440,1280,960,390,360]:
+  x=page('anonymous',width)
+  x.goto(base+'/#about')
+  intro=x.locator('.about-photo-panel .about-line')
+  invite=x.locator('.about-invitation .about-line')
+  expect(intro).to_have_count(4)
+  expect(invite).to_have_count(3)
+  assert [v.strip() for v in intro.all_inner_texts()]==expected_intro,(width,intro.all_inner_texts())
+  assert [v.strip() for v in invite.all_inner_texts()]==expected_invite,(width,invite.all_inner_texts())
+  assert intro.first.evaluate("e=>getComputedStyle(e).display")==('block' if width>1280 else 'inline')
+  for i,lines in enumerate(expected_stages):
+   x.locator('[data-experience-step="'+str(i)+'"]').click()
+   copy=x.locator('#experienceCopy .about-line')
+   expect(copy).to_have_count(2)
+   assert [v.strip() for v in copy.all_inner_texts()]==lines,(width,i,copy.all_inner_texts())
+  assert x.evaluate("document.documentElement.scrollWidth<=innerWidth+1"),width
+  x.context.close()
+ ok('About approved line breaks, four interactive stages and mobile reflow')
  browser.close()
 server.shutdown();print(f'{checks} browser scenarios passed; live Auth/RLS/Storage NOT exercised.')
