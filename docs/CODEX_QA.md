@@ -65,3 +65,129 @@ No package installation needed. Review `sql/sfc-integrated-2.0.sql` before makin
 - Free-plan project costs and automatic backup depend on plan/usage; establish and test external backup and restore procedure before a real recruitment cycle.
 - Hash-based public article routes have limited search indexing and social sharing previews.
 - Financial reports need appropriate authorship, source and non-investment-advice disclaimer before publication.
+
+## 2026-11-25 verification and fixes (local, not deployed)
+
+Baseline: fetched `origin/main`, `067684cccceebf6507b1b9939e20ac3cb52be341`.
+The worktree was clean before this review. No production data, Auth account,
+Storage object, database policy or migration was changed.
+
+### Confirmed defects addressed
+
+- Editor selection was allowed during a save; late responses could replace the
+  selected article. Block user selection until the save completes and cancel
+  the previous editor's timers when selecting another article.
+- Manual saves unconditionally reapplied the response and cleared dirty state,
+  discarding text entered while the request was pending. Compare raw input and
+  selected files; retain newer input, scratch and dirty state, then autosave
+  remaining draft edits. Track file input changes as unsaved work.
+- Draft saves reapplied a server response whose trigger clears `scheduled_at`.
+  Preserve the intended local schedule and include it in session scratch.
+  Scratch now retains raw inputs (including invalid URLs) and is scoped to the
+  verified user. Files themselves cannot be restored from sessionStorage.
+- Failed/conflicting autosaves retried indefinitely. Stop automatic retries on
+  failure, display failure state and leave input available for explicit retry.
+- Revision restoration of a draft started an automatic write despite promising
+  an explicit save. Restore into the form without scheduling a write; subsequent
+  normal edits still use draft autosave. Discard stale history responses after
+  article selection changes.
+- Permanent deletion lacked the update-version guard used by edit/trash/restore.
+  Require matching `updated_at` and an actually returned deleted row.
+- Public content shared Studio's persistent authenticated client; a superadmin's
+  broad RLS read could include scheduled posts. Use a separate nonpersistent,
+  anonymous client and explicitly filter release time in public queries. RLS
+  remains authoritative; the browser time filter is an additional constraint.
+- Reloading the public feed with no research did not restore the SAMPLE home
+  fallback after real research disappeared. Reset visibility in both directions.
+- Malformed percent-encoded hashes crashed route rendering. Fall back to home.
+- Mobile header controls clipped, and Studio's post grid overflowed at 360px.
+  Reduce header gaps and allow the single-column editor/sidebar grid to shrink.
+- Use a unique stable key order for backup pagination. The export still does
+  not provide a transactionally consistent database snapshot.
+- Defer Auth callback checks to a later task (including token refresh), rather
+  than potentially calling Supabase Auth while its callback holds a lock.
+  Do not discard scratch on a reported sign-out error.
+
+### Reproduce local checks
+
+```bash
+npm test
+python3 tests/browser-check.py
+# Browser suite requires Python Playwright and Chromium on PATH.
+```
+
+The browser suite starts and shuts down its own ephemeral HTTP server, blocks
+all external requests and injects `tests/fixtures/supabase-mock.js`. It exercises
+real application scripts and DOM in Chromium, but does **not** emulate or prove
+PostgreSQL RLS, Storage security or real Supabase Auth behavior. Fixture data and
+addresses are artificial test inputs only. Screenshots are written under `/tmp`.
+A baseline checkout failed the malformed-hash regression with `URI malformed`.
+
+Result: `npm test` passed; all **18 browser scenarios** passed; `git diff --check`
+passed. These are local results, not a deployment certification.
+
+Coverage: seven public routes and six Studio panes at 1440/768/360px, mobile menu,
+recruitment placeholder/Escape/focus, configured PDF/DOCX link and iframe URLs,
+anonymous/nonlisted-user UI rejection, slow manual saves/newer input, autosave,
+optimistic conflicts, request errors, scheduled payloads, trash/restore, explicit
+revision restoration, guarded permanent deletion, invalid uploads and raw scratch
+recovery across reload. Responsive screenshots were inspected; external fonts and
+photos were intentionally blocked, so their appearance is not certified.
+
+### Security review and unverified integration
+
+Source review: the integrated SQL removes former role policies/functions, uses
+`is_superadmin()` with a protected definer/search path, checks membership for
+protected writes, and protects revision creation with a trigger. The superadmin
+guard takes `pg_advisory_xact_lock(8820,3)` before counting, rejects a fourth
+account, and rejects self/last-account deletion. Public post policies constrain
+status, deletion and release time. Storage writes require superadmin membership,
+with MIME/size limits; public bucket objects remain publicly readable even after
+post deletion. These are source findings, **not live policy introspection**.
+
+Live Supabase Auth settings GET was blocked by the network proxy with HTTP 403.
+No usable real test accounts or privileged database connection were supplied.
+Consequently the following remain **unverified**:
+
+- Real login/recovery/email delivery, disabled signup and redirect configuration.
+- Actual installed RLS/grants, authenticated non-admin write-negative tests,
+  forged-token rejection, immediate revocation, concurrent fourth-superadmin
+  insertion, and self/last-admin removal in the running database.
+- Actual revision trigger output, schedule boundary visibility at database time,
+  cross-device concurrent edits, and transactional behavior under failures.
+- Real PDF rendering/download bytes, uploaded DOCX, anonymous public Storage GET
+  and prohibited upload attempts. Local tests verify link wiring, not these.
+- Safari/Firefox, physical touch devices, external image/font rendering and a
+  complete accessibility/contrast audit.
+
+Use a separate staging Supabase project with disposable verified admin/non-admin
+accounts for those write tests. Do not run historical migrations or destructive
+negative tests on production merely to complete this checklist.
+
+### Remaining risks and structure assessment
+
+- Site/recruitment settings and People/Activities do not have the post editor's
+  optimistic concurrency guard. Concurrent saves can overwrite another editor;
+  avoid simultaneous edits until server-owned versioning is added and tested.
+- Settings/structured forms do not share the post editor's scratch/dirty guard.
+  Navigating away can lose unsaved changes; in-flight pane reloads may replace
+  those forms. The post-editor fixes do not certify these separate forms.
+- Draft schedule intent is local scratch, not cross-device server state (the
+  existing DB trigger clears schedules on draft rows). Draft file selections
+  must be reselected after reload. No offline multi-device merge is provided.
+- Public/admin lists are capped at 300 and history at 40. Older direct article
+  links can appear missing; export stops rather than silently truncating at its
+  safety bound. Concurrent table mutations can still affect paginated exports.
+- Uploads and content saves are separate operations. Partial failure/replacement
+  may leave public orphan files; never upload private applications. Old public
+  media and revision snapshots require an explicit retention policy.
+- An already-open public page needs refresh to discover newly released or
+  revoked posts; only recruitment status currently refreshes on a timer.
+- Hash routes retain generic share/search metadata; no deployment or Pages
+  verification has been performed for this patch.
+
+Refactoring assessment: **local improvement**, not a rewrite. The existing
+framework-free separation of core/public/editor/structured Studio is adequate.
+Save-state ownership and tests needed immediate attention; structured-editor
+versioning, list pagination and unified dirty/recovery handling are the next
+review triggers. No trend of historical bug frequency is asserted.
