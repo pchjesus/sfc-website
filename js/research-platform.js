@@ -203,7 +203,13 @@
     state.sort=$("archiveSort").value;state.page=1;refresh();
   });
   for(const [view,id] of [["list","archiveListButton"],["grid","archiveGridButton"]])
-    $(id).addEventListener("click",()=>{if(state.view!==view){state.view=view;refresh();}});
+    $(id).addEventListener("click",()=>{
+      if(state.view===view)return;
+      state.view=view;controls();persist();
+      // View mode changes only geometry; rebuilding results on the same tick
+      // would cancel the FLIP animation before it can be seen.
+      window.SFC_MOTION.transition(results,()=>results.classList.toggle("grid",view==="grid"),{exit:false});
+    });
   $("archivePrev").addEventListener("click",()=>{
     if(state.page>1){state.page--;refresh();}
   });
