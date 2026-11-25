@@ -15,6 +15,9 @@
   --motion-reveal:820ms;
   --motion-photo:1240ms;
 }
+/* Spatial elements may begin outside their reading column. Clip only
+   horizontal visual overflow so 768px/tablet scroll width never jumps. */
+.view{overflow-x:clip}
 /* Restore rich, non-jarring transitions from v2.7 rather than snapping
    every control and scene to the shortest possible timing. */
 .nav-links button::after{transition:right 480ms var(--v282-ease)}
