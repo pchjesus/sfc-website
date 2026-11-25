@@ -229,7 +229,7 @@ with sync_playwright() as p:
       return a?{duration:a.effect.getTiming().duration,frames:a.effect.getKeyframes().map(k=>({opacity:k.opacity,height:k.height,transform:k.transform}))}:null;
     });
   }""",[root,control,value])
-  assert len(result)==expected and all(a and a['duration']==355 for a in result),result
+  assert len(result)==expected and all(a and a['duration']==620 for a in result),result
   assert all(all(k.get('transform') in (None,'none') for k in a['frames']) for a in result),result
   expect(x.locator('.motion-snapshot-layer')).to_have_count(0)
   x.wait_for_function("(root)=>document.querySelector(root).getAnimations({subtree:true}).length===0",arg=root)
@@ -245,14 +245,14 @@ with sync_playwright() as p:
  assert str(forward['frames'][0]['opacity']) in ('0','0.0')
  assert str(forward['frames'][-1]['opacity']) in ('1','1.0')
  ok('activities disjoint 5-to-2 and 2-to-5 swaps share the same timeline')
- duration=x.evaluate("""()=>{navigate('recruitment');return document.querySelector('#recruitment').getAnimations().length}""")
- assert duration==0,'v2.8 should not animate an entire route on arrival'
+ duration=x.evaluate("""()=>{navigate('recruitment');return document.querySelector('#recruitment').getAnimations()[0].effect.getTiming().duration}""")
+ assert duration==920,'v2.8.2 must restore the 920ms whole-scene settle'
  x.locator('#applicationTrigger').scroll_into_view_if_needed()
  # Wait for viewport-triggered transforms before positioning the mouse.
  x.wait_for_function("""()=>{const e=document.querySelector('#applicationTrigger');return [e.closest('.application-cta'),e.closest('.view')].every(n=>!n||n.getAnimations().length===0)}""")
  x.locator('#applicationTrigger').hover()
  assert x.locator('#applicationTrigger').bounding_box()['height']>=44
- ok('recruitment state stays interactive without full-page entrance')
+ ok('recruitment remains interactive during softly restored scene entrance')
  x.context.close()
  # Activities must not shift horizontally even when the document changes
  # from 5 rows to 2 rows (or the other direction) at desktop/mobile widths.
@@ -291,13 +291,26 @@ with sync_playwright() as p:
  x.locator('#archiveGridButton').click()
  expect(x.locator('#archiveResults')).to_have_class('archive-results grid')
  assert x.evaluate("window.v28FirstReport===document.querySelector('#archiveResults .archive-report')")
- assert x.evaluate("document.querySelector('#research').getAnimations().length===0")
+ assert x.evaluate("Boolean(window.SFC_V28?.enter) && window.SFC_MOTION.timing.layout===620")
  x.locator('#archiveListButton').click()
  expect(x.locator('#archiveResults')).to_have_class('archive-results')
  x.wait_for_function("document.querySelector('#archiveResults').getAnimations({subtree:true}).length===0")
  assert x.locator('.motion-snapshot-layer').count()==0
- ok('v2.8: list/grid reflow retains actual report nodes, no page-wide fade')
+ ok('v2.8.2: list/grid preserves DOM while restored scene plays independently')
  x.context.close()
+ # Activities page title and supporting type must share the same size scale
+ # as the other public tabs, rather than the older oversized default.
+ for width in [1440,768,390,360]:
+  x=page('anonymous',width)
+  x.goto(base+'/#activities')
+  activity=x.locator('#activities .page-head h1')
+  research=x.locator('#research .page-head h1')
+  assert abs(float(activity.evaluate("e=>getComputedStyle(e).fontSize.replace('px','')"))-
+             float(research.evaluate("e=>getComputedStyle(e).fontSize.replace('px','')")))<1,(width,'font scale')
+  expect(x.locator('#activities .journey-context')).to_be_visible()
+  assert x.evaluate("document.documentElement.scrollWidth <= innerWidth+1"),width
+  x.context.close()
+ ok('Activities title scale matches Research at four desktop/mobile widths')
  # About experience communicates 4 distinct stages without a real-results claim.
  x=page('anonymous');x.goto(base+'/#about')
  expect(x.locator('.about-reason')).to_have_count(3)
