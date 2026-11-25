@@ -56,7 +56,7 @@ assert.deepEqual(calls.map(c=>c.options.duration),[440,310,300]);
 assert.deepEqual(calls.map(c=>c.options.delay),[0,70,115]);
 api.enter(home);assert.equal(calls.length,3,'Hero intro once per visit');
 api.slide(el('slide-copy'));
-assert.equal(calls.at(-1).options.duration,275);
+assert.equal(calls.at(-1).options.duration,350);
 const first=calls.length;
 api.stage(0);
 assert.equal(calls.length,first+1);
