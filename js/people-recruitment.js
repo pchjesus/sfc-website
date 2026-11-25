@@ -47,6 +47,7 @@
       return article;
     }));
     roleRoot.dataset.peopleMode=live?"live":"planned";
+    window.SFC_V28?.people();
     graph?.classList.toggle("has-live-people",live);
     $("peopleIntro").textContent=live
       ?"공개된 SFC 구성원과 담당 업무를 확인할 수 있습니다."
@@ -121,6 +122,7 @@
       });
     }
     supportButton.hidden=!hasForm||(state==="open"&&ctaMode==="form");
+    window.SFC_V28?.recruitment(action);
   }
   trigger?.addEventListener("click",event=>{
     if(ctaMode==="form")return; // Existing CMS handler opens the safe PDF/DOCX dialog.
