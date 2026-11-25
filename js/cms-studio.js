@@ -262,7 +262,7 @@
   async function readBackupTable(table){
     const rows=[];
     for(let start=0;start<10000;start+=1000){
-      const {data,error}=await client().from(table).select("*").range(start,start+999);
+      const {data,error}=await client().from(table).select("*").order(table==="cms_site_settings"?"key":table==="cms_admins"?"user_id":"id").range(start,start+999);
       if(error)throw error;
       rows.push(...(data||[]));
       if((data||[]).length<1000)return rows;

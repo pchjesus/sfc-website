@@ -4,7 +4,7 @@
 (function(){
   const config=window.SFC_CMS_CONFIG||{};
   const sdkUrl="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js";
-  let pending=null,client=null;
+  let pending=null,client=null,publicClient=null;
   function configured(){
     return /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(config.url||"")
       && /^sb_publishable_[A-Za-z0-9_-]+$/.test(config.publishableKey||"");
@@ -31,6 +31,12 @@
       document.head.appendChild(script);
     }).catch(error=>{pending=null;throw error;});
     return pending;
+  }
+  async function getPublicClient(){
+    if(!configured())return null;
+    await getClient(); // Load the pinned SDK once. Never reuse an authenticated client for public content.
+    if(!publicClient)publicClient=window.supabase.createClient(config.url,config.publishableKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+    return publicClient;
   }
   function safeUrl(candidate){
     if(!candidate||typeof candidate!=="string")return "";
@@ -74,5 +80,5 @@
     const dt=new Date(iso);
     return Number.isNaN(dt.valueOf())?"":new Intl.DateTimeFormat("ko-KR",{year:"numeric",month:"2-digit",day:"2-digit"}).format(dt);
   }
-  window.SFC_CMS=Object.freeze({configured,getClient,safeUrl,renderBody,kindNames,dateText});
+  window.SFC_CMS=Object.freeze({configured,getClient,getPublicClient,safeUrl,renderBody,kindNames,dateText});
 })();

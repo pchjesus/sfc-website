@@ -31,7 +31,8 @@ function navigate(route){
   renderRoute();
 }
 function renderRoute(){
-  const route=decodeURIComponent(location.hash.slice(1)||"home");
+  let route;
+  try{route=decodeURIComponent(location.hash.slice(1)||"home");}catch(_){route="home";}
   let target=route;
   const reportMatch=/^report-(\d+)$/.exec(route);
   const postMatch=/^post-([0-9a-f-]{36})$/.exec(route);

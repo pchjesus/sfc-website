@@ -611,7 +611,10 @@ html{scroll-behavior:auto}
 }
 @media(max-width:760px){
  .header-login{margin-left:auto;border-left:0;padding:0 3px;min-width:50px;font-size:10px;z-index:52}
- .menu-toggle{margin-left:7px}
+ .nav{gap:8px}
+ .brand{gap:10px}
+ .brand-name{padding-left:10px}
+ .menu-toggle{margin-left:0}
  .application-cta{align-items:flex-start;flex-direction:column;gap:22px}
  .application-cta-button{width:100%;justify-content:space-between}
  .application-dialog-foot{align-items:stretch;flex-direction:column;gap:14px}

@@ -65,25 +65,30 @@
     $("researchFields").hidden=$("postKind").value!=="research";
   }
   function stash(){
-    if(!dirty)return;
-    try{sessionStorage.setItem(recoveryKey,JSON.stringify({id:current?.id||null,values:readPost(),savedAt:Date.now()}));}catch(_){}
+    if(!dirty&&!(current?.status==="draft"&&$("postSchedule").value))return;
+    try{sessionStorage.setItem(recoveryKey,JSON.stringify({id:current?.id||null,userId:user?.id,values:Object.fromEntries(editorFields.map(id=>[id,$(id).value])),savedAt:Date.now()}));}catch(_){}
   }
   function forget(){try{sessionStorage.removeItem(recoveryKey);}catch(_){}}
   function restoreScratch(id){
     let snapshot;
     try{snapshot=JSON.parse(sessionStorage.getItem(recoveryKey)||"null");}catch(_){}
-    if(!snapshot||snapshot.id!==id)return;
+    if(!snapshot||snapshot.id!==id||snapshot.userId!==user?.id)return;
     if(!confirm("이전에 저장되지 않은 편집 내용이 있어요. 복구할까요?")){forget();return;}
-    applyForm(snapshot.values);markChanged();
+    if(Object.hasOwn(snapshot.values,"postTitle")){
+      for(const id of editorFields)$(id).value=snapshot.values[id]||"";
+    }else applyForm(snapshot.values);
+    $("researchFields").hidden=$("postKind").value!=="research";markChanged();
   }
-  function markChanged(){
+  function markChanged(schedule=true){
     dirty=true;$("editorSavedAt").textContent="저장되지 않은 변경사항";
     clearTimeout(stashTimer);stashTimer=setTimeout(stash,400);
     clearTimeout(autosaveTimer);
-    if(!current||current.status==="draft")autosaveTimer=setTimeout(()=>savePost("draft",true),2600);
+    if(schedule!==false&&(!current||current.status==="draft"))autosaveTimer=setTimeout(()=>savePost("draft",true),2600);
   }
   function selectPost(item,confirmDirty=true){
+    if(busy&&confirmDirty)return false;
     if(confirmDirty&&dirty&&!confirm("저장하지 않은 변경사항이 있어요. 다른 글로 이동할까요?"))return false;
+    clearTimeout(autosaveTimer);clearTimeout(stashTimer);
     current=item||null;dirty=false;applyForm(item);
     const trashed=Boolean(item?.deleted_at);
     $("editorMode").textContent=item?"EDIT / "+(trashed?"TRASHED":item.status.toUpperCase()):"NEW ARTICLE";
@@ -160,7 +165,8 @@
   }
   async function savePost(status,automatic=false){
     if(busy||!user||current?.deleted_at)return;
-    if(automatic&&current?.status==="published")return;
+    if(automatic&&(!dirty||current?.status==="published"))return;
+    clearTimeout(autosaveTimer);
     let draft;
     try{draft=readPost();}catch(e){if(!automatic)notify(e.message,true);return;}
     if(draft.title.length<3||draft.body.length===0){
@@ -171,17 +177,19 @@
       return;
     }
     if(automatic&&($("postCoverFile").files.length||$("postPdfFile").files.length))return;
-    const fingerprint=JSON.stringify(draft);
+    const fingerprint=JSON.stringify(editorFields.map(id=>$(id).value));
+    const imageFile=$("postCoverFile").files[0],pdfFile=$("postPdfFile").files[0],owner=user.id;
+    let saved=false;
     busyMode(true);
     try{
       if(!automatic){
-        const img=await upload($("postCoverFile").files[0],"image");
-        const pdf=await upload($("postPdfFile").files[0],"pdf");
+        const img=await upload(imageFile,"image");
+        const pdf=await upload(pdfFile,"pdf");
         if(img)draft.cover_url=img;
         if(pdf)draft.attachment_url=pdf;
       }
       const payload={...draft,status};
-      if(status!=="published")payload.scheduled_at=null;
+      // Keep the planned date in the form; draft rows intentionally have no server schedule.
       let response;
       if(current){
         response=await client.from("cms_posts").update(payload).eq("id",current.id)
@@ -191,23 +199,28 @@
         response=await client.from("cms_posts").insert({...payload,author_id:user.id}).select("*").single();
       }
       if(response.error)throw response.error;
-      current=response.data;
-      if(!automatic||JSON.stringify(readPost())===fingerprint){
+      if(user?.id!==owner)return;
+      current=response.data;saved=true;
+      if(JSON.stringify(editorFields.map(id=>$(id).value))===fingerprint
+        &&$("postCoverFile").files[0]===imageFile&&$("postPdfFile").files[0]===pdfFile){
         dirty=false;forget();
-        if(!automatic)applyForm(current);
+        // Do not reset inputs: a draft trigger clears scheduled_at, not the editor intention.
+        $("postCoverUrl").value=draft.cover_url||"";$("postAttachmentUrl").value=draft.attachment_url||"";
+        $("postCoverFile").value="";$("postPdfFile").value="";
       }
       $("editorMode").textContent="EDIT / "+statusName(current);
-      $("editorSavedAt").textContent=automatic?"자동 임시저장 완료":"서버에 저장됨";
+      stash();
+      $("editorSavedAt").textContent=dirty?"저장되지 않은 변경사항":automatic?"자동 임시저장 완료":"서버에 저장됨";
       $("saveDraft").hidden=status==="published";
       $("unpublishPost").hidden=status!=="published";
       $("trashPost").hidden=false;$("historyButton").hidden=false;
       $("publishPost").textContent=status==="published"?"변경사항 게시 ↗":"게시하기 ↗";
       await loadPosts();
       if(!automatic)notify(status==="published"?(current.scheduled_at&&new Date(current.scheduled_at)>new Date()?"예약 발행이 저장되었습니다.":"공개 게시되었습니다."):"임시저장이 완료되었습니다.");
-    }catch(e){if(!automatic)$("editorSavedAt").textContent="저장 실패";notify((automatic?"자동저장":"저장")+" 실패: "+(e.message||e),true);}
+    }catch(e){clearTimeout(autosaveTimer);$("editorSavedAt").textContent="저장 실패";notify((automatic?"자동저장":"저장")+" 실패: "+(e.message||e),true);}
     finally{
       busyMode(false);
-      if(automatic&&dirty&&current?.status==="draft"){
+      if(saved&&dirty&&current?.status==="draft"){
         clearTimeout(autosaveTimer);autosaveTimer=setTimeout(()=>savePost("draft",true),3500);
       }
     }
@@ -233,20 +246,23 @@
     if(!confirm("완전히 삭제할까요? 게시글 본문은 되돌릴 수 없어요."))return;
     busyMode(true);
     try{
-      const {error}=await client.from("cms_posts").delete().eq("id",current.id);
+      const {data,error}=await client.from("cms_posts").delete().eq("id",current.id)
+        .eq("updated_at",current.updated_at).select("id").maybeSingle();
       if(error)throw error;
+      if(!data)throw Error("글이 다른 곳에서 수정됐습니다. 새로고침해 주세요.");
       forget();current=null;await loadPosts();selectPost(null,false);
       notify("게시글이 영구 삭제되었습니다. 첨부 파일과 수정 이력은 별도 정리가 필요할 수 있어요.");
     }catch(e){notify("삭제 실패: "+e.message,true);}
     finally{busyMode(false);}
   }
   async function loadHistory(){
-    if(!current)return;
+    if(!current||busy)return;
     const id=current.id;
     const {data,error}=await client.from("cms_post_revisions")
       .select("id,post_id,snapshot,recorded_at").eq("post_id",id)
       .order("id",{ascending:false}).limit(40);
     if(error){notify("이력 조회 실패: "+error.message,true);return;}
+    if(current?.id!==id)return;
     $("historyPanel").hidden=false;
     const holder=$("historyList");holder.replaceChildren();
     for(const revision of data||[]){
@@ -255,10 +271,10 @@
       const stamp=cms.dateText(revision.recorded_at);
       item.append(node("strong","","Revision #"+revision.id),node("small","",stamp+" · "+(revision.snapshot?.title||"제목 없음")));
       item.addEventListener("click",()=>{
-        if(current?.id!==id)return;
+        if(busy||current?.id!==id)return;
         if(current.deleted_at){notify("휴지통의 글은 먼저 복구해 주세요.",true);return;}
         if(!confirm("이 버전을 편집기에 불러올까요? 저장하기 전에는 실제 글이 변경되지 않습니다."))return;
-        applyForm(revision.snapshot);markChanged();$("historyPanel").hidden=true;
+        applyForm(revision.snapshot);markChanged(false);$("historyPanel").hidden=true;
         notify("과거 버전을 편집기에 불러왔어요. 내용을 확인한 후 저장하세요.");
       });
       holder.append(item);
@@ -266,7 +282,7 @@
     if(!holder.childElementCount)holder.append(node("p","sidebar-empty","수정 이력이 없습니다."));
   }
   function preview(){
-    const v=readPost();
+    let v;try{v=readPost();}catch(e){notify(e.message,true);return;}
     $("previewTitle").textContent=v.title||"제목 없음";
     $("previewExcerpt").textContent=v.excerpt||"";
     cms.renderBody($("previewBody"),v.body);
@@ -302,7 +318,7 @@
       client.auth.onAuthStateChange(event=>{
         if(event==="PASSWORD_RECOVERY"){recovering=true;visible("studioReset");return;}
         if(event==="SIGNED_OUT"){user=null;posts=[];current=null;visible("studioLogin");return;}
-        if(event==="SIGNED_IN"&&!recovering)queueMicrotask(()=>checkUser());
+        if((event==="SIGNED_IN"||event==="TOKEN_REFRESHED")&&!recovering)setTimeout(()=>checkUser(),0);
       });
       await checkUser();
     }catch(e){visible("studioLogin");notify("연결 실패: "+e.message,true);}
@@ -335,8 +351,12 @@
     visible("studioLogin");notify("비밀번호를 변경했습니다. 다시 로그인해 주세요.");
   });
   $("studioLogout").addEventListener("click",async()=>{
+    if(busy)return;
     if(dirty&&!confirm("저장되지 않은 편집 내용이 있어요. 로그아웃할까요?"))return;
-    forget();user=null;await client.auth.signOut();visible("studioLogin");notify("로그아웃했습니다.");
+    clearTimeout(autosaveTimer);clearTimeout(stashTimer);
+    const {error}=await client.auth.signOut();
+    if(error){notify("로그아웃 실패: "+error.message,true);return;}
+    forget();dirty=false;user=null;visible("studioLogin");notify("로그아웃했습니다.");
   });
   document.querySelectorAll("[data-pane]").forEach(button=>button.addEventListener("click",()=>{
     if(dirty&&button.dataset.pane!=="posts"){
@@ -353,6 +373,7 @@
   $("postKind").addEventListener("change",()=>$("researchFields").hidden=$("postKind").value!=="research");
   $("postSchedule").addEventListener("change",()=>$("publishPost").textContent=$("postSchedule").value?"예약·게시하기 ↗":"게시하기 ↗");
   editorFields.forEach(id=>$(id).addEventListener("input",markChanged));
+  ["postCoverFile","postPdfFile"].forEach(id=>$(id).addEventListener("change",markChanged));
   $("newPost").addEventListener("click",newPost);
   $("saveDraft").addEventListener("click",()=>savePost("draft"));
   $("publishPost").addEventListener("click",()=>savePost("published"));

@@ -27,12 +27,12 @@
     const home=$("homeLiveResearch");
     if(!home)return;
     home.replaceChildren();
-    if(!list.length){home.hidden=true;return;}
+    const hasResearch=list.length>0;
+    const featured=document.querySelector(".featured-work"),demos=$("homeWorks");
+    if(featured)featured.hidden=hasResearch;
+    if(demos)demos.hidden=hasResearch;
+    if(!hasResearch){home.hidden=true;return;}
     home.hidden=false;
-    const featured=document.querySelector(".featured-work");
-    const demos=$("homeWorks");
-    if(featured)featured.hidden=true;
-    if(demos)demos.hidden=true;
     const wrap=element("div","cms-live-list");
     list.forEach(p=>wrap.append(card(p,true)));
     home.append(wrap);
@@ -290,12 +290,12 @@
   async function load(){
     if(!cms)return;
     try{
-      const db=await cms.getClient();
+      const db=await cms.getPublicClient();
       if(!db){loaded=true;renderUpdates();return;}
       const results=await Promise.allSettled([
         db.from("cms_posts").select(
           "id,kind,title,excerpt,body,cover_url,attachment_url,published_at,research_sector,research_company,research_author,research_method,research_limitations"
-        ).eq("status","published").is("deleted_at",null).order("published_at",{ascending:false}).limit(300),
+        ).eq("status","published").is("deleted_at",null).or("scheduled_at.is.null,scheduled_at.lte."+new Date().toISOString()).order("published_at",{ascending:false}).limit(300),
         db.from("cms_site_settings").select("key,value"),
         db.from("cms_people").select("id,name,position,term,bio,sort_order,visible").eq("visible",true).order("sort_order"),
         db.from("cms_sessions").select("id,week_label,title,summary,detail,stage,sort_order,visible").eq("visible",true).order("sort_order")
