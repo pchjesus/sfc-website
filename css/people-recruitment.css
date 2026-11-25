@@ -157,3 +157,12 @@
  .team-node,.team-node::after,.team-node-arrow,.recruit-action-card .application-cta-button,
  #recruitment .process-step button,.people-join-link span{transition:none!important}
 }
+
+/* Match the legacy high-specificity CTA selector while keeping a visible hover. */
+#recruitment #applicationTrigger:hover,
+#recruitment #applicationTrigger:focus-visible{
+  background:#fff;color:#153147;border-color:#fff;
+}
+#recruitment .recruit-action-card[data-state=closed] #applicationTrigger:hover{
+  background:#ed8966;color:#172d41;border-color:#ed8966;
+}
