@@ -102,3 +102,7 @@ Most transition durations are now 1.5–2 times the v2.3 baseline; unchanged her
 
 ### v2.3.3
 Fine adjustment of animation durations toward 1.3–1.8 times v2.3 baseline; previous v2.3.2 static and Chromium checks passed. No new About content or data changes.
+
+### v2.4.1: polished editorial copy and responsive rhythm
+
+Home and About copy is grouped by meaning on wider screens, with natural wrapping on mobile. A shared editorial stylesheet also adjusts Research, Activities, People, Recruitment, Updates and published article body copy. The 2027 learning plan remains explicitly planned; the Supabase and administrator schema are unchanged.

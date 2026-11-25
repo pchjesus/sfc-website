@@ -117,27 +117,27 @@ with sync_playwright() as p:
  # Motion regression coverage: sample and live lists, same nodes/controls,
  # reverse selection, rapidly repeated clicks, scroll return and reduced motion.
  x=page('anonymous');x.goto(base+'/#activities')
- expect(x.locator('#scheduleList .session')).to_have_count(11)
+ expect(x.locator('#scheduleList .session[data-active=true]')).to_have_count(11)
  x.evaluate("""()=>{window.stageButton=document.querySelector('#scheduleTabs [data-value="research"]');window.finalRow=document.querySelector('#scheduleList [data-session="10"]')}""")
  x.locator('#scheduleTabs [data-value="research"]').click()
- expect(x.locator('#scheduleList .session')).to_have_count(2)
+ expect(x.locator('#scheduleList .session[data-active=true]')).to_have_count(2)
  assert x.evaluate('stageButton===document.querySelector(\'#scheduleTabs [data-value="research"]\') && finalRow===document.querySelector(\'#scheduleList [data-session="10"]\')')
  x.locator('#scheduleTabs [data-value="application"]').click()
- expect(x.locator('#scheduleList .session')).to_have_count(5)
+ expect(x.locator('#scheduleList .session[data-active=true]')).to_have_count(5)
  x.locator('#scheduleTabs [data-value="foundation"]').click()
- expect(x.locator('#scheduleList .session')).to_have_count(4)
+ expect(x.locator('#scheduleList .session[data-active=true]')).to_have_count(4)
  x.locator('#scheduleTabs [data-value="all"]').click()
- expect(x.locator('#scheduleList .session')).to_have_count(11)
+ expect(x.locator('#scheduleList .session[data-active=true]')).to_have_count(11)
  x.evaluate("""()=>['research','all','application','foundation','research'].forEach(s=>document.querySelector('#scheduleTabs [data-value="'+s+'"]').click())""")
  expect(x.locator('#scheduleTabs [aria-pressed="true"]')).to_have_attribute('data-value','research')
- expect(x.locator('#scheduleList .session')).to_have_count(2)
+ expect(x.locator('#scheduleList .session[data-active=true]')).to_have_count(2)
  expect(x.locator('.motion-snapshot-layer')).to_have_count(0)
  x.wait_for_function("document.querySelector('#scheduleList').getAnimations({subtree:true}).length===0")
- x.locator('#scheduleList .session-button').first.click()
- expect(x.locator('#scheduleList .session-button').first).to_have_attribute('aria-expanded','true')
- x.locator('#scheduleList .session-button').last.click()
- expect(x.locator('#scheduleList .session-button').first).to_have_attribute('aria-expanded','false')
- expect(x.locator('#scheduleList .session-button').last).to_have_attribute('aria-expanded','true')
+ x.locator('#scheduleList .session[data-active=true] .session-button').first.click()
+ expect(x.locator('#scheduleList .session[data-active=true] .session-button').first).to_have_attribute('aria-expanded','true')
+ x.locator('#scheduleList .session[data-active=true] .session-button').last.click()
+ expect(x.locator('#scheduleList .session[data-active=true] .session-button').first).to_have_attribute('aria-expanded','false')
+ expect(x.locator('#scheduleList .session[data-active=true] .session-button').last).to_have_attribute('aria-expanded','true')
  ok('sample stage forward/reverse/rapid transitions preserve control and retained row identity')
  # Switch to actual CMS session fixture and then remove it.
  x.evaluate("""()=>{mock.sessions=[
@@ -145,15 +145,15 @@ with sync_playwright() as p:
   {id:'two',week_label:'15',title:'Research fixture',stage:'research',detail:'Details',summary:'Final',sort_order:1,visible:true}];
   return SFC_PUBLIC.load()}""")
  expect(x.locator('#scheduleTabs [aria-pressed="true"]')).to_have_attribute('data-value','research')
- expect(x.locator('#scheduleList .cms-session')).to_have_count(1)
+ expect(x.locator('#scheduleList .cms-session[data-active=true]')).to_have_count(1)
  x.locator('#scheduleTabs [data-value="foundation"]').click()
- expect(x.locator('#scheduleList .cms-session-head')).to_contain_text('Foundation fixture')
- x.locator('#scheduleList .cms-session-head').click()
- expect(x.locator('#scheduleList .cms-session-head')).to_have_attribute('aria-expanded','true')
+ expect(x.locator('#scheduleList .cms-session[data-active=true] .cms-session-head')).to_contain_text('Foundation fixture')
+ x.locator('#scheduleList .cms-session[data-active=true] .cms-session-head').click()
+ expect(x.locator('#scheduleList .cms-session[data-active=true] .cms-session-head')).to_have_attribute('aria-expanded','true')
  x.evaluate('mock.sessions=[];SFC_PUBLIC.load()')
- expect(x.locator('#scheduleList .session')).to_have_count(4)
+ expect(x.locator('#scheduleList .session[data-active=true]')).to_have_count(4)
  x.locator('#scheduleTabs [data-value="all"]').click()
- expect(x.locator('#scheduleList .session')).to_have_count(11)
+ expect(x.locator('#scheduleList .session[data-active=true]')).to_have_count(11)
  ok('CMS curriculum shares filter controls, disclosure and sample fallback')
  x.context.close()
  x=page('anonymous');x.set_viewport_size({'width':1100,'height':500});x.goto(base+'/#research')
@@ -189,7 +189,7 @@ with sync_playwright() as p:
  x.emulate_media(reduced_motion='reduce')
  x.evaluate("navigate('activities')")
  x.locator('#scheduleTabs [data-value="research"]').click()
- expect(x.locator('#scheduleList .session')).to_have_count(2)
+ expect(x.locator('#scheduleList .session[data-active=true]')).to_have_count(2)
  x.wait_for_timeout(100)
  assert x.evaluate("document.querySelector('#scheduleList').getAnimations({subtree:true}).length===0")
  ok('three balanced hero controls, accessible pause, CTA synchronization and reduced motion')
@@ -203,13 +203,13 @@ with sync_playwright() as p:
     const b=[...document.querySelectorAll(control+' button')].find(e=>e.dataset.value===value);
     b.click();
     const list=document.querySelector(root);
-    return [...list.children].filter(e=>e.dataset.motionKey).map(e=>{
+    return [...list.children].filter(e=>root==='#reportResults'?Boolean(e.dataset.motionKey):e.dataset.active==='true').map(e=>{
       const a=e.getAnimations()[0];
-      return a?{duration:a.effect.getTiming().duration,frames:a.effect.getKeyframes().map(k=>({opacity:k.opacity,transform:k.transform,offset:k.offset}))}:null;
+      return a?{duration:a.effect.getTiming().duration,frames:a.effect.getKeyframes().map(k=>({opacity:k.opacity,height:k.height,transform:k.transform}))}:null;
     });
   }""",[root,control,value])
   assert len(result)==expected and all(a and a['duration']==550 for a in result),result
-  assert all(all(k['transform']=='none' for k in a['frames']) for a in result),result
+  assert all(all(k.get('transform') in (None,'none') for k in a['frames']) for a in result),result
   expect(x.locator('.motion-snapshot-layer')).to_have_count(0)
   x.wait_for_function("(root)=>document.querySelector(root).getAnimations({subtree:true}).length===0",arg=root)
   return result[0]
@@ -218,7 +218,10 @@ with sync_playwright() as p:
  expect(x.locator('.motion-snapshot-layer')).to_have_count(0)
  forward=swap('#reportResults','#reportFilters','교육자료',1)
  reverse=swap('#reportResults','#reportFilters','케이스',1)
- assert forward==reverse
+ assert forward['duration']==reverse['duration']
+ assert [str(k.get('opacity')) for k in forward['frames']]==[str(k.get('opacity')) for k in reverse['frames']]
+ assert str(forward['frames'][0]['opacity']) in ('0','0.0')
+ assert str(forward['frames'][-1]['opacity']) in ('1','1.0')
  ok('research one-to-one replacement has identical forward/reverse keyframes')
  x.evaluate("navigate('activities')")
  x.locator('#scheduleTabs [data-value="application"]').click()
@@ -226,7 +229,10 @@ with sync_playwright() as p:
  expect(x.locator('.motion-snapshot-layer')).to_have_count(0)
  forward=swap('#scheduleList','#scheduleTabs','research',2)
  reverse=swap('#scheduleList','#scheduleTabs','application',5)
- assert forward==reverse
+ assert forward['duration']==reverse['duration']
+ assert [str(k.get('opacity')) for k in forward['frames']]==[str(k.get('opacity')) for k in reverse['frames']]
+ assert str(forward['frames'][0]['opacity']) in ('0','0.0')
+ assert str(forward['frames'][-1]['opacity']) in ('1','1.0')
  ok('activities disjoint 5-to-2 and 2-to-5 swaps share the same timeline')
  duration=x.evaluate("""()=>{navigate('recruitment');return document.querySelector('#recruitment').getAnimations()[0].effect.getTiming().duration}""")
  assert duration==570
@@ -236,5 +242,69 @@ with sync_playwright() as p:
  x.locator('#applicationTrigger').hover()
  expect(x.locator('#applicationTrigger')).to_have_css('background-color','rgb(237, 120, 87)')
  ok('recruitment slow entrance and contrasting coral hover')
- x.context.close();browser.close()
+ x.context.close()
+ # Activities must not shift horizontally even when the document changes
+ # from 5 rows to 2 rows (or the other direction) at desktop/mobile widths.
+ for viewport in [1440,768,360]:
+  x=page('anonymous');x.set_viewport_size({'width':viewport,'height':850});x.goto(base+'/#activities')
+  root=x.locator('#scheduleList')
+  initial_left=root.evaluate("el=>el.getBoundingClientRect().left")
+  x.locator('#scheduleTabs [data-value="application"]').click()
+  x.locator('#scheduleTabs [data-value="research"]').click()
+  expect(x.locator('#scheduleList .session[data-active=true]')).to_have_count(2)
+  result=x.evaluate("""async()=>{
+    const root=document.querySelector('#scheduleList'),left=root.getBoundingClientRect().left;
+    const rows=[...root.children];
+    const states=[];
+    for(let i=0;i<12;i++){
+      await new Promise(resolve=>requestAnimationFrame(resolve));
+      states.push({
+        left:root.getBoundingClientRect().left,
+        translated:rows.some(row=>row.getAnimations().some(a=>a.effect.getKeyframes().some(k=>k.transform&&k.transform.includes('translateX')))),
+        ghosts:document.querySelectorAll('.motion-snapshot-layer').length
+      });
+    }
+    return {left,states};
+  }""")
+  assert abs(initial_left-result['left'])<1.5,(viewport,initial_left,result)
+  assert all(abs(v['left']-initial_left)<1.5 and not v['translated'] and v['ghosts']==0 for v in result['states']),result
+  x.locator('#scheduleTabs [data-value="application"]').click()
+  expect(x.locator('#scheduleList .session[data-active=true]')).to_have_count(5)
+  assert abs(root.evaluate("el=>el.getBoundingClientRect().left")-initial_left)<1.5
+  x.context.close()
+ ok('activities fixed horizontal position on both transitions at 1440/768/360px')
+ # About experience communicates 4 distinct stages without a real-results claim.
+ x=page('anonymous');x.goto(base+'/#about')
+ expect(x.locator('.about-reason')).to_have_count(3)
+ for i,label in enumerate(['Observe','Analyze','Value','Defend']):
+  tab=x.locator('[data-experience-step="'+str(i)+'"]')
+  tab.click()
+  expect(tab).to_have_attribute('aria-selected','true')
+  expect(x.locator('.experience-visual-stage.active')).to_have_count(1)
+  expect(x.locator('#experiencePanel')).to_have_attribute('aria-labelledby','experienceTab'+str(i))
+ x.locator('#experienceNext').click()
+ expect(x.locator('[data-experience-step="0"]')).to_have_attribute('aria-selected','true')
+ x.locator('[data-experience-step="0"]').press('ArrowRight')
+ expect(x.locator('[data-experience-step="1"]')).to_have_attribute('aria-selected','true')
+ ok('About interactive research journey, keyboard tablist and honest copy')
+ x.context.close()
+ # Copy readability: sentence blocks on desktop, natural reflow on phones,
+ # no clipped headings across all content-heavy public routes.
+ for width in [1440,900,768,390,360]:
+  x=page('anonymous',width)
+  x.goto(base+'/#home')
+  phrases=x.locator('.home-value-copy .copy-sentence')
+  expect(phrases).to_have_count(2)
+  assert phrases.first.inner_text().endswith('경험.')
+  first_display=phrases.first.evaluate("(e)=>getComputedStyle(e).display")
+  assert first_display==('block' if width>1000 else 'inline'),(width,first_display)
+  for route in ['home','about','research','activities','people','recruitment','updates']:
+   x.evaluate('(r)=>navigate(r)',route)
+   expect(x.locator('#'+route)).to_be_visible()
+   assert x.evaluate("document.documentElement.scrollWidth <= innerWidth+1"),(width,route)
+   assert x.evaluate("""()=>[...document.querySelectorAll('.view.active h1,.view.active h2,.view.active h3')]
+      .every(el=>el.getBoundingClientRect().right <= innerWidth+3)"""),(width,route)
+  x.context.close()
+ ok('semantic copy grouping and responsive line wrapping at 1440/900/768/390/360px')
+ browser.close()
 server.shutdown();print(f'{checks} browser scenarios passed; live Auth/RLS/Storage NOT exercised.')

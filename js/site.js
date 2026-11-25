@@ -396,16 +396,27 @@ function toggleSession(i){
 }
 function renderSchedule(){
   motion.controls($("scheduleTabs"),stages,selectedStage,chooseStage);
-  const template=document.createElement("template");
-  template.innerHTML=sessions.map((s,i)=>({s,i})).filter(({s})=>selectedStage==="all"||s[3]===selectedStage).map(({s,i})=>
-    '<div class="session'+(openedSession===i?' open':'')+'" data-motion-key="session-'+i+'" data-session="'+i+'"><button class="session-button" type="button" data-index="'+i+'" aria-controls="session-panel-'+i+'" aria-expanded="'+(openedSession===i)+'">'+
-    '<span class="week">W'+s[0]+'</span><strong>'+s[1]+'</strong><span class="summary">'+s[2]+'</span><span class="plus" aria-hidden="true">＋</span></button>'+
-    '<div class="session-body" id="session-panel-'+i+'" aria-hidden="'+(openedSession!==i)+'" '+(openedSession!==i?'inert':'')+'><div><p>'+s[4]+'</p></div></div></div>'
-  ).join("");
-  template.content.querySelectorAll("button").forEach(button=>button.addEventListener("click",()=>toggleSession(Number(button.dataset.index))));
-  motion.reconcile($("scheduleList"),[...template.content.children]);
-  motion.accordion($("scheduleList"),".session",openedSession<0?null:$("scheduleList").querySelector('[data-session="'+openedSession+'"]'));
+  const root=$("scheduleList");
+  // Build a given curriculum once. Changing tabs updates visibility only:
+  // preserved nodes, no reflow snapshots and no horizontal translation.
+  if(root.dataset.curriculumMode!=="sample"){
+    const template=document.createElement("template");
+    template.innerHTML=sessions.map((s,i)=>
+      '<div class="session" data-stage="'+s[3]+'" data-motion-key="session-'+i+'" data-session="'+i+'">'+
+      '<button class="session-button" type="button" data-index="'+i+'" aria-controls="session-panel-'+i+'" aria-expanded="false">'+
+      '<span class="week">W'+s[0]+'</span><strong>'+s[1]+'</strong><span class="summary">'+s[2]+'</span><span class="plus" aria-hidden="true">＋</span></button>'+
+      '<div class="session-body" id="session-panel-'+i+'" aria-hidden="true" inert><div><p>'+s[4]+'</p></div></div></div>'
+    ).join("");
+    template.content.querySelectorAll("button").forEach(button=>
+      button.addEventListener("click",()=>toggleSession(Number(button.dataset.index))));
+    root.replaceChildren(template.content);
+    root.dataset.curriculumMode="sample";
+    delete root.dataset.filtered;
+  }
+  motion.filterRows(root,selectedStage);
+  motion.accordion(root,".session",openedSession<0?null:root.querySelector('[data-session="'+openedSession+'"]'));
 }
+
 /* Only one people section, expandable in place */
 const roles=[
   ["President","회장","학회 운영 총괄, 지도교수 및 학과와의 소통, 정기 세션 관리"],

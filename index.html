@@ -24,9 +24,11 @@
 <script defer src="js/cms-config.js?v=1.3"></script>
 <script defer src="js/cms-core.js?v=2.0"></script>
 <link rel="stylesheet" href="css/motion.css?v=2.3.3">
-<script defer src="js/motion.js?v=2.3.3"></script>
-<script defer src="js/site.js?v=2.3.3"></script>
-<script defer src="js/cms-public.js?v=2.3.3"></script>
+<link rel="stylesheet" href="css/editorial.css?v=2.4.1">
+<script defer src="js/motion.js?v=2.4"></script>
+<script defer src="js/site.js?v=2.4"></script>
+<script defer src="js/cms-public.js?v=2.4"></script>
+<script defer src="js/about-experience.js?v=2.4"></script>
 </head>
 <body>
 <header class="site-header">
@@ -67,10 +69,19 @@
     </div>
   </div>
   <div class="wrap">
-    <div class="home-brief"><!-- Convergent editorial introduction -->
-      <span class="eyebrow" data-motion="left">SFC / OUR PURPOSE</span>
-      <h2 data-motion="right">Understanding business.<br><span>Assessing value.</span></h2>
-    </div>
+    <section class="home-value" aria-labelledby="homeValueTitle">
+      <div class="home-value-copy" data-motion="rise">
+        <span class="eyebrow">WHY SFC / YOUR NEXT STEP</span>
+        <h2 id="homeValueTitle">숫자를 아는 것에서,<br><em>판단할 수 있는 사람으로.</em></h2>
+        <p class="editorial-copy"><span class="copy-sentence">기업을 이해하는 질문에서 출발해, 분석의 가정을 검증하고 자신의 논리로 설명하는 경험.</span> <span class="copy-sentence">SFC가 지향하는 한 학기의 배움입니다.</span></p>
+        <a class="home-value-link" href="#about">WHY JOIN SFC? <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="home-value-steps" aria-label="학회에서 경험할 역량" data-motion="right">
+        <div><span>01 / UNDERSTAND</span><strong>기업을 읽는 관점</strong><small>사업 구조 · 재무 흐름</small></div>
+        <div><span>02 / QUESTION</span><strong>가정을 검증하는 사고</strong><small>비교 기업 · 가치평가 모델</small></div>
+        <div><span>03 / COMMUNICATE</span><strong>근거로 설명하는 역량</strong><small>팀별 토론 · 연구 결과물</small></div>
+      </div>
+    </section>
     <div class="home-section" data-motion="rise">
       <div class="section-head"><div><span class="eyebrow">01 / RESEARCH</span><h2>Selected work.</h2></div><a class="line-link" href="#research">ALL RESEARCH ↗</a></div>
       <a class="featured-work" href="#report-0" aria-label="샘플 리서치 보고서 상세 보기">
@@ -84,7 +95,7 @@
   </div>
   <div class="process-band">
     <div class="wrap process-layout reveal">
-      <div><span class="eyebrow">02 / PROGRAM</span><h2>15 weeks.<br>One research cycle.</h2><p>기초부터 최종 기업분석까지 이어지는 학기 운영안.</p></div>
+      <div><span class="eyebrow">02 / PROGRAM</span><h2>15 weeks.<br>One research cycle.</h2><p class="editorial-copy">기초교육부터 최종 기업분석까지 이어지는 학기 운영안.</p></div>
       <div class="process-points">
         <div class="process-point"><span>01</span><strong>Foundation</strong><small>1–4주</small></div>
         <div class="process-point"><span>02</span><strong>Case Studies</strong><small>5–12주</small></div>
@@ -100,19 +111,135 @@
   <div class="wrap">
     <div class="page-head" data-motion="rise"><span class="eyebrow">ABOUT / THE CLUB</span><h1>About SFC.</h1><p>재무 이론을 실제 기업분석에 적용하는 학술동아리.</p></div>
     <div class="about-grid about-photo-panel" data-motion="unveil">
-      <h2>숫자를 읽고,<br>기업의 가치를 이해합니다.</h2>
-      <p>SFC(Sangmyung Financial Club)는 상명대학교 경영학부 기업재무분석 학술동아리입니다. 기업의 사업구조와 재무 데이터를 분석하고, 가치평가의 가정을 검증하며, 근거에 기반한 판단을 토론합니다.</p>
+      <h2>숫자를 읽고,<br>기업의 가치를<br>이해합니다.</h2>
+      <p class="editorial-copy"><span class="copy-sentence">SFC(Sangmyung Financial Club)는 상명대학교 경영학부 기업재무분석 학술동아리입니다.</span> <span class="copy-sentence">기업의 사업구조와 재무 데이터를 분석하고, 가치평가의 가정을 검증하며, 근거에 기반한 판단을 토론합니다.</span></p>
       <small class="about-photo-credit">ILLUSTRATIVE BACKGROUND / 실제 학회 활동 공간 사진이 아닙니다.</small>
     </div>
-    <div class="content-block">
-      <span class="eyebrow">OUR FOCUS</span>
-      <div class="discipline-list">
-        <div class="discipline" data-motion="rise" data-motion-delay="0"><span>01</span><strong>Financial Analysis</strong><p>재무제표, 재무비율, 현금흐름 분석</p></div>
-        <div class="discipline" data-motion="rise" data-motion-delay="45"><span>02</span><strong>Corporate Valuation</strong><p>상대가치평가, DCF, 가치평가 가정 검토</p></div>
-        <div class="discipline" data-motion="rise" data-motion-delay="90"><span>03</span><strong>Equity Research</strong><p>산업분석, 팀별 기업분석, 리포트 작성</p></div>
+    <section class="about-reasons" aria-labelledby="aboutReasonsTitle">
+      <div class="about-section-heading" data-motion="rise">
+        <span class="eyebrow">WHY JOIN / WHAT YOU PRACTICE</span>
+        <h2 id="aboutReasonsTitle">읽고, 검증하고,<br><em>설명하는 사람.</em></h2>
+        <p class="editorial-copy">학습 내용을 나열하는 데서 그치지 않고,<span class="copy-phrase"> 실제 기업을 둘러싼 질문에 답하는 과정을 계획하고 있습니다.</span></p>
       </div>
-      <div class="about-end reveal"><p>2027학년도 1학기, 주 1회 정기 세션과 팀별 기업분석을 중심으로 운영할 예정입니다.</p><a class="line-link" href="#activities">OUR PROGRAM ↗</a></div>
-    </div>
+      <div class="about-reason-grid">
+        <article class="about-reason" data-motion="rise" data-motion-delay="0">
+          <div class="reason-art" aria-hidden="true"><svg viewBox="0 0 280 132" fill="none">
+            <rect x="22" y="16" width="126" height="94" rx="2" stroke="#8196A4"/>
+            <path d="M40 40H128M40 52H113M40 63H128" stroke="#8196A4" stroke-width="2"fill="none"/>
+            <rect x="42" y="82" width="18" height="16" fill="#B8C8D1"/>
+            <rect x="69" y="74" width="18" height="24" fill="#879FB0"/>
+            <rect x="96" y="65" width="18" height="33" fill="#506E83"/>
+            <circle cx="185" cy="72" r="29" stroke="#E67B5E" stroke-width="3"/>
+            <path d="M207 94L236 122" stroke="#E67B5E" stroke-width="4"fill="none"/>
+          </svg></div>
+          <span>01 / FINANCIAL ANALYSIS</span>
+          <h3>기업을 읽는 눈</h3>
+          <p>숫자 자체보다 숫자가 만들어진 사업구조와 재무적 맥락을 살펴봅니다.</p>
+        </article>
+        <article class="about-reason" data-motion="rise" data-motion-delay="45">
+          <div class="reason-art" aria-hidden="true"><svg viewBox="0 0 280 132" fill="none">
+            <path d="M29 111V19M29 111H254" stroke="#8499A7" stroke-width="1.5"fill="none"/>
+            <path d="M31 90L79 75L128 78L172 48L229 33" stroke="#496B82" stroke-width="3"fill="none"/>
+            <path d="M31 101L79 87L128 92L172 78L229 70" stroke="#E67B5E" stroke-width="2.5" stroke-dasharray="5 5"fill="none"/>
+            <circle cx="172" cy="48" r="5" fill="#496B82"/>
+            <circle cx="229" cy="70" r="5" fill="#E67B5E"/>
+            <path d="M222 25L233 24L229 35" stroke="#496B82" stroke-width="2"fill="none"/>
+          </svg></div>
+          <span>02 / CORPORATE VALUATION</span>
+          <h3>가정을 검증하는 힘</h3>
+          <p>하나의 정답을 찾기보다, 평가 결과를 바꾸는 가정과 근거를 비교합니다.</p>
+        </article>
+        <article class="about-reason" data-motion="rise" data-motion-delay="90">
+          <div class="reason-art" aria-hidden="true"><svg viewBox="0 0 280 132" fill="none">
+            <rect x="46" y="16" width="142" height="102" rx="2" fill="#DCE5EA" stroke="#8499A7"/>
+            <rect x="64" y="26" width="142" height="92" rx="2" fill="#F8FAFA" stroke="#8499A7"/>
+            <path d="M82 44H184M82 56H165M82 68H184" stroke="#879CAB" stroke-width="2"fill="none"/>
+            <path d="M83 96L110 85L136 92L180 77" stroke="#E67B5E" stroke-width="2.5"fill="none"/>
+            <path d="M83 105H172" stroke="#879CAB" stroke-width="1.5"fill="none"/>
+            <path d="M217 43H250M241 36L250 43L241 50" stroke="#496B82" stroke-width="2"fill="none"/>
+          </svg></div>
+          <span>03 / EQUITY RESEARCH</span>
+          <h3>근거로 설명하는 경험</h3>
+          <p>분석과 토론을 거쳐 자신의 관점을 리포트로 정리하는 것을 목표로 합니다.</p>
+        </article>
+      </div>
+    </section>
+    <section class="about-journey" aria-labelledby="experienceTitle">
+      <div class="about-section-heading" data-motion="rise">
+        <span class="eyebrow">THE SFC EXPERIENCE / A RESEARCH CYCLE</span>
+        <h2 id="experienceTitle">질문 하나가<br><em>리포트가 되기까지.</em></h2>
+        <p class="editorial-copy"><span class="copy-sentence">네 단계의 분석 여정을 직접 살펴보세요.</span> <span class="copy-sentence">아래는 계획 중인 학습 과정의 개념적 예시이며, 실제 수행 성과를 뜻하지 않습니다.</span></p>
+      </div>
+      <div class="experience-layout" id="experienceLayout">
+        <div class="experience-selector" role="tablist" aria-label="기업분석 과정">
+          <button type="button" class="experience-step selected" role="tab" id="experienceTab0" aria-controls="experiencePanel" aria-selected="true" tabindex="0" data-experience-step="0"><small>01</small><strong>Observe</strong><span>기업 이해</span></button>
+          <button type="button" class="experience-step" role="tab" id="experienceTab1" aria-controls="experiencePanel" aria-selected="false" tabindex="-1" data-experience-step="1"><small>02</small><strong>Analyze</strong><span>재무 분석</span></button>
+          <button type="button" class="experience-step" role="tab" id="experienceTab2" aria-controls="experiencePanel" aria-selected="false" tabindex="-1" data-experience-step="2"><small>03</small><strong>Value</strong><span>기업가치평가</span></button>
+          <button type="button" class="experience-step" role="tab" id="experienceTab3" aria-controls="experiencePanel" aria-selected="false" tabindex="-1" data-experience-step="3"><small>04</small><strong>Defend</strong><span>발표와 검증</span></button>
+        </div>
+        <div class="experience-panel" id="experiencePanel" role="tabpanel" aria-labelledby="experienceTab0" tabindex="0">
+          <div class="experience-figure">
+            <span class="eyebrow">A QUESTION BECOMES RESEARCH / 01—04</span>
+            <svg viewBox="0 0 400 220" class="experience-visual" aria-hidden="true">
+              <g class="experience-visual-stage active" data-experience-visual="0">
+                <rect x="28" y="70" width="90" height="70" rx="2" stroke="#7894A7" fill="#F5F8FA"/>
+                <rect x="154" y="70" width="90" height="70" rx="2" fill="#183247"/>
+                <rect x="280" y="70" width="90" height="70" rx="2" stroke="#7894A7" fill="#F5F8FA"/>
+                <text x="73" y="108" text-anchor="middle" fill="#183247" font-size="14">산업</text>
+                <text x="199" y="108" text-anchor="middle" fill="#fff" font-size="14">기업</text>
+                <text x="325" y="108" text-anchor="middle" fill="#183247" font-size="14">고객</text>
+                <path d="M118 105H153M244 105H279" stroke="#E67B5E" stroke-width="2"fill="none"/>
+                <circle cx="137" cy="105" r="3.5" fill="#E67B5E"/>
+                <circle cx="263" cy="105" r="3.5" fill="#E67B5E"/>
+              </g>
+              <g class="experience-visual-stage" data-experience-visual="1">
+                <path d="M42 33V186H353" stroke="#8399A6" stroke-width="2" fill="none"/>
+                <rect x="65" y="115" width="36" height="71" fill="#B6C6D0"/>
+                <rect x="120" y="88" width="36" height="98" fill="#8BA5B5"/>
+                <rect x="175" y="58" width="36" height="128" fill="#597F97"/>
+                <rect x="230" y="96" width="36" height="90" fill="#C4D0D5"/>
+                <path d="M68 101L135 73L192 89L248 58L322 37" stroke="#E67B5E" stroke-width="3" fill="none"/>
+                <circle cx="322" cy="37" r="5" fill="#E67B5E"/>
+              </g>
+              <g class="experience-visual-stage" data-experience-visual="2">
+                <path d="M30 188V32M30 188H370" stroke="#8196A4" stroke-width="2"fill="none"/>
+                <path d="M33 140L93 120L153 111L223 90L295 49L368 37" stroke="#56778D" stroke-width="2.5"fill="none"/>
+                <path d="M33 171L93 146L153 133L223 122L295 112L368 103" stroke="#E67B5E" stroke-width="2" stroke-dasharray="7 6"fill="none"/>
+                <rect x="139" y="107" width="30" height="30" rx="2" stroke="#E67B5E" fill="none"/>
+                <path d="M154 108V137" stroke="#E67B5E" stroke-dasharray="4 4"fill="none"/>
+                <text x="200" y="214" text-anchor="middle" font-size="11" fill="#5E7484">가정에 따른 가치평가 변화 · 예시</text>
+              </g>
+              <g class="experience-visual-stage" data-experience-visual="3">
+                <rect x="118" y="20" width="150" height="178" rx="2" fill="#C5D4DC"/>
+                <rect x="134" y="12" width="150" height="178" rx="2" fill="#F5F8FA" stroke="#8299A7"/>
+                <path d="M152 42H263M152 55H249M152 68H260" stroke="#819CAB" stroke-width="2"fill="none"/>
+                <rect x="152" y="89" width="111" height="48" rx="1" fill="#DFE9ED"/>
+                <path d="M157 126L183 113L209 121L253 100" stroke="#E67B5E" stroke-width="3" fill="none"/>
+                <path d="M152 154H263M152 166H233" stroke="#819CAB" stroke-width="2"fill="none"/>
+                <path d="M57 89H113M107 83L113 89L107 95M287 115H349M293 109L287 115L293 121" stroke="#E67B5E" stroke-width="2" fill="none"/>
+              </g>
+            </svg>
+            <span class="experience-figure-foot">CONCEPTUAL / PLANNED LEARNING EXPERIENCE</span>
+          </div>
+          <div class="experience-description" aria-live="polite" aria-atomic="true">
+            <span id="experienceKicker">01 / OBSERVE</span>
+            <h3 id="experienceHeading">이 기업은 어떻게 가치를 만들까?</h3>
+            <p id="experienceCopy">제품과 고객, 산업 구조를 살피며 재무 데이터 이전에 기업의 사업을 이해하는 질문부터 시작합니다.</p>
+            <div class="experience-output"><small>EXPECTED LEARNING FOCUS</small><strong id="experienceOutcome">사업모델과 산업 구조 이해</strong></div>
+            <div class="experience-actions">
+              <span id="experienceCounter">01 / 04</span>
+              <button type="button" id="experienceNext" aria-label="다음 분석 단계">NEXT STEP <span aria-hidden="true">↗</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="about-invitation" aria-labelledby="aboutInvitationTitle" data-motion="rise">
+      <div><span class="eyebrow">WHO IS THIS FOR?</span><h2 id="aboutInvitationTitle">완성된 전문가보다,<br>좋은 질문을 가진 사람.</h2></div>
+      <div><p class="editorial-copy"><span class="copy-sentence">기업을 자신의 관점으로 분석해보고 싶고, 서로의 의견을 근거로 검증하는 과정에 관심 있다면</span> <span class="copy-sentence">SFC의 학습 방향을 살펴보세요.</span></p>
+        <a class="line-link" href="#activities">EXPLORE THE PROGRAM ↗</a></div>
+    </section>
+    <div class="about-end reveal"><p>2027학년도 1학기, 주 1회 정기 세션과 팀별 기업분석을 중심으로 운영할 예정입니다.</p><a class="line-link" href="#recruitment">RECRUITMENT ↗</a></div>
   </div>
 </section>
 <!-- RESEARCH -->
@@ -150,7 +277,7 @@
 <section class="view" id="people">
   <div class="wrap">
     <div class="page-head" data-motion="rise"><span class="eyebrow">PEOPLE / ORGANIZATION</span><h1>People.</h1><p>함께 분석하고 토론하는 학회. 운영진 역할을 소개합니다.</p></div>
-    <div class="people-lead" data-motion="left"><h2>Our team.</h2><p>운영진과 팀별 구성원 소개는 학회 구성 후 실제 정보로 교체합니다.</p></div>
+    <div class="people-lead" data-motion="left"><h2>Our team.</h2><p class="editorial-copy">운영진과 팀별 구성원 소개는 학회 구성 후 실제 정보로 교체합니다.</p></div>
     <div id="roleList" aria-label="학회 운영진 역할 목록"></div>
     <p class="role-notice">POSITION STRUCTURE / 기획서 기준 역할 목업이며 실제 운영진 프로필이 아닙니다. 역할을 누르면 담당 업무가 펼쳐집니다.</p>
   </div>

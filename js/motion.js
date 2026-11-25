@@ -105,6 +105,57 @@
       next?.focus({preventScroll:true});
     }
   }
+  // Curriculum-only filtering: keep a single instance of every session in
+  // document order. No FLIP translateX, no ghost clones, no DOM regeneration.
+  const filterAnimations=new WeakMap();
+  function filterRows(root,stage){
+    if(!root)return;
+    const first=root.dataset.filtered!=="true";
+    const canAnimate=!first&&!reduced()&&root.getClientRects().length>0;
+    const nowActive=el=>stage==="all"||el.dataset.stage===stage;
+    for(const row of [...root.children]){
+      const desired=nowActive(row);
+      const priorActive=row.dataset.active==="true";
+      const running=filterAnimations.get(row);
+      if(!first&&desired===priorActive)continue;
+      row.dataset.active=String(desired);
+      row.inert=!desired;
+      row.setAttribute("aria-hidden",String(!desired));
+      if(first||!canAnimate){
+        running?.cancel();
+        filterAnimations.delete(row);
+        row.hidden=!desired;
+        row.style.overflow="";
+        continue;
+      }
+      const current=running&&!row.hidden?row.getBoundingClientRect().height:null;
+      const startOpacity=running?Number(getComputedStyle(row).opacity):desired?0:1;
+      running?.cancel();
+      row.hidden=false;row.style.overflow="";
+      // Compute target height in normal flow. Existing expanded accordions
+      // remain expanded, and their height is not guessed via max-height.
+      const natural=row.getBoundingClientRect().height;
+      const start=Number.isFinite(current)?current:(desired?0:natural);
+      const end=desired?natural:0;
+      const animation=play(row,[
+        {height:start+"px",opacity:startOpacity},
+        {height:end+"px",opacity:desired?1:0}
+      ],{duration:timing.layout,fill:"both"});
+      if(!animation){row.hidden=!desired;continue;}
+      filterAnimations.set(row,animation);
+      row.style.overflow="hidden";
+      animation.finished.then(()=>{
+        if(filterAnimations.get(row)!==animation)return;
+        filterAnimations.delete(row);
+        row.hidden=!desired;
+        row.style.overflow="";
+        // A finished fill:both WAAPI animation remains visible to
+        // getAnimations() and may retain layout effects until canceled.
+        animation.cancel();
+      },()=>{});
+    }
+    root.dataset.filtered="true";
+  }
   function controls(root,items,current,onSelect){
     handlers.set(root,onSelect);
     const key=JSON.stringify(items);
@@ -173,7 +224,7 @@
     pageAnimation=play(root,[{opacity:.35},{opacity:.85,offset:.58},{opacity:1}],{duration:root.id==="recruitment"?timing.recruitment:timing.page});
     reveal(root);
   }
-  window.SFC_MOTION=Object.freeze({reduced,timing,play,reconcile,transition,controls,accordion,reveal,page,stop});
+  window.SFC_MOTION=Object.freeze({reduced,timing,play,reconcile,transition,filterRows,controls,accordion,reveal,page,stop});
   media.addEventListener?.("change",()=>{if(reduced()){document.getAnimations().forEach(a=>a.cancel());document.querySelectorAll(".reveal,[data-motion]").forEach(el=>el.classList.add("visible"));}});
   window.addEventListener("resize",()=>reveal(),{passive:true});
 })();
