@@ -87,7 +87,7 @@
       $(id).setAttribute("aria-pressed",String(state.view===view));
       $(id).classList.toggle("selected",state.view===view);
     }
-    results.classList.toggle("grid",state.view==="grid");
+    // Grid/list layout is switched by FLIP in refresh() after measurement.
   }
   function makeCard(item){
     const link=node("a","archive-report");
@@ -128,7 +128,8 @@
       empty.append(reset);children.push(empty);
     }
     // One keyed reconciliation engine for forward, reverse and 1↔1 swaps.
-    window.SFC_MOTION.reconcile(results,children,{reuse:"equal"});
+    window.SFC_MOTION.reconcile(results,children,{reuse:"equal",exit:false});
+    window.SFC_V28?.firstList(results,".archive-report",4);
     $("archiveCount").textContent=(mode==="demo"?"SAMPLE / ":"PUBLISHED / ")+total+" REPORT"+(total===1?"":"S");
     $("archivePage").textContent=state.page+" / "+pages;
     $("archivePrev").disabled=state.page===1;
@@ -183,6 +184,10 @@
   }
   function refresh(){
     controls();persist();
+    const grid=state.view==="grid";
+    if(results.classList.contains("grid")!==grid){
+      window.SFC_MOTION.transition(results,()=>results.classList.toggle("grid",grid),{exit:false});
+    }
     if(mode==="live")void liveResults();else demoResults();
   }
   function clear(){
