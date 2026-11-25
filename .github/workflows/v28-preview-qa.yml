@@ -37,3 +37,14 @@ jobs:
           python -m playwright install --with-deps chromium
       - name: Check public UI, motion and Studio fixture
         run: python tests/browser-check.py
+      - name: Record v2.8 visual motion review clips (mock CMS)
+        if: always()
+        run: python tests/v28-motion-capture.py
+      - name: Upload motion videos and viewport screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sfc-v28-motion-review
+          path: preview/v28-motion/
+          if-no-files-found: warn
+          retention-days: 14
