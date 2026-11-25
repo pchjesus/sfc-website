@@ -1,8 +1,8 @@
-/* SFC 2.3.1 — slower, direction-independent editorial motion */
+/* SFC 2.3.2 — balanced, direction-independent editorial motion */
 :root{
   --motion-ease:cubic-bezier(.4,0,.2,1);
-  --motion-fast:300ms;--motion-control:500ms;--motion-layout:900ms;
-  --motion-reveal:1120ms;--motion-photo:1650ms;
+  --motion-fast:260ms;--motion-control:400ms;--motion-layout:620ms;
+  --motion-reveal:880ms;--motion-photo:1450ms;
   --action-ink:#172d41;--action-hover:#29465d;--action-coral:#ed7857;
 }
 .js .reveal,.js .reveal.visible{opacity:1;transform:none;transition:none}
@@ -105,7 +105,7 @@ button:disabled{cursor:not-allowed;opacity:.55}
 .hero-photo img{transition:transform 10s linear}
 /* Avoid resetting photo scale when the timer is paused by a control. */
 /* Native dialog provides focus containment; visual transition is coordinated by JS. */
-.application-dialog::backdrop{background:rgba(8,22,32,.66);animation:backdrop-in 560ms var(--motion-ease)}
+.application-dialog::backdrop{background:rgba(8,22,32,.66);animation:backdrop-in 420ms var(--motion-ease)}
 @keyframes backdrop-in{from{background:rgba(8,22,32,0);backdrop-filter:blur(0)}to{background:rgba(8,22,32,.66);backdrop-filter:blur(3px)}}
 .application-dialog-body{position:relative}
 .application-preview-status{position:absolute;left:25px;right:25px;top:20px;margin:0;padding:9px 12px;background:#f6f8f7;color:#52616d;font-size:12px;pointer-events:none}
@@ -137,10 +137,12 @@ button:disabled{cursor:not-allowed;opacity:.55}
 .session-button,.work-link{transition:background-color var(--motion-fast),color var(--motion-fast)}
 .session-button .plus,.role-toggle-icon::before,.role-toggle-icon::after,.faq-button .plus{transition:transform var(--motion-control) var(--motion-ease)}
 @media(max-width:760px){
- .nav-links{transition:transform 850ms var(--motion-ease)}
+ .nav-links{transition:transform 680ms var(--motion-ease)}
  .hero-control-group{width:min(244px,100%)}
 }
 @media(prefers-reduced-motion:reduce){
  .motion-snapshot-layer{display:none!important}
  .hero-photo img{transform:none!important}
 }
+
+#applicationTrigger:hover,#applicationTrigger:focus-visible{background-color:#ed7857;color:#172433;border-color:#ed7857}

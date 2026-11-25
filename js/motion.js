@@ -3,7 +3,7 @@
 (function(){
   const media=matchMedia("(prefers-reduced-motion: reduce)");
   const ease="cubic-bezier(.4,0,.2,1)";
-  const timing=Object.freeze({page:1040,recruitment:1450,reveal:1120,unveil:1350,layout:900,modal:620,close:480,hero:1050});
+  const timing=Object.freeze({page:600,recruitment:640,reveal:880,unveil:1050,layout:620,modal:460,close:320,hero:800});
   let pageAnimation=null;
   const running=new WeakMap();
   const handlers=new WeakMap();
@@ -153,7 +153,7 @@
         const recruitment=el.closest("#recruitment");
         const duration=recruitment?timing.recruitment:timing.reveal;
         if(kind==="unveil")play(el,[{opacity:.3,clipPath:"inset(0 0 9% 0)"},{opacity:1,clipPath:"inset(0 0 0 0)"}],{duration:timing.unveil});
-        else play(el,[{opacity:.28,transform:starts[kind]||starts.rise},{opacity:1,transform:"none"}],{duration,delay:Math.min((Number(el.dataset.motionDelay)||0)*1.7,220),fill:"backwards"});
+        else play(el,[{opacity:.28,transform:starts[kind]||starts.rise},{opacity:1,transform:"none"}],{duration,delay:Math.min((Number(el.dataset.motionDelay)||0)*1.25,150),fill:"backwards"});
       }
     },{threshold:.06});
     root.querySelectorAll(".reveal,[data-motion]").forEach(el=>{
@@ -170,7 +170,7 @@
   function page(root){
     if(!root)return;
     pageAnimation?.cancel();
-    pageAnimation=play(root,[{opacity:.16},{opacity:.72,offset:.58},{opacity:1}],{duration:root.id==="recruitment"?timing.recruitment:timing.page});
+    pageAnimation=play(root,[{opacity:.35},{opacity:.85,offset:.58},{opacity:1}],{duration:root.id==="recruitment"?timing.recruitment:timing.page});
     reveal(root);
   }
   window.SFC_MOTION=Object.freeze({reduced,timing,play,reconcile,transition,controls,accordion,reveal,page,stop});

@@ -243,3 +243,7 @@ No SQL migrations or production data changes were made in this motion release.
 - Application CTA uses distinct coral hover and dark text. Fixed hover-induced horizontal movement in rows; slower disclosures and mobile navigation.
 - Three additional Chromium tests assert forward/reverse equal keyframes for one-to-one Research and unequal Activities swaps, and Recruitment duration/color. Existing tests updated to check hero controls and wait for transitions.
 - Real visual preference and actual device performance require user review; mock tests do not validate live Supabase.
+
+## v2.3.2 — Balanced pacing
+
+Page 600ms; Recruitment 640ms; reveal 880ms; mask 1050ms; reflow and disclosure 620ms; photo fade 1450ms; modal 460/320ms; hover 260ms. Preserve symmetric swaps, hero controls and reduced-motion support. Raise starting page opacity to improve perceived responsiveness. The prior run passed 24 scenarios but failed the CTA hover assertion; the hover regression now waits for entrance motion to settle and asserts computed color using Playwright's retrying assertion. Explicit CTA hover selector retained. Domain configuration unchanged.
