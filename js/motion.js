@@ -3,7 +3,7 @@
 (function(){
   const media=matchMedia("(prefers-reduced-motion: reduce)");
   const ease="cubic-bezier(.4,0,.2,1)";
-  const timing=Object.freeze({page:600,recruitment:640,reveal:880,unveil:1050,layout:620,modal:460,close:320,hero:800});
+  const timing=Object.freeze({page:520,recruitment:570,reveal:780,unveil:950,layout:550,modal:410,close:300,hero:720});
   let pageAnimation=null;
   const running=new WeakMap();
   const handlers=new WeakMap();

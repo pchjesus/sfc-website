@@ -247,3 +247,7 @@ No SQL migrations or production data changes were made in this motion release.
 ## v2.3.2 — Balanced pacing
 
 Page 600ms; Recruitment 640ms; reveal 880ms; mask 1050ms; reflow and disclosure 620ms; photo fade 1450ms; modal 460/320ms; hover 260ms. Preserve symmetric swaps, hero controls and reduced-motion support. Raise starting page opacity to improve perceived responsiveness. The prior run passed 24 scenarios but failed the CTA hover assertion; the hover regression now waits for entrance motion to settle and asserts computed color using Playwright's retrying assertion. Explicit CTA hover selector retained. Domain configuration unchanged.
+
+## v2.3.3 — Fine pacing adjustment
+
+Previous v2.3.2 GitHub Actions run 45635951984 completed successfully (static and Chromium). The previously failing CTA hover test passed after its fix. Page 520ms, Recruitment 570ms, content reveal 780ms, mask 950ms, list reflow/disclosure 550ms, photo fade 1350ms, dialog 410/300ms, hover 240ms. Preserve direction-independent motion, CTA, DOM identity and reduced motion. Updated timing assertions; new CI result must be verified separately. No content or database changes.

@@ -208,7 +208,7 @@ with sync_playwright() as p:
       return a?{duration:a.effect.getTiming().duration,frames:a.effect.getKeyframes().map(k=>({opacity:k.opacity,transform:k.transform,offset:k.offset}))}:null;
     });
   }""",[root,control,value])
-  assert len(result)==expected and all(a and a['duration']==620 for a in result),result
+  assert len(result)==expected and all(a and a['duration']==550 for a in result),result
   assert all(all(k['transform']=='none' for k in a['frames']) for a in result),result
   expect(x.locator('.motion-snapshot-layer')).to_have_count(0)
   x.wait_for_function("(root)=>document.querySelector(root).getAnimations({subtree:true}).length===0",arg=root)
@@ -229,7 +229,7 @@ with sync_playwright() as p:
  assert forward==reverse
  ok('activities disjoint 5-to-2 and 2-to-5 swaps share the same timeline')
  duration=x.evaluate("""()=>{navigate('recruitment');return document.querySelector('#recruitment').getAnimations()[0].effect.getTiming().duration}""")
- assert duration==640
+ assert duration==570
  x.locator('#applicationTrigger').scroll_into_view_if_needed()
  # Wait for viewport-triggered transforms before positioning the mouse.
  x.wait_for_function("""()=>{const e=document.querySelector('#applicationTrigger');return [e.closest('.application-cta'),e.closest('.view')].every(n=>!n||n.getAnimations().length===0)}""")

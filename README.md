@@ -99,3 +99,6 @@ Longer editorial entrances and symmetric filter dissolves, balanced three-button
 
 ### v2.3.2 balanced motion
 Most transition durations are now 1.5–2 times the v2.3 baseline; unchanged hero dwell time and symmetric filter transitions. Custom domain not yet configured.
+
+### v2.3.3
+Fine adjustment of animation durations toward 1.3–1.8 times v2.3 baseline; previous v2.3.2 static and Chromium checks passed. No new About content or data changes.
