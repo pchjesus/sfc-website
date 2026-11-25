@@ -1,8 +1,7 @@
 "use strict";
-/* SFC v2.6.5 — people and recruitment preview.
- * Static data and public CMS records share a single information hierarchy.
- * Never imply demo roles or selection stages are real person/applicant progress.
- */
+/* SFC v2.6.5 — People and Recruitment: visible-by-default editorial content.
+ * Static profile facts are NOT buttons; all biographies and process steps
+ * are readable without clicks or hover. CMS visibility rules remain intact. */
 (function(){
   const $=id=>document.getElementById(id);
   const motion=window.SFC_MOTION;
@@ -14,135 +13,49 @@
     {id:"research",primary:"Head of Research",role:"리서치장 · 연구·교육",caption:"RESEARCH",desc:"기초교육을 기획하고, 기업분석 사례를 선정하며, 연구보고서 검토와 피드백을 담당하는 역할입니다."},
     {id:"operations",primary:"Operations",role:"총무·대외 · 운영 지원",caption:"COORDINATION",desc:"세션 일정과 출결 등 운영 실무를 담당하고, 홍보와 대외협력 활동을 지원하는 역할입니다."}
   ];
-  let people=plan,live=false,selected="president",transition=null;
-  function normalize(list){
-    const incoming=Array.isArray(list)?list:[];
-    if(!incoming.length)return plan;
-    return incoming.filter(x=>x&&x.visible!==false).sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0)).map((p,i)=>({
-      id:safe(p.id,"member-"+i),primary:safe(p.name,"등록된 구성원"),
+  function normalize(records){
+    const visible=Array.isArray(records)?records.filter(x=>x&&x.visible!==false):[];
+    if(!visible.length)return plan;
+    return [...visible].sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0)).map((p,i)=>({
+      id:safe(p.id,"member-"+i),
+      primary:safe(p.name,"등록된 구성원"),
       role:[p.position,p.term].filter(Boolean).join(" · ")||"SFC 구성원",
-      caption:"OFFICIAL MEMBER",desc:safe(p.bio,"소개는 추후 공개됩니다.")
+      caption:"OFFICIAL MEMBER",
+      desc:safe(p.bio,"소개는 추후 공개됩니다.")
     }));
   }
-  function paintDetails(animate=true){
-    const current=people.find(p=>p.id===selected)||people[0];if(!current)return;
-    const panel=$("peopleSpotlight");
-    const content=panel?.querySelector(".people-spotlight-main");
-    transition?.cancel();
-    $("peopleSpotlightKind").textContent=(live?"OFFICIAL MEMBER":"PLANNED ROLE")+" / "+current.caption;
-    $("peopleSpotlightCounter").textContent=String(people.indexOf(current)+1).padStart(2,"0")+" / "+String(people.length).padStart(2,"0");
-    $("peopleSpotlightTitle").textContent=current.primary;
-    $("peopleSpotlightSubtitle").textContent=current.role;
-    $("peopleSpotlightDescription").textContent=current.desc;
-    if(animate&&!motion?.reduced()&&content){
-      transition=content.animate([
-        {opacity:.58,transform:"translateY(7px)"},
-        {opacity:1,transform:"translateY(0)"}
-      ],{duration:320,easing:"cubic-bezier(.22,1,.36,1)"});
-    }
-    roleRoot?.querySelectorAll(".team-node").forEach((button,index)=>{
-      const isActive=button.dataset.key===selected;
-      button.setAttribute("aria-pressed",String(isActive));
-      button.tabIndex=isActive?0:-1;
-      button.classList.toggle("selected",isActive);
-      if(isActive)graph?.style.setProperty("--selected-node",String(index));
-    });
+  function element(tag,cls,text){
+    const e=document.createElement(tag);
+    if(cls)e.className=cls;
+    if(text!==undefined)e.textContent=text;
+    return e;
   }
-  function select(key,{focus=false}={}){
-    if(!people.some(x=>x.id===key))return;
-    const changed=selected!==key;
-    selected=key;paintDetails(changed);
-    if(focus)roleRoot?.querySelector(".team-node.selected")?.focus({preventScroll:true});
-  }
-  function keydown(event){
-    if(!["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Home","End"].includes(event.key))return;
-    event.preventDefault();
-    const current=Math.max(0,people.findIndex(p=>p.id===selected));
-    const index=event.key==="Home"?0:event.key==="End"?people.length-1:
-      (current+(event.key==="ArrowLeft"||event.key==="ArrowUp"?-1:1)+people.length)%people.length;
-    select(people[index].id,{focus:true});
-  }
-  function renderNodes(){
+  function setPeople(records){
     if(!roleRoot)return;
-    const previous=document.activeElement?.closest(".team-node")?.dataset.key;
-    roleRoot.replaceChildren(...people.map((p,index)=>{
-      const button=document.createElement("button");
-      button.type="button";button.className="team-node";
-      button.dataset.key=p.id;
-      button.setAttribute("aria-controls","peopleSpotlight");
-      button.setAttribute("aria-pressed","false");
-      button.tabIndex=-1;
-      const indexNode=document.createElement("span");indexNode.className="team-node-index";
-      indexNode.textContent=String(index+1).padStart(2,"0")+" / "+p.caption;
-      const title=document.createElement("strong");title.textContent=p.primary;
-      const caption=document.createElement("small");caption.textContent=p.role;
-      const arrow=document.createElement("span");arrow.className="team-node-arrow";arrow.textContent="↗";
-      arrow.setAttribute("aria-hidden","true");
-      button.append(indexNode,title,caption,arrow);
-      button.addEventListener("click",()=>select(p.id));
-      button.addEventListener("keydown",keydown);
-      return button;
+    const live=Array.isArray(records)&&records.some(p=>p&&p.visible!==false);
+    const people=normalize(records);
+    roleRoot.replaceChildren(...people.map((p,i)=>{
+      const article=element("article","team-node");
+      article.setAttribute("role","listitem");
+      article.dataset.personId=p.id;
+      article.append(
+        element("span","team-node-index",String(i+1).padStart(2,"0")+" / "+p.caption),
+        element("h3","team-node-name",p.primary),
+        element("p","team-node-role",p.role),
+        element("p","team-node-description",p.desc)
+      );
+      return article;
     }));
     roleRoot.dataset.peopleMode=live?"live":"planned";
     graph?.classList.toggle("has-live-people",live);
     $("peopleIntro").textContent=live
-      ?"SFC의 실제 등록된 구성원을 소개합니다. 각 인물을 선택하면 역할과 활동 내용을 확인할 수 있습니다."
+      ?"공개된 SFC 운영진을 소개합니다. 각 구성원의 역할과 활동 내용을 한눈에 확인할 수 있습니다."
       :"연구와 운영이 연결되는 SFC의 역할 구조를 소개합니다. 실제 구성원 정보는 공식 등록 이후 공개됩니다.";
     $("peopleDisclaimer").textContent=live
       ?"OFFICIAL PEOPLE / 등록된 공개 프로필을 기준으로 표시합니다."
       :"POSITION STRUCTURE / 현재는 운영 기획상 역할을 보여주는 시안이며 실제 운영진 프로필이 아닙니다.";
-    if(!people.some(p=>p.id===selected))selected=people[0]?.id;
-    paintDetails(false);
-    if(previous&&people.some(p=>p.id===previous))roleRoot.querySelector(".team-node.selected")?.focus({preventScroll:true});
-  }
-  function setPeople(records){
-    live=Array.isArray(records)&&records.some(x=>x&&x.visible!==false);
-    people=normalize(records);
-    if(!live)people=plan;
-    renderNodes();
   }
   setPeople([]);
-
-  const steps=[
-    {code:"NOTICE",name:"모집 공고",desc:"지원 자격, 모집 일정, 선발 절차와 제출 방법을 공식 공고에서 확인합니다."},
-    {code:"APPLICATION",name:"지원서",desc:"공식 양식이 공개되면 요청된 서류와 제출 방법을 확인합니다. 제출 완료 여부는 이 페이지에서 추적하지 않습니다."},
-    {code:"DISCUSSION",name:"면접",desc:"면접이 진행되는 경우 지원 동기와 연구 활동에 대한 관심을 함께 나눕니다. 실제 실시 여부와 방식은 공식 공고가 우선합니다."},
-    {code:"WELCOME",name:"첫 세션",desc:"최종 합류한 구성원을 대상으로 학기 활동과 연구 방식에 대한 안내를 진행할 계획입니다."}
-  ];
-  const stepsRoot=$("recruitmentProcess");
-  let activeStep=0,stepTransition=null;
-  function setStep(i,focus=false){
-    if(!stepsRoot||i<0||i>=steps.length)return;
-    const previous=activeStep;activeStep=i;
-    stepsRoot.querySelectorAll("[data-process-step]").forEach(b=>{
-      const active=Number(b.dataset.processStep)===i;
-      b.classList.toggle("selected",active);
-      b.setAttribute("aria-pressed",String(active));b.tabIndex=active?0:-1;
-    });
-    const info=steps[i],panel=$("processDetail");
-    $("processDetailNumber").textContent=String(i+1).padStart(2,"0")+" / "+info.code;
-    $("processDetailTitle").textContent=info.name;
-    $("processDetailDescription").textContent=info.desc;
-    stepTransition?.cancel();
-    if(previous!==i&&!motion?.reduced()){
-      stepTransition=panel?.animate([{opacity:.65,transform:"translateY(6px)"},{opacity:1,transform:"none"}],
-        {duration:300,easing:"cubic-bezier(.22,1,.36,1)"});
-    }
-    if(focus)stepsRoot.querySelector('[data-process-step="'+i+'"]')?.focus({preventScroll:true});
-  }
-  if(stepsRoot){
-    stepsRoot.querySelectorAll("[data-process-step]").forEach(button=>{
-      button.addEventListener("click",()=>setStep(Number(button.dataset.processStep)));
-      button.addEventListener("keydown",event=>{
-        if(!["ArrowLeft","ArrowRight","Home","End"].includes(event.key))return;
-        event.preventDefault();
-        const n=event.key==="Home"?0:event.key==="End"?steps.length-1:
-          (activeStep+(event.key==="ArrowLeft"?-1:1)+steps.length)%steps.length;
-        setStep(n,true);
-      });
-    });
-    setStep(0);
-  }
 
   const trigger=$("applicationTrigger");
   const action=$("recruitActionCard");
@@ -219,5 +132,5 @@
     window.navigate?.(ctaMode==="research"?"research":"activities");
   },true);
   syncRecruitment();
-  window.SFC_PEOPLE_RECRUITMENT=Object.freeze({setPeople,syncRecruitment,selectRole:select,setStep});
+  window.SFC_PEOPLE_RECRUITMENT=Object.freeze({setPeople,syncRecruitment});
 })();

@@ -27,37 +27,35 @@ try:
    global checks
    checks+=1
    print('PASS',label)
+  # All informational text is visible without a click, at every tested width.
   for width in [360,390,768,1440]:
    x=new_page(width)
    errors=[]
    x.on('pageerror',lambda err:errors.append(str(err)))
    x.goto(base+'/index.html#people')
    expect(x.locator('#roleList .team-node')).to_have_count(3)
-   expect(x.locator('#peopleSpotlightTitle')).to_have_text('President')
-   expect(x.locator('#roleList .team-node.selected')).to_have_count(1)
-   before=x.locator('#peopleSpotlight').evaluate("e=>e.getBoundingClientRect().left")
-   x.locator('#roleList .team-node').nth(1).click()
-   expect(x.locator('#peopleSpotlightTitle')).to_have_text('Head of Research')
-   expect(x.locator('#roleList .team-node[aria-pressed=true]')).to_have_count(1)
-   x.locator('#roleList .team-node.selected').press('ArrowRight')
-   expect(x.locator('#peopleSpotlightTitle')).to_have_text('Operations')
-   x.locator('#roleList .team-node.selected').press('Home')
-   expect(x.locator('#peopleSpotlightTitle')).to_have_text('President')
-   assert abs(before-x.locator('#peopleSpotlight').evaluate("e=>e.getBoundingClientRect().left"))<1.5,width
+   expect(x.locator('#roleList .team-node-name')).to_have_text(['President','Head of Research','Operations'])
+   expect(x.locator('#roleList .team-node-description')).to_have_count(3)
+   assert all(len(text)>25 for text in x.locator('#roleList .team-node-description').all_inner_texts())
+   expect(x.locator('#roleList .team-node button')).to_have_count(0)
+   expect(x.locator('#peopleSpotlight')).to_have_count(0)
    assert x.evaluate('document.documentElement.scrollWidth<=innerWidth+1'),width
    x.evaluate("navigate('recruitment')")
    expect(x.locator('#recruitment')).to_be_visible()
    expect(x.locator('#recruitActionCard')).to_have_attribute('data-state','planned')
    expect(x.locator('#applicationTrigger')).to_have_attribute('data-action','activities')
-   x.locator('#recruitmentProcess [data-process-step="2"]').click()
-   expect(x.locator('#processDetailTitle')).to_have_text('면접')
-   expect(x.locator('#recruitmentProcess [aria-pressed=true]')).to_have_count(1)
-   x.locator('#recruitmentProcess [data-process-step="2"]').press('ArrowRight')
-   expect(x.locator('#processDetailTitle')).to_have_text('첫 세션')
+   expect(x.locator('#recruitmentProcess .process-step')).to_have_count(4)
+   expect(x.locator('#recruitmentProcess .process-step h3')).to_have_text(['모집 공고','지원서','면접','첫 세션'])
+   expect(x.locator('#recruitmentProcess .process-step p')).to_have_count(4)
+   assert all(len(text)>14 for text in x.locator('#recruitmentProcess .process-step p').all_inner_texts())
+   expect(x.locator('#recruitmentProcess button')).to_have_count(0)
+   expect(x.locator('#processDetail')).to_have_count(0)
    assert x.evaluate('document.documentElement.scrollWidth<=innerWidth+1'),width
+   layout=x.locator('#recruitmentProcess').evaluate("e=>getComputedStyle(e).gridTemplateColumns.split(' ').length")
+   assert layout==(2 if width<=760 else 4),(width,layout)
    assert not errors,(width,errors)
    x.context.close()
-   ok('People node navigation and Recruitment process '+str(width)+'px')
+   ok('visible People biographies and four Recruitment stages '+str(width)+'px')
   # CMS people records must replace demo roles without duplicate content.
   x=new_page()
   x.goto(base+'/index.html#people')
@@ -69,13 +67,12 @@ try:
    await SFC_PUBLIC.load();
   }""")
   expect(x.locator('#roleList .team-node')).to_have_count(2)
-  expect(x.locator('#peopleSpotlightTitle')).to_have_text('가상 인물 A')
+  expect(x.locator('#roleList .team-node-name')).to_have_text(['가상 인물 A','가상 인물 B'])
   expect(x.locator('#peopleDisclaimer')).to_contain_text('OFFICIAL PEOPLE')
-  x.locator('#roleList .team-node').nth(1).click()
-  expect(x.locator('#peopleSpotlightDescription')).to_have_text('연구를 지도합니다.')
+  expect(x.locator('#roleList .team-node-description')).to_have_text(['운영을 관리합니다.','연구를 지도합니다.'])
   x.evaluate("async()=>{mock.people=[];await SFC_PUBLIC.load();}")
   expect(x.locator('#roleList .team-node')).to_have_count(3)
-  expect(x.locator('#peopleSpotlightTitle')).to_have_text('President')
+  expect(x.locator('#roleList .team-node-name')).to_have_text(['President','Head of Research','Operations'])
   expect(x.locator('#peopleDisclaimer')).to_contain_text('실제 운영진 프로필이 아닙니다')
   assert x.evaluate('mock.calls.length')==0
   ok('public CMS profiles vs planned roles, clean fallback, no writes')
@@ -135,18 +132,21 @@ try:
   assert x.evaluate('mock.calls.length')==0
   ok('closed state routes to published research without writes')
   x.context.close()
-  # Verify normal-motion transitions also work in both directions.
+  # Ordinary page motion remains smooth, but informational elements never
+  # animate out on selection: nothing needs selecting to be readable.
   x=new_page(reduced=False)
   x.goto(base+'/index.html#people')
-  for i in [1,2,0,2,1,0]:
-   x.locator('#roleList .team-node').nth(i).click()
-   expect(x.locator('#roleList .team-node.selected')).to_have_count(1)
+  expect(x.locator('#roleList .team-node')).to_have_count(3)
+  names=x.locator('#roleList .team-node-name').all_inner_texts()
+  x.locator('#roleList .team-node').nth(1).hover()
+  assert x.locator('#roleList .team-node-name').all_inner_texts()==names
   x.evaluate("navigate('recruitment')")
-  for i in [3,0,2,1,0]:
-   x.locator('#recruitmentProcess [data-process-step="'+str(i)+'"]').click()
-  expect(x.locator('#processDetailTitle')).to_have_text('모집 공고')
+  expect(x.locator('#recruitmentProcess .process-step')).to_have_count(4)
+  descriptions=x.locator('#recruitmentProcess .process-step p').all_inner_texts()
+  x.locator('#recruitmentProcess .process-step').nth(3).hover()
+  assert x.locator('#recruitmentProcess .process-step p').all_inner_texts()==descriptions
   assert x.evaluate('document.querySelectorAll(".motion-snapshot-layer").length')==0
-  ok('rapid back/forward selections without horizontal ghost clones')
+  ok('hover and navigation never hide or replace People/Recruitment information')
   x.context.close()
   browser.close()
 finally:

@@ -27,11 +27,9 @@ try:
             ("reader-demo-desktop","research",1440,900,"reader"),
             ("reader-demo-mobile","research",390,844,"reader"),
             ("people-desktop","people",1440,900,None),
-            ("people-research-selected","people",1440,900,"role-1"),
-            ("people-mobile","people",390,844,"role-2"),
+            ("people-mobile","people",390,844,None),
             ("recruitment-desktop","recruitment",1440,900,None),
-            ("recruitment-process-selected","recruitment",1440,900,"step-2"),
-            ("recruitment-mobile","recruitment",390,844,"step-1"),
+            ("recruitment-mobile","recruitment",390,844,None),
             ("research-mobile","research",390,844,None),
             ("about-mobile","about",390,844,1),
         ]
@@ -50,10 +48,6 @@ try:
             elif route=="research" and selection=="reader":
                 page.locator('#archiveResults .archive-report').first.click()
                 page.wait_for_timeout(250)
-            elif route=="people" and selection and selection.startswith("role-"):
-                page.locator('#roleList .team-node').nth(int(selection.split("-")[1])).click()
-            elif route=="recruitment" and selection and selection.startswith("step-"):
-                page.locator('#recruitmentProcess [data-process-step="'+selection.split("-")[1]+'"]').click()
             page.evaluate("window.scrollTo({top:0,left:0,behavior:'instant'})")
             page.wait_for_timeout(120)
             page.screenshot(path=str(OUT/(filename+".png")),full_page=True,animations="disabled")
