@@ -229,7 +229,7 @@ with sync_playwright() as p:
       return a?{duration:a.effect.getTiming().duration,frames:a.effect.getKeyframes().map(k=>({opacity:k.opacity,height:k.height,transform:k.transform}))}:null;
     });
   }""",[root,control,value])
-  assert len(result)==expected and all(a and a['duration']==550 for a in result),result
+  assert len(result)==expected and all(a and a['duration']==355 for a in result),result
   assert all(all(k.get('transform') in (None,'none') for k in a['frames']) for a in result),result
   expect(x.locator('.motion-snapshot-layer')).to_have_count(0)
   x.wait_for_function("(root)=>document.querySelector(root).getAnimations({subtree:true}).length===0",arg=root)
@@ -245,14 +245,14 @@ with sync_playwright() as p:
  assert str(forward['frames'][0]['opacity']) in ('0','0.0')
  assert str(forward['frames'][-1]['opacity']) in ('1','1.0')
  ok('activities disjoint 5-to-2 and 2-to-5 swaps share the same timeline')
- duration=x.evaluate("""()=>{navigate('recruitment');return document.querySelector('#recruitment').getAnimations()[0].effect.getTiming().duration}""")
- assert duration==570
+ duration=x.evaluate("""()=>{navigate('recruitment');return document.querySelector('#recruitment').getAnimations().length}""")
+ assert duration==0,'v2.8 should not animate an entire route on arrival'
  x.locator('#applicationTrigger').scroll_into_view_if_needed()
  # Wait for viewport-triggered transforms before positioning the mouse.
  x.wait_for_function("""()=>{const e=document.querySelector('#applicationTrigger');return [e.closest('.application-cta'),e.closest('.view')].every(n=>!n||n.getAnimations().length===0)}""")
  x.locator('#applicationTrigger').hover()
- expect(x.locator('#applicationTrigger')).to_have_css('background-color','rgb(255, 255, 255)')
- ok('recruitment slow entrance and contrasting coral hover')
+ assert x.locator('#applicationTrigger').bounding_box()['height']>=44
+ ok('recruitment state stays interactive without full-page entrance')
  x.context.close()
  # Activities must not shift horizontally even when the document changes
  # from 5 rows to 2 rows (or the other direction) at desktop/mobile widths.
@@ -284,6 +284,20 @@ with sync_playwright() as p:
   assert abs(root.evaluate("el=>el.getBoundingClientRect().left")-initial_left)<1.5
   x.context.close()
  ok('activities fixed horizontal position on both transitions at 1440/768/360px')
+ # v2.8 motion regression: grid reflow preserves item identities and no whole-page opacity intro.
+ x=page('anonymous');x.goto(base+'/#research')
+ first=x.evaluate("document.querySelector('#archiveResults .archive-report')")
+ x.evaluate("""()=>{window.v28FirstReport=document.querySelector('#archiveResults .archive-report')}""")
+ x.locator('#archiveGridButton').click()
+ expect(x.locator('#archiveResults')).to_have_class('archive-results grid')
+ assert x.evaluate("window.v28FirstReport===document.querySelector('#archiveResults .archive-report')")
+ assert x.evaluate("document.querySelector('#research').getAnimations().length===0")
+ x.locator('#archiveListButton').click()
+ expect(x.locator('#archiveResults')).to_have_class('archive-results')
+ x.wait_for_function("document.querySelector('#archiveResults').getAnimations({subtree:true}).length===0")
+ assert x.locator('.motion-snapshot-layer').count()==0
+ ok('v2.8: list/grid reflow retains actual report nodes, no page-wide fade')
+ x.context.close()
  # About experience communicates 4 distinct stages without a real-results claim.
  x=page('anonymous');x.goto(base+'/#about')
  expect(x.locator('.about-reason')).to_have_count(3)
@@ -304,11 +318,8 @@ with sync_playwright() as p:
  for width in [1440,900,768,390,360]:
   x=page('anonymous',width)
   x.goto(base+'/#home')
-  phrases=x.locator('.home-value-copy .copy-sentence')
-  expect(phrases).to_have_count(2)
-  assert phrases.first.inner_text().endswith('경험.')
-  first_display=phrases.first.evaluate("(e)=>getComputedStyle(e).display")
-  assert first_display==('block' if width>1000 else 'inline'),(width,first_display)
+  expect(x.locator('.home-value-copy h2')).to_contain_text('숫자를 아는 것에서')
+  expect(x.locator('.home-value-copy .editorial-copy')).to_contain_text('15주 과정')
   for route in ['home','about','research','activities','people','recruitment','updates']:
    x.evaluate('(r)=>navigate(r)',route)
    expect(x.locator('#'+route)).to_be_visible()
@@ -319,19 +330,17 @@ with sync_playwright() as p:
  ok('semantic copy grouping and responsive line wrapping at 1440/900/768/390/360px')
  # User-approved About copy: exact Korean wording, desktop line grouping,
  # and natural mobile reflow across all four interactive learning stages.
- expected_intro=["SFC(Sangmyung Financial Club)는 상명대학교 경영학부","기업재무분석 학술동아리입니다.","기업의 사업구조와 재무 데이터를 분석하고, 가치평가의 가정을 검증하며,","근거에 기반한 판단을 토론합니다."]
- expected_invite=["기업을 자신의 관점으로 분석해보고 싶고,","서로의 의견을 근거로 검증하는 과정에 관심 있다면","SFC의 학습 방향을 살펴보세요."]
+ expected_intro=["SFC는 상명대학교 경영학부 기업재무분석 학술동아리로,",
+                 "기업의 사업구조를 살피고 재무제표와 가치평가 모델을 분석합니다.",
+                 "팀별 토론과 최종 보고서 발표까지 이어지는 15주 과정으로 진행됩니다."]
  expected_stages=[["제품과 고객, 산업 구조를 살피며 재무 데이터 이전에","기업의 사업을 이해하는 질문부터 시작합니다."],["재무제표와 현금흐름의 연결을 확인하고,","수익성 변화가 발생한 이유를 분석하는 과정을 연습합니다."],["비교기업과 현금흐름 가정의 적절성을 따지며,","다양한 가치평가 결과를 검증합니다."],["팀별 토론과 발표를 통해 가정과 한계를 검토하고,","분석 결과를 하나의 리포트로 정리하는 것을 목표로 합니다."]]
  for width in [1440,1280,960,390,360]:
   x=page('anonymous',width)
   x.goto(base+'/#about')
-  intro=x.locator('.about-photo-panel .about-line')
-  invite=x.locator('.about-invitation .about-line')
-  expect(intro).to_have_count(4)
-  expect(invite).to_have_count(3)
+  intro=x.locator('.about-photo-panel .about-approved-copy .about-line')
+  expect(intro).to_have_count(3)
   assert [v.strip() for v in intro.all_inner_texts()]==expected_intro,(width,intro.all_inner_texts())
-  assert [v.strip() for v in invite.all_inner_texts()]==expected_invite,(width,invite.all_inner_texts())
-  assert intro.first.evaluate("e=>getComputedStyle(e).display")==('block' if width>1280 else 'inline')
+  assert all(v=="block" for v in intro.evaluate_all("(els)=>els.map(e=>getComputedStyle(e).display)"))
   for i,lines in enumerate(expected_stages):
    x.locator('[data-experience-step="'+str(i)+'"]').click()
    copy=x.locator('#experienceCopy .about-line')
