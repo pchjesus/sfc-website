@@ -12,7 +12,7 @@
   --motion-control:260ms;
   --motion-layout:355ms;
   --motion-reveal:350ms;
-  --motion-photo:1150ms;
+  --motion-photo:800ms;
 }
 /* Navigation: focus is immediate and selected indicators follow the state. */
 .nav-links button::after{transition:right 240ms var(--v28-smooth)}
@@ -35,7 +35,7 @@
 }
 /* Home: photography remains the dominant moving surface.
  * Supporting sections emphasize hierarchy without another broad fade-up. */
-#home .hero-photo{transition:opacity 1150ms var(--v28-state)}
+#home .hero-photo{transition:opacity 800ms var(--v28-state)}
 #home .hero-photo img{transition:transform 10s linear}
 #home .home-value-compact em{
   transition:color 350ms var(--v28-smooth)
