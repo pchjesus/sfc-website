@@ -2,9 +2,9 @@
 /* Shared motion system: persistent controls, keyed reflow, visible-only animation. */
 (function(){
   const media=matchMedia("(prefers-reduced-motion: reduce)");
-  const ease="cubic-bezier(.4,0,.2,1)";
-  const timing=Object.freeze({page:520,recruitment:570,reveal:780,unveil:950,layout:550,modal:410,close:300,hero:720});
-  let pageAnimation=null;
+  const ease="cubic-bezier(.22,1,.36,1)";
+  // Fast controls and deliberate spatial reflow feel smoother than long full-page fades.
+  const timing=Object.freeze({page:280,recruitment:320,reveal:340,unveil:390,layout:355,modal:300,close:230,hero:260});
   const running=new WeakMap();
   const handlers=new WeakMap();
   const seen=new WeakSet();
@@ -33,7 +33,7 @@
     const can=animate&&!reduced()&&root.getClientRects().length>0&&before.rect.width>0&&before.map.size>0;
     // Snapshot the old list in its original layout, not individual fixed-position
     // buttons. This keeps the grid/typography intact in disjoint filter swaps.
-    const snapshot=can&&exit&&!interrupted?root.cloneNode(true):null;
+    const snapshot=can&&exit&&!interrupted&&before.map.size<=10?root.cloneNode(true):null;
     stop(root);
     mutate();
     if(!can)return;
@@ -72,8 +72,8 @@
       }else{
         // No vertical replacement gesture for unrelated results, irrespective
         // of whether their counts are equal or different.
-        const move=disjoint?"none":"translateY(6px)";
-        run(next.el,[{opacity:0,transform:move,offset:0},{opacity:0,transform:move,offset:interrupted?.12:.30},{opacity:1,transform:"none",offset:1}],{duration:timing.layout,fill:"backwards"});
+        const move=disjoint?"none":"translateY(3px)";
+        run(next.el,[{opacity:.78,transform:move},{opacity:1,transform:"none"}],{duration:Math.min(timing.layout,280)});
       }
     }
     if(Math.abs(before.rect.height-after.rect.height)>1){
@@ -198,13 +198,15 @@
         const el=e.target;observer.unobserve(el);
         if(seen.has(el))continue;seen.add(el);
         el.classList.add("visible");
+        // Distinct page choreography takes precedence over generic reveal.
+        // All text is present and legible before a non-blocking animation starts.
+        if(window.SFC_V28?.visible?.(el))continue;
         let kind=el.dataset.motion||"rise";
         if(innerWidth<760&&(kind==="left"||kind==="right"))kind="rise";
-        const starts={rise:"translateY(14px)",left:"translateX(-18px)",right:"translateX(18px)",scale:"scale(.985)",fade:"translateY(0)"};
-        const recruitment=el.closest("#recruitment");
-        const duration=recruitment?timing.recruitment:timing.reveal;
-        if(kind==="unveil")play(el,[{opacity:.3,clipPath:"inset(0 0 9% 0)"},{opacity:1,clipPath:"inset(0 0 0 0)"}],{duration:timing.unveil});
-        else play(el,[{opacity:.28,transform:starts[kind]||starts.rise},{opacity:1,transform:"none"}],{duration,delay:Math.min((Number(el.dataset.motionDelay)||0)*1.25,150),fill:"backwards"});
+        const starts={rise:"translateY(5px)",left:"translateX(-6px)",right:"translateX(6px)",scale:"scale(.995)",fade:"none"};
+        const duration=kind==="unveil"?timing.unveil:timing.reveal;
+        play(el,[{opacity:.82,transform:starts[kind]||starts.rise},{opacity:1,transform:"none"}],
+          {duration,delay:Math.min(Number(el.dataset.motionDelay)||0,110)});
       }
     },{threshold:.06});
     root.querySelectorAll(".reveal,[data-motion]").forEach(el=>{
@@ -220,9 +222,10 @@
   }
   function page(root){
     if(!root)return;
-    pageAnimation?.cancel();
-    pageAnimation=play(root,[{opacity:.35},{opacity:.85,offset:.58},{opacity:1}],{duration:root.id==="recruitment"?timing.recruitment:timing.page});
+    // v2.8: avoid a second 520ms fade covering an entire otherwise-ready page.
+    // A page's own meaningful elements may settle, but the page itself is usable immediately.
     reveal(root);
+    window.SFC_V28?.enter?.(root);
   }
   window.SFC_MOTION=Object.freeze({reduced,timing,play,reconcile,transition,filterRows,controls,accordion,reveal,page,stop});
   media.addEventListener?.("change",()=>{if(reduced()){document.getAnimations().forEach(a=>a.cancel());document.querySelectorAll(".reveal,[data-motion]").forEach(el=>el.classList.add("visible"));}});
