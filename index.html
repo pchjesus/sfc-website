@@ -36,11 +36,12 @@
 <script defer src="js/about-experience.js?v=2.4.2"></script>
 <script defer src="js/visual-story.js?v=2.5-preview"></script>
 <script defer src="js/people-recruitment.js?v=2.6.5-preview"></script>
+<script>if(new URLSearchParams(location.search).get("smuLogo")==="header")document.documentElement.classList.add("smu-logo-header-preview");</script>
 </head>
 <body>
 <header class="site-header">
 <nav class="nav" aria-label="주요 메뉴">
-<a class="brand" href="#home" aria-label="SFC 홈"><span class="brand-mark">SFC<i>.</i></span><span class="brand-name">SANGMYUNG<br>FINANCIAL CLUB</span></a>
+<a class="brand" href="#home" aria-label="SFC 홈"><img class="smu-mark smu-mark-header" src="https://www.smu.ac.kr/_res/ko/etc/04_07_02_1_ai.jpg" alt="상명대학교 심볼" width="30" height="40"><span class="brand-mark">SFC<i>.</i></span><span class="brand-name">SANGMYUNG<br>FINANCIAL CLUB</span></a>
 <div class="nav-links" id="navLinks"></div>
 <a class="header-login" href="admin.html" aria-label="최고관리자 로그인">LOGIN</a>
 <button class="menu-toggle" id="menuToggle" type="button" aria-label="메뉴 열기" aria-expanded="false">☰</button>
@@ -61,7 +62,6 @@
         <div class="hero-num" id="heroNumber">SFC / 001</div>
         <h1 id="heroHeading" data-motion="unveil">See beyond<br>the numbers.</h1>
         <p id="heroDescription">기업의 숫자를 읽고, 가치의 근거를 찾다.</p>
-        <p class="hero-identity">상명대학교 경영학부 · 기업재무분석 학술동아리</p>
         <button class="hero-button" id="heroButton" type="button" data-route="about">DISCOVER SFC <span>↗</span></button>
       </div>
       <div class="hero-foot">
@@ -453,8 +453,8 @@
 </section>
 </main>
 <footer class="site-footer">
-<div><strong>SFC.</strong><p>SANGMYUNG FINANCIAL CLUB<br>Independent Research · Sangmyung University</p>
-<nav class="cms-footer-links" aria-label="추가 페이지"><a href="#updates">UPDATES</a><a id="siteContactLink" hidden></a></nav></div>
+<div class="footer-brand-row"><img class="smu-mark smu-mark-footer" src="https://www.smu.ac.kr/_res/ko/etc/04_07_02_1_ai.jpg" alt="상명대학교 심볼" width="54" height="70"><div><strong>SFC.</strong><p>SANGMYUNG FINANCIAL CLUB<br>Independent Research · Sangmyung University</p>
+<nav class="cms-footer-links" aria-label="추가 페이지"><a href="#updates">UPDATES</a><a id="siteContactLink" hidden></a></nav></div></div>
 <small>© SFC · DEMONSTRATION MATERIALS MARKED SEPARATELY</small>
 </footer>
 </body>
