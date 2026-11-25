@@ -2,99 +2,99 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
-const script=fs.readFileSync(new URL('../js/v2.8-motion.js',import.meta.url),'utf8');
+const code=fs.readFileSync(new URL('../js/v2.8-motion.js',import.meta.url),'utf8');
 const calls=[];
 let reduced=false;
 function el(name){
   return {
-    name,
+    name,dataset:{},
     getClientRects(){return [1]},
     animate(frames,options){
-      const entry={name,frames,options,cancelled:false,
+      const call={name,frames,options,cancelled:false,
+        finished:Promise.resolve(),
         cancel(){this.cancelled=true}};
-      calls.push(entry);
-      return entry;
-    }
+      calls.push(call);return call;
+    },
+    querySelector(selector){return el(name+':'+selector)},
+    querySelectorAll(){return []},
+    closest(){return {className:'view active'}}
   };
 }
-const dom={
-  heroHeading:el('heroHeading'),
-  heroDescription:el('heroDescription'),
-  heroButton:el('heroButton')
-};
-const stages=[
+const group=[
   {paths:[Object.assign(el('observe-path'),{getTotalLength:()=>110})],rects:[]},
   {paths:[el('analyze-trend')],rects:[el('analyze-bar-1'),el('analyze-bar-2')]},
   {paths:[el('value-line-1'),el('value-line-2')],rects:[el('value-frame')]},
-  {paths:[el('defend-text'),el('defend-guide')],rects:[el('defend-sheet-1'),el('defend-sheet-2')]}
-].map((s,i)=>({
-  querySelectorAll(selector){
+  {paths:[el('defend-text')],rects:[el('defend-sheet-1'),el('defend-sheet-2')]}
+].map((s)=>{
+  const e=el('stage');
+  e.querySelectorAll=selector=>{
     if(selector==='path[stroke]')return s.paths;
-    if(selector==='rect')return s.rects;
+    if(selector==='rect'||selector==='rect,circle'||selector==='rect[stroke]')return s.rects;
     return [];
-  },
-  querySelector(selector){return selector==='rect[stroke]'?s.rects[0]||null:null}
-}));
+  };
+  return e;
+});
 const sandbox={
-  window:{SFC_MOTION:{reduced:()=>reduced}},
+  window:{innerWidth:1440,SFC_MOTION:{reduced:()=>reduced}},
   document:{
-    getElementById:id=>dom[id]||null,
+    getElementById:id=>id==='roleList'?el('roleList'):null,
     querySelector:selector=>{
-      const m=selector.match(/data-experience-visual="(\d+)"/);
-      return m?stages[Number(m[1])]:null;
+      const match=selector.match(/data-experience-visual="(\d+)"/);
+      return match?group[Number(match[1])]:null;
     }
   },
   requestAnimationFrame:fn=>fn()
 };
-vm.runInNewContext(script,sandbox,{filename:'js/v2.8-motion.js'});
-const api=sandbox.window.SFC_V28;
-assert.ok(Object.isFrozen(api));
+vm.runInNewContext(code,sandbox,{filename:'js/v2.8-motion.js'});
+const motion=sandbox.window.SFC_V28;
+assert.ok(Object.isFrozen(motion));
+const home=el('home-root');home.id='home';
+home.querySelector=s=>el('home:'+s);
+motion.enter(home);
+assert.equal(calls.filter(c=>c.name==='home-root').at(-1).options.duration,920);
+assert.ok(calls.some(c=>c.name==='home:#heroHeading'&&c.options.duration===1190));
+assert.ok(calls.some(c=>c.name==='home:#heroDescription'&&c.options.delay===350));
+const firstCount=calls.length;
+motion.enter(home);
+assert.equal(calls.length,firstCount*2,'route revisit must restore composition');
+assert.ok(calls.some(c=>c.cancelled),'interrupted animations must be cancelled');
+motion.slide(el('slide-copy'));
+assert.equal(calls.at(-1).options.duration,800,'slide copy follows longer photo crossfade');
+const beforeStage=calls.length;
+motion.stage(0);
+assert.equal(calls.length,beforeStage+1,'Observe reveals its relationship line');
+assert.equal(calls.at(-1).options.duration,940);
+const observeAnimation=calls.at(-1);
+motion.stage(1);
+assert.equal(observeAnimation.cancelled,true,'reselecting stage cancels obsolete paths');
+assert.ok(calls.some(c=>c.name==='analyze-bar-2'&&c.options.duration===840));
+motion.stage(2);
+assert.ok(calls.some(c=>c.name==='value-line-1'&&c.options.duration===1020));
+motion.stage(3);
+assert.ok(calls.some(c=>c.name==='defend-sheet-1'&&c.options.duration===930));
 
-const home={id:'home'};
-api.enter(home);
-assert.deepEqual(calls.map(c=>c.options.duration),[440,310,300]);
-assert.deepEqual(calls.map(c=>c.options.delay),[0,70,115]);
-api.enter(home);assert.equal(calls.length,3,'Hero intro once per visit');
-api.slide(el('slide-copy'));
-assert.equal(calls.at(-1).options.duration,350);
-const first=calls.length;
-api.stage(0);
-assert.equal(calls.length,first+1);
-assert.equal(calls.at(-1).options.duration,410);
-const observed=calls.at(-1);
-api.stage(1);
-assert.equal(observed.cancelled,true,'switching stage cancels old graphics');
-assert.deepEqual(calls.slice(-3).map(c=>c.options.duration),[270,270,340]);
-api.stage(2);
-assert.equal(calls.at(-1).options.duration,280);
-api.stage(3);
-assert.ok(calls.slice(-4).some(c=>c.name==='defend-sheet-1'));
+const rows=[el('report-1'),el('report-2'),el('report-3'),el('report-4')];
+const results=el('results');results.querySelectorAll=()=>rows;
+const beforeList=calls.length;
+motion.firstList(results,'.archive-report',4);
+assert.equal(calls.length-beforeList,4);
+assert.deepEqual(calls.slice(-4).map(c=>c.options.delay),[0,92,184,276]);
+motion.firstList(results,'.archive-report',4);
+assert.equal(calls.length-beforeList,4,'first-list motion not repeated during filtering');
 
-const rows=[el('r1'),el('r2'),el('r3'),el('r4')];
-const root={
-  closest:()=>({}),
-  querySelectorAll:()=>rows
-};
-const before=calls.length;
-api.firstList(root,'.archive-report',4);
-assert.equal(calls.length-before,4);
-api.firstList(root,'.archive-report',4);
-assert.equal(calls.length-before,4,'list intro only once');
-assert.ok(calls.slice(-4).every(c=>c.options.duration===240));
-assert.equal(Math.max(...calls.slice(-4).map(c=>c.options.delay)),96);
-
-const action=Object.assign(el('action'),{dataset:{state:'planned'}});
-api.recruitment(action);const count=calls.length;
-assert.equal(calls.length,count,'initial planned state is immediate');
-action.dataset.state='open';api.recruitment(action);
-assert.equal(calls.at(-1).options.duration,200);
-api.recruitment(action);
-assert.equal(calls.length,count+1,'unchanged state does not replay animation');
+const planned=el('action');planned.dataset.state='planned';
+const beforeStatus=calls.length;
+motion.recruitment(planned);
+assert.equal(calls.length,beforeStatus,'status truth must be available without motion');
+planned.dataset.state='open';motion.recruitment(planned);
+assert.equal(calls.at(-1).options.duration,720);
+motion.recruitment(planned);
+assert.equal(calls.length,beforeStatus+1);
 
 reduced=true;
 const beforeReduced=calls.length;
-api.slide(el('reduced-slide'));
-api.stage(1);
-api.firstList({closest:()=>({}),querySelectorAll:()=>[el('reduced-card')]},'.archive-report',1);
-assert.equal(calls.length,beforeReduced,'reduced motion does not create animation');
-console.log('PASS: v2.8 choreography, cancellation, list-once and reduced-motion units');
+motion.slide(el('no-motion-slide'));
+motion.stage(1);
+motion.enter(el('reduced-home'));
+assert.equal(calls.length,beforeReduced,'reduced motion disables decoration');
+console.log('PASS: v2.8.2 scene arrival, stage choreography, cancellation, list-once, state and reduced motion');
