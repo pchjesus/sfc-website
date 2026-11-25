@@ -57,10 +57,11 @@
     animation?.cancel();animation=null;
     if(!reduced.matches&&panel.animate){
       animation=panel.querySelector(".experience-description").animate(
-        [{opacity:.32,transform:"translateY(7px)"},{opacity:1,transform:"none"}],
-        {duration:340,easing:"cubic-bezier(.4,0,.2,1)"}
+        [{opacity:.78},{opacity:1}],
+        {duration:230,easing:"cubic-bezier(.22,1,.36,1)"}
       );
     }
+    window.SFC_V28?.stage(index);
     if(focus)tabs[index].focus({preventScroll:true});
   }
   tabs.forEach((button,i)=>{
