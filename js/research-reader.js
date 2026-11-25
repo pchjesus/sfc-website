@@ -6,7 +6,7 @@
   const dialog=$("researchPdfDialog");
   const toc=$("readerToc");
   function clear(){
-    $("post")?.classList.remove("reader-active");
+    $("post")?.classList.remove("reader-active","reader-demo");
     toc?.replaceChildren();if(toc)toc.hidden=true;
     const summary=$("readerOverview");if(summary)summary.hidden=true;
     const actions=$("readerActions");if(actions)actions.hidden=true;
@@ -85,5 +85,32 @@
     try{await navigator.clipboard.writeText(location.href);feedback.textContent="링크를 복사했습니다.";}
     catch(_error){feedback.textContent="링크 복사 기능을 사용할 수 없습니다.";}
   });
-  window.SFC_READER=Object.freeze({clear,status,render});
+  function renderDemo(item){
+    const article={
+      kind:"research",
+      title:item.title,
+      excerpt:"DEMONSTRATION / 실제로 발표·발행된 연구가 아닙니다. 연구 결과물의 구성과 열람 경험을 보여주는 예시입니다.",
+      published_at:null,research_sector:item.category,research_company:"",
+      research_author:"SFC / DEMO",cover_url:"",attachment_url:"",
+      research_method:item.method||"",
+      research_limitations:item.risk||"",
+      body:[
+        "# 연구 질문",
+        item.question||"연구를 시작할 질문이 이곳에 표시됩니다.",
+        "",
+        "## 분석 구조",
+        "사업구조와 재무적 맥락, 주요 평가 가정을 검토하는 연구 목차의 예시입니다.",
+        "",
+        "## 자료와 근거",
+        "실제 연구보고서가 등록되면 출처와 검증 근거를 여기에 제시합니다. 임의의 재무 수치나 분석 결과를 사용하지 않았습니다.",
+        "",
+        "## 해석 및 결론",
+        "본 문서는 화면 구성을 위한 시안으로, 실제 조사 결과나 투자 의견을 포함하지 않습니다."
+      ].join("\n")
+    };
+    render(article,window.SFC_CMS);
+    $("post").classList.add("reader-demo");
+    $("cmsPostMeta").textContent="DEMONSTRATION / NOT A PUBLISHED RESEARCH REPORT";
+  }
+  window.SFC_READER=Object.freeze({clear,status,render,renderDemo});
 })();
