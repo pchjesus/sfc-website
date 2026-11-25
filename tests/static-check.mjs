@@ -3,7 +3,7 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
 const read=path=>fs.readFileSync(new URL('../'+path,import.meta.url),'utf8');
-const files=['index.html','admin.html','css/site.css','css/cms-public.css','css/cms.css',
+const files=['index.html','admin.html','assets/sangmyung-university-mark.svg','css/v2.7-review.css','css/site.css','css/cms-public.css','css/cms.css',
   'js/motion.js','css/motion.css','css/editorial.css','css/integrated.css','css/people-recruitment.css','js/about-experience.js','js/visual-story.js','js/people-recruitment.js','js/research-platform.js','js/research-reader.js','js/site.js','js/cms-core.js','js/cms-public.js','js/cms-admin.js','js/cms-studio.js',
   'js/cms-config.js','sql/sfc-cms.sql','sql/sfc-roles-v1.4.sql',
   'sql/sfc-integrated-2.0.sql','robots.txt','sitemap.xml'];
@@ -82,7 +82,7 @@ assert.match(publicHtml,/id="researchWorkbench"/);
 assert.match(publicHtml,/id="readerToc"/);
 assert.match(publicHtml,/id="journeyContext"/);
 assert.match(publicHtml,/id="recruitmentStatusTrack"/);
-assert.match(publicHtml,/src="js\/research-platform\.js\?v=2\.6-preview"/);
+assert.match(publicHtml,/src="js\/research-platform\.js\?v=2\.7\.2-review"/);
 assert.match(publicHtml,/src="js\/research-reader\.js\?v=2\.6-preview"/);
 assert.match(publicHtml,/src="js\/visual-story\.js\?v=2\.5-preview"/);
 assert.match(read('js/research-platform.js'),/\.range\(from,from\+limit-1\)/);
@@ -103,4 +103,9 @@ assert.doesNotMatch(publicHtml,/data-process-step=/);
 assert.match(read('js/people-recruitment.js'),/team-node-description/);
 assert.match(read('css/people-recruitment.css'),/process-step p/);
 assert.match(read('css/people-recruitment.css'),/prefers-reduced-motion:reduce/);
-console.log('PASS: v2.6.5 People/Recruitment, security and editorial contracts');
+assert.match(publicHtml,/assets\\/sangmyung-university-mark\\.svg/,'Footer university mark must be local');
+assert.doesNotMatch(publicHtml,/smuLogo|smu-mark-header/,'Header logo comparison switch must not ship');
+assert.doesNotMatch(publicHtml,/class="hero-identity"/,'Hero identity caption must remain removed');
+assert.match(read('js/research-platform.js'),/demo\\?"DEMO \\/ "\\+item\\.type\\.toUpperCase\\(\\)/,'Research DEMO adjacent type should remain');
+assert.match(publicHtml,/class="about-approved-copy"/);
+console.log('PASS: v2.7.2 selected UI, security and editorial contracts');
