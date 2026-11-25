@@ -67,7 +67,7 @@ def capture(browser,label,route,width=1440,height=900):
         page.wait_for_timeout(1300)
     elif route=="updates":
         page.wait_for_timeout(850)
-    elif route=="people":
+    elif route=="people" and label=="navigation-mobile":
         for target in ["recruitment","activities","updates"]:
             page.evaluate("(r)=>navigate(r)",target)
             page.wait_for_timeout(1100)
