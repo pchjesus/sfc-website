@@ -92,7 +92,7 @@
   function makeCard(item){
     const link=node("a","archive-report");
     const demo=mode==="demo";
-    link.href=demo?"#report-"+item.index:"#post-"+item.id;
+    link.href=demo?"#reader-demo-"+item.index:"#post-"+item.id;
     link.dataset.motionKey=demo?"demo-"+item.index:"public-"+item.id;
     const cap=node("span","archive-report-number",demo?"DEMO / 0"+(item.index+1):"SFC / PUBLICATION");
     const body=node("div","archive-report-copy");
