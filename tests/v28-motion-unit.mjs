@@ -97,4 +97,4 @@ api.slide(el('reduced-slide'));
 api.stage(1);
 api.firstList({closest:()=>({}),querySelectorAll:()=>[el('reduced-card')]},'.archive-report',1);
 assert.equal(calls.length,beforeReduced,'reduced motion does not create animation');
-console.log('PASS: 28 v2.8 choreography/interrupt/reduced-motion unit assertions');
+console.log('PASS: v2.8 choreography, cancellation, list-once and reduced-motion units');
