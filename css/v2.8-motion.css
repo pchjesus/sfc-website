@@ -50,7 +50,7 @@
 #about .about-photo-panel .about-approved-copy .about-line{display:block!important}
 #about .experience-step{
   transition:background-color 240ms var(--v28-smooth),color 210ms ease,
-    border-color 240ms var(--v28-smooth)!important
+    border-color 240ms var(--v28-smooth)
 }
 #about .experience-step::before{
   transition:background-color 240ms var(--v28-smooth)
