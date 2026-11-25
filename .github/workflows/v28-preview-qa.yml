@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - preview/sfc-v2.8-motion
+      - preview/sfc-v2.8-cinematic-rebuild
   pull_request:
     branches:
       - main
