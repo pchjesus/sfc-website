@@ -53,7 +53,7 @@
   }
   function slide(copy){
     // Only the changed copy settles; the photo is already crossfading.
-    soft(copy,[{opacity:.77,transform:"translateY(4px)"},{opacity:1,transform:"none"}],275);
+    soft(copy,[{opacity:.62,transform:"translateY(3px)"},{opacity:1,transform:"none"}],350);
   }
   function visible(el){
     if(!el)return false;
