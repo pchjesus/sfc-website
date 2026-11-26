@@ -112,7 +112,7 @@ assert.equal(last("tab1").frames[0].clipPath,"inset(45% 43% 45% 43%)");
 const people=root("people");
 api.enter(people);
 assertSignature(people,"typographic-index-print");
-assert.equal(last("people:.page-head h1").frames[0].clipPath,"inset(0 100% 0 0)");
+assert.equal(last("people:.page-head/h1").frames[0].clipPath,"inset(0 100% 0 0)");
 
 const facts=[node("fact01"),node("fact02"),node("fact03"),node("fact04")];
 const recruitment=root("recruitment",{".recruit-fact[]":facts});
