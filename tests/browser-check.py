@@ -361,6 +361,11 @@ with sync_playwright() as p:
   for route in ['home','about','research','activities','people','recruitment','updates']:
    x.evaluate('(r)=>navigate(r)',route)
    expect(x.locator('#'+route)).to_be_visible()
+   # Final-layout check: the requested off-screen entrance intentionally
+   # has heading right edges outside their columns while animating.
+   x.evaluate("""()=>document.getAnimations().forEach(a=>{
+     try{if(Number.isFinite(a.effect?.getComputedTiming().endTime))a.finish()}catch(_){}
+   })""")
    assert x.evaluate("document.documentElement.scrollWidth <= innerWidth+1"),(width,route)
    assert x.evaluate("""()=>[...document.querySelectorAll('.view.active h1,.view.active h2,.view.active h3')]
       .every(el=>el.getBoundingClientRect().right <= innerWidth+3)"""),(width,route)
