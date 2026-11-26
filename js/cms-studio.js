@@ -58,16 +58,22 @@
     if(!dirtyForms[key])return true;
     return confirm("저장하지 않은 입력 내용이 있습니다. 다른 항목으로 이동하면 내용이 사라집니다. 계속할까요?");
   }
+  const settingReadTickets={site:0,recruitment:0};
   async function fetchSettings(pane){
-    const {data,error}=await client().from("cms_site_settings").select("key,value,updated_at");
+    if(!(pane in settingReadTickets))return;
+    const ticket=++settingReadTickets[pane];
+    // Read only the pane being displayed. A Recruitment read must never
+    // advance Site's version while its old inputs are still on screen.
+    const {data,error}=await client().from("cms_site_settings")
+      .select("key,value,updated_at").eq("key",pane).maybeSingle();
     if(error)throw error;
-    for(const row of data||[]){
-      if(!(row.key in dirtyForms)||dirtyForms[row.key]||busyForms[row.key])continue;
-      state[row.key]=row.value||{};
-      settingVersions[row.key]=row.updated_at||null;
-    }
-    if(pane==="site"&&!dirtyForms.site&&!busyForms.site)fillSite();
-    if(pane==="recruitment"&&!dirtyForms.recruitment&&!busyForms.recruitment)fillRecruitment();
+    if(!data)throw new Error("설정 데이터를 찾을 수 없습니다. 관리자에게 문의해 주세요.");
+    if(ticket!==settingReadTickets[pane]||dirtyForms[pane]||busyForms[pane])return;
+    // The form and the optimistic-concurrency token are updated as one snapshot.
+    state[pane]=data.value||{};
+    settingVersions[pane]=data.updated_at||null;
+    if(pane==="site")fillSite();
+    else fillRecruitment();
   }
   function fillSite(){
     const v=state.site;
@@ -95,14 +101,14 @@
     }
   }
   async function persistSetting(key,value){
+    // Both records are seeded by SQL migration. Saving with an unknown
+    // version would bypass conflict checking and silently replace an unseen
+    // record after a failed initial read.
+    if(!settingVersions[key])throw new Error("설정의 최신 버전을 읽지 못했습니다. 새로고침한 뒤 다시 저장해 주세요.");
     const updated_at=new Date().toISOString();
-    const request=settingVersions[key]
-      ? client().from("cms_site_settings").update({value,updated_at})
-          .eq("key",key).eq("updated_at",settingVersions[key])
-          .select("key,value,updated_at").maybeSingle()
-      : client().from("cms_site_settings")
-          .upsert({key,value,updated_at},{onConflict:"key"})
-          .select("key,value,updated_at").single();
+    const request=client().from("cms_site_settings").update({value,updated_at})
+      .eq("key",key).eq("updated_at",settingVersions[key])
+      .select("key,value,updated_at").maybeSingle();
     const {data,error}=await request;
     if(error)throw error;
     if(!data)throw new Error("다른 관리자가 먼저 수정한 설정입니다. 입력 내용은 유지됩니다. 복사한 뒤 페이지를 새로고침해 최신 상태를 확인하세요.");
