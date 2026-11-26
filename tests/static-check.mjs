@@ -126,7 +126,7 @@ for(const signature of ['photographic-typographic-mask','diagram-connect-and-col
 }
 assert.ok(read('js/v2.8-motion.js').includes('fill:"backwards"'),'Delayed transparent frames must persist during stagger');
 assert.match(read('js/v2.8-motion.js'),/opacity:0,clipPath:/,'Signature masks must start transparent');
-assert.match(read('js/v2.8-motion.js'),/opacity:\\.28,clipPath:/,'Publication ink should progressively appear');
+assert.ok(read('js/v2.8-motion.js').includes('opacity:.28,clipPath:'),'Publication ink should progressively appear');
 assert.match(read('js/v2.8-motion.js'),/\],760\)/,'Common scene settle must last 760ms');
 assert.match(read('js/motion.js'),/reveal:1150/,'Generic reveal must not snap back to short duration');
 assert.ok(publicHtml.includes('css/v2.8-cinematic.css?v=2.8.4'));
