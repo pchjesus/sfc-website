@@ -170,7 +170,12 @@
       const idx=[...parent.children].indexOf(el);
       gather(el,idx===0?"left":idx===2?"right":"up",idx*105,1628);
       const svg=el.querySelector("svg");
-      tween(svg,[{opacity:.6,transform:"scale(.955)"},{opacity:1,transform:"none"}],950,180);
+      tween(svg,[
+        {opacity:0,transform:"scale(.94)",offset:0},
+        {opacity:.18,transform:"scale(.955)",offset:.38},
+        {opacity:.75,transform:"scale(.99)",offset:.82},
+        {opacity:1,transform:"none",offset:1}
+      ],1460,160);
       return true;
     }
     if(el.matches("#about .about-section-heading")){
