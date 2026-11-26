@@ -110,11 +110,11 @@ assert.ok(!publicHtml.includes('class="hero-identity"'),'Hero identity caption m
 assert.ok(read('js/research-platform.js').includes('demo?"DEMO / "+item.type.toUpperCase()'),'Research DEMO adjacent type should remain');
 assert.ok(publicHtml.includes('about-approved-copy'),'Approved About copy must remain');
 assert.ok(read('js/v2.8-motion.js').includes('function enter(root)'),'Scene composition required');
-assert.ok(read('js/v2.8-motion.js').includes('opacity:.76,transform:'),'Atmospheric page settle required');
+assert.ok(read('js/v2.8-motion.js').includes('opacity:.06,transform:'),'Atmospheric page settle required');
 assert.ok(read('js/v2.8-motion.js').includes('function stage(index)'),'About SVG stage choreography missing');
 assert.ok(read('js/v2.8-motion.js').includes('function firstList('),'List entrance contract missing');
 assert.ok(read('js/research-platform.js').includes('reconcile(results,children,{reuse:"equal",exit:false})'),'Research should not clone ghost rows');
-assert.ok(read('js/site.js').includes('window.SFC_V28?.slide(copy)'),'Hero must use short slide transition');
+assert.ok(read('js/site.js').includes('window.SFC_V28?.slide(copy)'),'Hero must use synchronized slide transition');
 assert.ok(read('js/people-recruitment.js').includes('window.SFC_V28?.people()'),'Dynamic People list must be observed');
 assert.ok(publicHtml.includes('href="css/v2.8-cinematic.css?v=2.8.3"'),'Cinematic override must load last');
 assert.ok(read('css/v2.8-cinematic.css').includes('#activities .page-head h1'),'Activities must match page title proportions');
