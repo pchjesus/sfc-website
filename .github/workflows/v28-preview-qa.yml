@@ -6,6 +6,7 @@ on:
       - preview/sfc-v2.8-motion
       - preview/sfc-v2.8-cinematic-rebuild
       - preview/sfc-v2.8.3-reveal-rebuild
+      - preview/sfc-v2.8.4-page-signatures
   pull_request:
     branches:
       - main
