@@ -188,6 +188,17 @@ with sync_playwright() as p:
  expect(x.locator('#postTitle')).to_have_value('')
  assert x.evaluate('document.querySelector("#adminPostList").childElementCount===0')
  ok('P1 stale save response does not repopulate editor after sign-out');x.context.close()
+ # Header dimensions are matched to public homepage at standard widths.
+ for width in [1440,768,390,360]:
+  x=page('anonymous',width);x.goto(base)
+  public_header=x.locator('.site-header').evaluate('el=>({height:el.getBoundingClientRect().height,font:getComputedStyle(el.querySelector(".brand-mark")).fontSize})')
+  x.goto(base+'/admin.html');expect(x.locator('#studioLogin')).to_be_visible()
+  studio_header=x.locator('.studio-header').evaluate('el=>({height:el.getBoundingClientRect().height,font:getComputedStyle(el.querySelector(".studio-brand-mark")).fontSize})')
+  assert public_header==studio_header,(width,public_header,studio_header)
+  expect(x.locator('#studioLogin')).to_contain_text('로그인 없이')
+  assert x.evaluate('document.documentElement.scrollWidth<=innerWidth+1'),width
+  x.context.close()
+ ok('P2 public and login header dimensions and login guidance at 4 widths')
  # P2/P3 offline import and authoring, synthetic content only.
  x=page();x.goto(base+'/admin.html');expect(x.locator('#studioPanel')).to_be_visible()
  x.locator('#postSearch').fill('Article B');expect(x.locator('.admin-post-item')).to_have_count(1)
