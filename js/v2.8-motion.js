@@ -5,8 +5,8 @@
  */
 (function(){
   const motion=window.SFC_MOTION;
-  const ease="cubic-bezier(.16,1,.3,1)";
-  const settle="cubic-bezier(.22,.8,.25,1)";
+  const ease="cubic-bezier(.42,0,.58,1)"; // opacity builds across the whole duration
+  const settle="cubic-bezier(.42,0,.58,1)";
   const reduced=()=>motion?.reduced?.()||false;
   const active=new WeakMap(), observed=new WeakSet(), firstLists=new WeakSet();
   const stageAnimations=[];
@@ -18,28 +18,32 @@
     if(!el||reduced()||!el.animate||!el.getClientRects().length)return null;
     const prior=active.get(el);
     if(prior)try{prior.cancel()}catch(_){}
-    const a=el.animate(frames,{duration,delay,easing,fill:"none"});
+    const a=el.animate(frames,{duration,delay,easing,fill:"backwards"}); // no flash before delay
     active.set(el,a);
     a.finished.then(()=>{if(active.get(el)===a)active.delete(el)},()=>{});
     return a;
   }
-  function gather(el,side="up",delay=0,duration=1000,fromOpacity=.48){
-    const distance=isMobile()?19:side==="up"?39:side==="short"?14:74;
+  function gather(el,side="up",delay=0,duration=1720){
+    const distance=isMobile()?28:side==="up"?58:side==="short"?22:86;
     const x=side==="left"?-distance:side==="right"?distance:0;
     const y=side==="up"||side==="short"?distance:0;
+    // Nearly invisible -> prolonged fade -> fully assembled reading position.
     return tween(el,[
-      {opacity:fromOpacity,transform:`translate3d(${x}px,${y}px,0) scale(.987)`},
-      {opacity:.92,transform:"translate3d(0,0,0) scale(1)",offset:.83},
-      {opacity:1,transform:"none"}
+      {opacity:0,transform:`translate3d(${x}px,${y}px,0) scale(.972)`,offset:0},
+      {opacity:.035,transform:`translate3d(${x*.94}px,${y*.94}px,0) scale(.974)`,offset:.14},
+      {opacity:.20,transform:`translate3d(${x*.66}px,${y*.66}px,0) scale(.985)`,offset:.38},
+      {opacity:.68,transform:`translate3d(${x*.20}px,${y*.20}px,0) scale(.997)`,offset:.73},
+      {opacity:.94,transform:"translate3d(0,0,0) scale(1)",offset:.93},
+      {opacity:1,transform:"none",offset:1}
     ],duration,delay);
   }
   function underline(el,delay=0){
     // One brief line accent, never a false progress indicator.
-    return tween(el,[{opacity:.58,transform:"translateX(-7px)"},{opacity:1,transform:"none"}],760,delay);
+    return gather(el,"left",delay,1500);
   }
   function sequence(root,selector,side="up",options={}){
     if(!root)return;
-    const {step=105,base=0,max=5,duration=910}=options;
+    const {step=155,base=0,max=5,duration=1630}=options;
     [...root.querySelectorAll(selector)].slice(0,max).forEach((el,i)=>
       gather(el,typeof side==="function"?side(i):side,base+i*step,duration));
   }
@@ -48,7 +52,7 @@
     const rows=[...root.querySelectorAll(selector)].slice(0,cap);
     if(!rows.length)return;
     firstLists.add(root);
-    rows.forEach((el,i)=>gather(el,i%2?"right":"left",i*92,920,.68));
+    rows.forEach((el,i)=>gather(el,i%2?"right":"left",i*145,1720));
   }
   // Route composition runs each time the visitor enters a tab: the old v2.7
   // sense of a new scene returning, without waiting to navigate or use it.
@@ -61,40 +65,43 @@
     const track=a=>{if(a)routeAnimations.push(a);return a};
     // Restore a gentle whole-scene settle that v2.8 mistakenly removed.
     track(tween(root,[
-      {opacity:.76,transform:"translate3d(0,10px,0)"},
-      {opacity:1,transform:"none"}
-    ],920,0,settle));
+      {opacity:.06,transform:"translate3d(0,15px,0)",offset:0},
+      {opacity:.18,transform:"translate3d(0,12px,0)",offset:.28},
+      {opacity:.58,transform:"translate3d(0,5px,0)",offset:.63},
+      {opacity:.92,transform:"translate3d(0,0,0)",offset:.9},
+      {opacity:1,transform:"none",offset:1}
+    ],1420,0,settle));
     const head=root.querySelector(".page-head");
     if(head){
-      track(gather(head.querySelector(".eyebrow"),"left",60,740,.55));
-      track(gather(head.querySelector("h1"),"left",100,1120,.52));
-      track(gather(head.querySelector("p"),"right",210,1070,.60));
+      track(gather(head.querySelector(".eyebrow"),"left",60,1147));
+      track(gather(head.querySelector("h1"),"left",100,1736));
+      track(gather(head.querySelector("p"),"right",210,1659));
     }
     switch(root.id){
       case "home":
-        track(gather(root.querySelector(".hero-top"),"up",80,850,.56));
-        track(gather(root.querySelector("#heroNumber"),"left",120,760,.48));
-        track(gather(root.querySelector("#heroHeading"),"left",160,1190,.52));
-        track(gather(root.querySelector("#heroDescription"),"right",350,1050,.52));
-        track(gather(root.querySelector("#heroButton"),"up",520,950,.48));
-        track(gather(root.querySelector(".hero-controls"),"right",610,960,.58));
+        track(gather(root.querySelector(".hero-top"),"up",80,1318));
+        track(gather(root.querySelector("#heroNumber"),"left",120,1178));
+        track(gather(root.querySelector("#heroHeading"),"left",160,1845));
+        track(gather(root.querySelector("#heroDescription"),"right",350,1628));
+        track(gather(root.querySelector("#heroButton"),"up",520,1473));
+        track(gather(root.querySelector(".hero-controls"),"right",610,1488));
         break;
       case "about":
-        track(gather(root.querySelector(".about-photo-panel h2"),"left",230,1120,.55));
+        track(gather(root.querySelector(".about-photo-panel h2"),"left",230,1736));
         sequence(root,".about-photo-panel .about-approved-copy .about-line","right",
-          {step:95,base:310,max:3,duration:1050});
+          {step:95,base:310,max:3,duration:1628});
         break;
       case "research":
-        track(gather(root.querySelector(".archive-intro"),"right",310,990,.58));
-        track(gather(root.querySelector(".archive-search-row"),"left",400,990,.55));
-        track(gather(root.querySelector(".archive-controls"),"right",470,1000,.60));
+        track(gather(root.querySelector(".archive-intro"),"right",310,1535));
+        track(gather(root.querySelector(".archive-search-row"),"left",400,1535));
+        track(gather(root.querySelector(".archive-controls"),"right",470,1550));
         requestAnimationFrame(()=>firstList(root.querySelector("#archiveResults"),".archive-report",5));
         break;
       case "activities":
-        track(gather(root.querySelector(".schedule-header"),"left",300,950,.55));
-        track(gather(root.querySelector("#journeyContext"),"right",360,1080,.56));
+        track(gather(root.querySelector(".schedule-header"),"left",300,1473));
+        track(gather(root.querySelector("#journeyContext"),"right",360,1674));
         const stageButtons=[...root.querySelectorAll("#scheduleTabs button")];
-        stageButtons.forEach((b,i)=>track(gather(b,i<2?"left":"right",520+i*95,950,.50)));
+        stageButtons.forEach((b,i)=>track(gather(b,i<2?"left":"right",520+i*95,1473)));
         [...root.querySelectorAll("#scheduleList>.session:not([hidden]),#scheduleList>.cms-session:not([hidden])")]
           .slice(0,4).forEach((row,i)=>track(tween(row,[
             {opacity:.42,clipPath:"inset(0 0 12% 0)"},
@@ -102,31 +109,31 @@
           ],1010,670+i*115)));
         break;
       case "people":
-        track(gather(root.querySelector(".people-editorial-lead h2"),"left",230,1080,.55));
-        track(gather(root.querySelector(".people-editorial-lead p"),"right",340,1040,.56));
+        track(gather(root.querySelector(".people-editorial-lead h2"),"left",230,1674));
+        track(gather(root.querySelector(".people-editorial-lead p"),"right",340,1612));
         people();
         break;
       case "recruitment":
-        track(gather(root.querySelector(".recruit-intro-copy"),"left",240,1090,.56));
-        track(gather(root.querySelector(".recruit-fact-grid"),"right",320,1110,.55));
-        track(gather(root.querySelector("#recruitActionCard"),"up",480,1130,.60));
+        track(gather(root.querySelector(".recruit-intro-copy"),"left",240,1690));
+        track(gather(root.querySelector(".recruit-fact-grid"),"right",320,1721));
+        track(gather(root.querySelector("#recruitActionCard"),"up",480,1752));
         break;
       case "updates":
-        track(gather(root.querySelector(".updates-section-heading"),"left",300,940,.56));
-        track(gather(root.querySelector("#updatesFilters"),"right",410,960,.58));
+        track(gather(root.querySelector(".updates-section-heading"),"left",300,1457));
+        track(gather(root.querySelector("#updatesFilters"),"right",410,1488));
         requestAnimationFrame(()=>firstList(root.querySelector("#updatesList"),".cms-card",5));
         break;
       case "post":
       case "detail":
-        track(gather(root.querySelector(".cms-post-head,.detail-masthead"),"left",220,1150,.52));
-        track(gather(root.querySelector(".reader-layout,.detail-body"),"right",350,980,.65));
+        track(gather(root.querySelector(".cms-post-head,.detail-masthead"),"left",220,1783));
+        track(gather(root.querySelector(".reader-layout,.detail-body"),"right",350,1519));
         break;
     }
     watch(root);
   }
   function slide(copy){
     // The image remains the dominant 1250ms crossfade; copy gently catches up.
-    gather(copy,"up",0,800,.55);
+    gather(copy,"up",0,1490);
   }
   function visible(el){
     if(!el)return false;
@@ -134,49 +141,49 @@
     const root=el.closest(".view");
     if(!root)return false;
     if(el.matches("#home .home-value-copy")){
-      gather(el.querySelector("h2"),"left",0,1100,.51);
-      gather(el.querySelector("p"),"right",150,960,.62);
-      gather(el.querySelector(".home-value-link"),"up",280,870,.58);
+      gather(el.querySelector("h2"),"left",0,1705);
+      gather(el.querySelector("p"),"right",150,1488);
+      gather(el.querySelector(".home-value-link"),"up",280,1349);
       return true;
     }
     if(el.matches("#home .home-section")){
-      gather(el.querySelector(".section-head"),"left",0,860,.57);
-      gather(el.querySelector(".featured-photo"),"left",100,1160,.59);
-      gather(el.querySelector(".featured-copy"),"right",220,1180,.55);
+      gather(el.querySelector(".section-head"),"left",0,1333);
+      gather(el.querySelector(".featured-photo"),"left",100,1798);
+      gather(el.querySelector(".featured-copy"),"right",220,1829);
       return true;
     }
     if(el.matches("#home .process-layout")){
-      gather(el.querySelector("h2"),"left",0,1090,.57);
-      sequence(el,".process-point","right",{base:150,step:120,max:3,duration:1000});
+      gather(el.querySelector("h2"),"left",0,1690);
+      sequence(el,".process-point","right",{base:150,step:120,max:3,duration:1550});
       return true;
     }
     if(el.matches("#home .join-layout")){
-      gather(el.querySelector("p,h2"),"left",0,990,.59);
-      gather(el.querySelector("a,button"),"right",160,1040,.60);
+      gather(el.querySelector("p,h2"),"left",0,1535);
+      gather(el.querySelector("a,button"),"right",160,1612);
       return true;
     }
     if(el.matches("#about .about-photo-panel"))return true; // Enter() owns first scene
     if(el.matches("#about .about-reason")){
       const parent=el.parentElement;
       const idx=[...parent.children].indexOf(el);
-      gather(el,idx===0?"left":idx===2?"right":"up",idx*105,1050,.54);
+      gather(el,idx===0?"left":idx===2?"right":"up",idx*105,1628);
       const svg=el.querySelector("svg");
       tween(svg,[{opacity:.6,transform:"scale(.955)"},{opacity:1,transform:"none"}],950,180);
       return true;
     }
     if(el.matches("#about .about-section-heading")){
-      gather(el.querySelector("h2"),"left",0,1040,.56);
-      gather(el.querySelector("p"),"right",145,950,.60);
+      gather(el.querySelector("h2"),"left",0,1612);
+      gather(el.querySelector("p"),"right",145,1473);
       return true;
     }
     if(el.matches("#people .people-editorial-lead"))return true;
     if(el.matches("#people .people-next-link")){
-      gather(el,"up",0,990,.62);return true;
+      gather(el,"up",0,1535);return true;
     }
     if(el.matches("#recruitment .recruit-intro")||el.matches("#recruitment #recruitActionCard"))return true;
     if(el.matches("#recruitment .recruitment-process")){
       sequence(el,".process-step",i=>i%2?"right":"left",
-        {step:125,base:0,max:4,duration:1070});return true;
+        {step:125,base:0,max:4,duration:1659});return true;
     }
     return false;
   }
@@ -196,19 +203,19 @@
         if(reduced()||!target.closest(".view.active"))continue;
         if(target.matches(".team-node")){
           const i=[...target.parentElement.children].indexOf(target);
-          gather(target,i%2?"right":"left",Math.min(i*85,250),1060,.60);
+          gather(target,i%2?"right":"left",Math.min(i*85,250),1643);
         }else if(target.matches(".experience-layout")){
-          gather(target.querySelector(".experience-selector"),"left",0,1050,.56);
-          gather(target.querySelector(".experience-panel"),"right",190,1160,.56);
+          gather(target.querySelector(".experience-selector"),"left",0,1628);
+          gather(target.querySelector(".experience-panel"),"right",190,1798);
         }else if(target.matches(".recruitment-process")){
-          sequence(target,".process-step",i=>i%2?"right":"left",{base:90,step:120,duration:1020});
+          sequence(target,".process-step",i=>i%2?"right":"left",{base:90,step:120,duration:1581});
         }else if(target.matches(".recruitment-faq-heading")){
-          gather(target,"left",0,920,.60);
+          gather(target,"left",0,1426);
         }else if(target.matches(".session-list")){
           // The top rows have the route-composition reveal. The list itself
           // stays static so expanded content and filter state are preserved.
         }else if(target.matches(".cms-card")){
-          gather(target,"up",0,920,.65);
+          gather(target,"up",0,1426);
         }
       }
     },{threshold:.10,rootMargin:"0px 0px -8% 0px"}):null;
