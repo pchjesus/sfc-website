@@ -347,12 +347,35 @@
     }catch(e){toast("백업 실패: "+(e.message||e),true);}
     finally{buttonBusy(button,false);}
   });
+  let diagnosticSequence=0;
+  async function developerDiagnostic(){
+    if(util().getRole()!=="developer")return;
+    const started=++diagnosticSequence,owner=util().getUser()?.id;
+    const active=()=>started===diagnosticSequence&&util().getRole()==="developer"&&util().getUser()?.id===owner;
+    $("devConnection").textContent="조회 중";$("devRefresh").disabled=true;
+    $("devCounts").querySelectorAll("dd").forEach(e=>e.textContent="—");
+    try{
+      const queries=[client().from("cms_posts").select("id",{count:"exact",head:true}),client().from("cms_posts").select("id",{count:"exact",head:true}).eq("status","draft"),client().from("cms_admins").select("user_id",{count:"exact",head:true}),client().from("cms_people").select("id",{count:"exact",head:true}),client().from("cms_sessions").select("id",{count:"exact",head:true})];
+      const results=await Promise.all(queries);
+      if(!active())return;
+      if(results.some(v=>v.error||typeof v.count!=="number"))throw Error("일부 조회 요청이 실패했습니다.");
+      const values=[results[0].count,results[1].count,results[2].count+" / 3",results[3].count+" / "+results[4].count];
+      $("devCounts").querySelectorAll("dd").forEach((e,i)=>e.textContent=String(values[i]));
+      $("devConnection").textContent="조회 성공";
+      $("devAuth").textContent="현재 세션: Developer · 서버 회원 조회 확인";
+    }catch(e){if(active()){$("devConnection").textContent="조회 실패";$("devAuth").textContent="조회 상태를 확인할 수 없습니다.";}}
+    finally{if(active()){$("devRefresh").disabled=false;$("devChecked").textContent="최근 진단: "+new Date().toLocaleString("ko-KR");}}
+  }
+  $("devRefresh").addEventListener("click",developerDiagnostic);
+  $("devGoAccounts").addEventListener("click",()=>{if(util().getRole()==="developer")util().showPane("access");});
+  window.addEventListener("sfc:admin-cleared",()=>{diagnosticSequence++;$("devRefresh").disabled=false;});
   async function openPane(pane){
     try{
       if(pane==="site"||pane==="recruitment")await fetchSettings(pane);
       if(pane==="people")await loadPeople();
       if(pane==="sessions")await loadSessions();
       if(pane==="access")await loadAdmins();
+      if(pane==="developer")await developerDiagnostic();
     }catch(e){toast("데이터를 불러오지 못했습니다: "+(e.message||e),true);}
   }
   window.addEventListener("sfc:pane",e=>openPane(e.detail.pane));
