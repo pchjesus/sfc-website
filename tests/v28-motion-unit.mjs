@@ -1,104 +1,163 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
-
 const code=fs.readFileSync(new URL('../js/v2.8-motion.js',import.meta.url),'utf8');
-const calls=[];
 let reduced=false;
-function el(name){
-  return {
-    name,dataset:{},
+const all=[];
+function node(name){
+  return {name,dataset:{},
     getClientRects(){return [1]},
-    animate(frames,options){
-      const call={name,frames,options,cancelled:false,
-        finished:Promise.resolve(),
-        cancel(){this.cancelled=true}};
-      calls.push(call);return call;
-    },
-    querySelector(selector){return el(name+':'+selector)},
+    closest(){return {id:"home",className:"view active"}},
+    querySelector(sel){return node(name+"/"+sel)},
     querySelectorAll(){return []},
-    closest(){return {className:'view active'}}
-  };
+    animate(frames,options){
+      const a={name,frames,options,cancelled:false,finished:Promise.resolve(),
+        cancel(){this.cancelled=true}};
+      all.push(a);return a;
+    }};
 }
-const group=[
-  {paths:[Object.assign(el('observe-path'),{getTotalLength:()=>110})],rects:[]},
-  {paths:[el('analyze-trend')],rects:[el('analyze-bar-1'),el('analyze-bar-2')]},
-  {paths:[el('value-line-1'),el('value-line-2')],rects:[el('value-frame')]},
-  {paths:[el('defend-text')],rects:[el('defend-sheet-1'),el('defend-sheet-2')]}
-].map((s)=>{
-  const e=el('stage');
-  e.querySelectorAll=selector=>{
-    if(selector==='path[stroke]')return s.paths;
-    if(selector==='rect'||selector==='rect,circle'||selector==='rect[stroke]')return s.rects;
+function root(id,config={}){
+  const el=node("root-"+id);
+  el.id=id;
+  el.dataset={};
+  el.querySelector=sel=>config[sel]||node(id+":"+sel);
+  el.querySelectorAll=sel=>config[sel+"[]"]||[];
+  return el;
+}
+function actionsFor(prefix){return all.filter(a=>a.name.startsWith(prefix))}
+function last(name){return all.filter(a=>a.name===name).at(-1)}
+function assertSignature(el,kind){assert.equal(el.dataset.motionSignature,kind)}
+const stageElements=[
+  {rects:[node("observe-node")],paths:[Object.assign(node("observe-edge"),{getTotalLength:()=>100})]},
+  {rects:[node("analyze-bar")],paths:[Object.assign(node("analyze-trend"),{getTotalLength:()=>100})]},
+  {rects:[Object.assign(node("value-frame"),{getTotalLength:()=>80})],
+   paths:[Object.assign(node("value-line"),{getTotalLength:()=>100})]},
+  {rects:[node("defend-paper")],paths:[Object.assign(node("defend-line"),{getTotalLength:()=>100})]}
+].map((items,i)=>{
+  const e=node("stage"+i);
+  e.querySelectorAll=sel=>{
+    if(sel==="rect"||sel==="rect[stroke]")return items.rects;
+    if(sel==="path[stroke]")return items.paths;
     return [];
   };
+  e.querySelector=sel=>sel==="rect[stroke]"?items.rects[0]:node("stage"+i+":"+sel);
   return e;
 });
-const sandbox={
-  window:{innerWidth:1440,SFC_MOTION:{reduced:()=>reduced}},
+const context={
+  window:{SFC_MOTION:{reduced:()=>reduced}},
+  innerWidth:1440,
   document:{
-    getElementById:id=>id==='roleList'?el('roleList'):null,
-    querySelector:selector=>{
-      const match=selector.match(/data-experience-visual="(\d+)"/);
-      return match?group[Number(match[1])]:null;
+    getElementById:()=>null,
+    querySelector:sel=>{
+      const n=sel.match(/data-experience-visual="(\d+)"/);
+      return n?stageElements[Number(n[1])]:null;
     }
   },
   requestAnimationFrame:fn=>fn()
 };
-vm.runInNewContext(code,sandbox,{filename:'js/v2.8-motion.js'});
-const motion=sandbox.window.SFC_V28;
-assert.ok(Object.isFrozen(motion));
-const home=el('home-root');home.id='home';
-home.querySelector=s=>el('home:'+s);
-motion.enter(home);
-assert.equal(calls.filter(c=>c.name==='home-root').at(-1).options.duration,1420);
-assert.ok(calls.some(c=>c.name==='home:#heroHeading'&&c.options.duration===1845));
-assert.ok(calls.some(c=>c.name==='home:#heroDescription'&&c.options.delay===350));
-const headingFade=calls.find(c=>c.name==='home:#heroHeading');
-assert.equal(headingFade.options.fill,'backwards','delay must preserve hidden first frame');
-assert.equal(Number(headingFade.frames[0].opacity),0,'heading must start transparent');
-assert.ok(headingFade.frames.some(f=>f.opacity===.20),'opacity must build gradually rather than snap');
-const firstCount=calls.length;
-motion.enter(home);
-assert.equal(calls.length,firstCount*2,'route revisit must restore composition');
-assert.ok(calls.some(c=>c.cancelled),'interrupted animations must be cancelled');
-motion.slide(el('slide-copy'));
-assert.equal(calls.at(-1).options.duration,1490,'slide copy follows longer photo crossfade');
-const beforeStage=calls.length;
-motion.stage(0);
-assert.equal(calls.length,beforeStage+1,'Observe reveals its relationship line');
-assert.equal(calls.at(-1).options.duration,1500);
-const observeAnimation=calls.at(-1);
-motion.stage(1);
-assert.equal(observeAnimation.cancelled,true,'reselecting stage cancels obsolete paths');
-assert.ok(calls.some(c=>c.name==='analyze-bar-2'&&c.options.duration===1440));
-motion.stage(2);
-assert.ok(calls.some(c=>c.name==='value-line-1'&&c.options.duration===1620));
-motion.stage(3);
-assert.ok(calls.some(c=>c.name==='defend-sheet-1'&&c.options.duration===1500));
+vm.runInNewContext(code,context,{filename:"v28-motion.js"});
+const api=context.window.SFC_V28;
+assert.ok(Object.isFrozen(api));
+assert.equal(new Set(Object.values(api.signatures)).size,7,"Each public tab requires a unique visual grammar");
 
-const rows=[el('report-1'),el('report-2'),el('report-3'),el('report-4')];
-const results=el('results');results.querySelectorAll=()=>rows;
-const beforeList=calls.length;
-motion.firstList(results,'.archive-report',4);
-assert.equal(calls.length-beforeList,4);
-assert.deepEqual(calls.slice(-4).map(c=>c.options.delay),[0,145,290,435]);
-motion.firstList(results,'.archive-report',4);
-assert.equal(calls.length-beforeList,4,'first-list motion not repeated during filtering');
+const home=root("home",{
+  ".hero-photo.active":node("hero-photo"),
+  "#heroHeading":node("hero-title"),
+  "#heroDescription":node("hero-description"),
+  "#heroButton":node("hero-cta"),
+  ".hero-controls":node("hero-controls")
+});
+api.enter(home);
+assertSignature(home,"photographic-typographic-mask");
+assert.equal(last("hero-title").frames[0].clipPath,"inset(90% 0 0 0)");
+assert.equal(last("hero-title").options.duration,1260);
+assert.equal(last("hero-title").options.fill,"backwards");
+assert.equal(last("hero-photo").options.duration,1180);
+const before=all.length;
+api.enter(home);
+assert.ok(all.length>before,"Route revisit must still have an arrival scene");
+assert.ok(all.slice(0,before).some(a=>a.cancelled),"Obsolete scene effects must be cancelled");
+api.slide(node("slide-copy"));
+assert.equal(last("slide-copy").options.duration,930);
 
-const planned=el('action');planned.dataset.state='planned';
-const beforeStatus=calls.length;
-motion.recruitment(planned);
-assert.equal(calls.length,beforeStatus,'status truth must be available without motion');
-planned.dataset.state='open';motion.recruitment(planned);
-assert.equal(calls.at(-1).options.duration,720);
-motion.recruitment(planned);
-assert.equal(calls.length,beforeStatus+1);
+const about=root("about",{".about-photo-panel":node("about-photo-panel")});
+api.enter(about);
+assertSignature(about,"diagram-connect-and-column-reveal");
+assert.equal(last("about-photo-panel").frames[0].clipPath,"inset(0 54% 0 46%)");
 
+const rows=[node("report-1"),node("report-2")];
+const archive=node("archive-root");
+archive.querySelectorAll=()=>rows;
+archive.closest=()=>({className:"view active"});
+const research=root("research",{"#archiveResults":archive});
+api.enter(research);
+assertSignature(research,"workspace-expand-and-spatial-flip");
+assert.equal(last("research:.archive-search-row").frames[0].clipPath,"inset(0 54% 0 46%)");
+assert.equal(last("report-1").frames[0].clipPath,"inset(0 0 100% 0)");
+assert.equal(last("report-1").options.duration,1090);
+const beforeList=all.length;
+api.firstList(archive,".archive-report");
+assert.equal(all.length,beforeList,"First-list reveal must not repeat after filtering");
+
+const timelineRows=[node("week01"),node("week02")];
+const activity=root("activities",{
+  "#scheduleTabs button[]":[node("tab1"),node("tab2")],
+  '#scheduleList>.session:not([hidden]),#scheduleList>.cms-session:not([hidden])[]':timelineRows
+});
+api.enter(activity);
+assertSignature(activity,"fifteen-week-timeline-drop");
+assert.equal(last("week01").frames[0].clipPath,"inset(0 0 100% 0)");
+assert.equal(last("tab1").frames[0].clipPath,"inset(45% 43% 45% 43%)");
+
+const people=root("people");
+api.enter(people);
+assertSignature(people,"typographic-index-print");
+assert.equal(last("people:.page-head h1").frames[0].clipPath,"inset(0 100% 0 0)");
+
+const facts=[node("fact01"),node("fact02"),node("fact03"),node("fact04")];
+const recruitment=root("recruitment",{".recruit-fact[]":facts});
+api.enter(recruitment);
+assertSignature(recruitment,"fact-grid-center-bloom");
+assert.equal(last("fact01").frames[0].clipPath,"inset(45% 43% 45% 43%)");
+assert.equal(last("recruitment:#recruitActionCard").frames[0].clipPath,"inset(0 0 100% 0)");
+
+const news=node("news");
+news.closest=()=>({className:"view active",id:"updates"});
+news.querySelectorAll=()=>[node("post1")];
+const updates=root("updates",{"#updatesList":news});
+api.enter(updates);
+assertSignature(updates,"publication-line-ink");
+assert.equal(last("updates:.updates-section-heading").frames[0].clipPath,"inset(0 100% 0 0)");
+assert.equal(last("post1").frames[0].clipPath,"inset(0 100% 0 0)");
+
+api.stage(0);
+assert.equal(last("observe-edge").options.duration,850);
+const edge=last("observe-edge");
+api.stage(1);
+assert.equal(edge.cancelled,true);
+assert.ok(last("analyze-bar").frames[0].transform.includes("scaleY"));
+api.stage(2);
+assert.equal(last("value-line").options.duration,950);
+api.stage(3);
+assert.equal(last("defend-paper").frames[0].clipPath,"inset(0 0 100% 0)");
+
+const action=node("recruit-action");
+action.dataset.state="planned";
+const count=all.length;
+api.recruitment(action);
+assert.equal(all.length,count);
+action.dataset.state="open";
+api.recruitment(action);
+assert.equal(last("recruit-action").options.duration,380);
+
+for(const a of all){
+  assert.ok(a.options.duration<=1360,"Only ambient photo CSS may exceed 1.36s: "+a.name);
+  assert.equal(a.options.fill,"backwards");
+}
 reduced=true;
-const beforeReduced=calls.length;
-motion.slide(el('no-motion-slide'));
-motion.stage(1);
-motion.enter(el('reduced-home'));
-assert.equal(calls.length,beforeReduced,'reduced motion disables decoration');
-console.log('PASS: v2.8.3 transparent slow scene arrival, stage choreography, cancellation, list-once, state and reduced motion');
+const beforeReduced=all.length;
+api.enter(root("home"));
+api.slide(node("reduced-slide"));
+api.stage(0);
+assert.equal(all.length,beforeReduced,"Reduced-motion preference disables nonessential animations");
+console.log("PASS: seven distinct motion signatures, mid-tempo timing, stage meaning, interruptions and reduced-motion");
