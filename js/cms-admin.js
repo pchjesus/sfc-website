@@ -187,7 +187,11 @@
     const list=$("adminPostList");list.replaceChildren();
     $("postsCount").textContent=posts.filter(p=>!p.deleted_at).length+" POSTS";
     const query=$("postSearch").value.trim().toLocaleLowerCase("ko-KR");
-    const selected=posts.filter(p=>included(p)&&(!query||[p.title,p.research_author,p.research_company,p.research_sector,cms.kindNames[p.kind]].some(v=>String(v||"").toLocaleLowerCase("ko-KR").includes(query))));
+    const kind=$("postKindFilter").value,sort=$("postSort").value;
+    const selected=posts.filter(p=>included(p)&&(!kind||p.kind===kind)&&(!query||[p.title,p.research_author,p.research_company,p.research_sector,cms.kindNames[p.kind]].some(v=>String(v||"").toLocaleLowerCase("ko-KR").includes(query))));
+    if(sort==="title")selected.sort((a,b)=>String(a.title||"").localeCompare(String(b.title||""),"ko"));
+    else if(sort==="oldest")selected.sort((a,b)=>String(a.updated_at||"").localeCompare(String(b.updated_at||"")));
+    $("postFilterSummary").textContent=selected.length+"개 표시 · 최근 조회 "+posts.length+"개"+(posts.length>=300?" (최대 300개)":"");
     if(!selected.length){list.append(node("p","sidebar-empty","표시할 글이 없습니다."));return;}
     for(const post of selected){
       const b=node("button","admin-post-item"+(current?.id===post.id?" selected":""));
@@ -508,6 +512,7 @@
   window.addEventListener("keydown",event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="s"&&user&&!document.querySelector('[data-pane-view="posts"]').hidden){event.preventDefault();if(!busy)void savePost("draft");}});
   $("newPost").addEventListener("click",newPost);
   $("postSearch").addEventListener("input",renderPosts);
+  ["postKindFilter","postSort"].forEach(id=>$(id).addEventListener("change",renderPosts));
   const importer=window.SFC_RESEARCH_IMPORTER;
   function resetImportResult(){importCandidate=null;importRevision++;$("applyImport").disabled=true;$("importResult").replaceChildren();}
   function closeImport(){resetImportResult();$("importText").value="";$("importFile").value="";$("importPanel").hidden=true;}
