@@ -163,6 +163,14 @@
         track(typeMask(panel?.querySelector("h2"),1280,160));
         [...(panel?.querySelectorAll(".about-approved-copy .about-line")||[])].forEach((line,i)=>
           track(ink(line,1150,210+i*95)));
+        // The active analytical diagram should demonstrate its own meaning
+        // immediately on visiting About, not only after a tab click.
+        requestAnimationFrame(()=>{
+          if(root.classList.contains("active")){
+            const selected=root.querySelector('[data-experience-step][aria-selected="true"]');
+            stage(Number(selected?.dataset.experienceStep||0));
+          }
+        });
         break;
       }
       case "research":{
