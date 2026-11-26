@@ -111,6 +111,19 @@ try:
         expect(page.locator('#personName')).to_have_value('')
         ok('unsaved People editor rejects new and edit navigation until explicitly confirmed')
 
+        # Codex P1 regression: deletion must also lock the form and external
+        # new/edit actions until the asynchronous delete has settled.
+        page.evaluate('mock.delay=380')
+        page.locator('#peopleList button').filter(has_text='삭제').first.click()
+        expect(page.locator('#peopleForm')).to_have_attribute('aria-busy','true')
+        assert page.locator('#peopleForm').evaluate('e=>e.inert')
+        page.locator('#newPerson').click()
+        expect(page.locator('#peopleForm')).to_have_attribute('aria-busy','true')
+        page.wait_for_timeout(550)
+        expect(page.locator('#peopleForm')).to_have_attribute('aria-busy','false')
+        assert not page.evaluate("mock.people.some(p=>p.name==='Mock Test Person')")
+        ok('Codex P1: People deletion locks editor and external actions until completion')
+
         page.locator('[data-pane="sessions"]').click()
         page.locator('#sessionWeek').fill('W01')
         page.locator('#sessionTitle').fill('Mock Test Lesson')
@@ -134,6 +147,45 @@ try:
         page.locator('#newSession').click()
         expect(page.locator('#sessionTitle')).to_have_value('')
         ok('unsaved Activities editor rejects new and edit navigation until explicitly confirmed')
+
+        page.locator('#sessionsList button').filter(has_text='삭제').first.click()
+        expect(page.locator('#sessionForm')).to_have_attribute('aria-busy','true')
+        assert page.locator('#sessionForm').evaluate('e=>e.inert')
+        page.locator('#newSession').click()
+        expect(page.locator('#sessionForm')).to_have_attribute('aria-busy','true')
+        page.wait_for_timeout(550)
+        expect(page.locator('#sessionForm')).to_have_attribute('aria-busy','false')
+        assert not page.evaluate("mock.sessions.some(p=>p.title==='Mock Test Lesson')")
+        ok('Codex P1: Activities deletion locks editor and external actions until completion')
+
+        # Codex P1 regression: a read of Recruitment must not update the
+        # displayed Site snapshot's concurrency token behind the user's back.
+        race=ctx.new_page()
+        race.on('pageerror',lambda e:errors.append(str(e)))
+        race.on('dialog',lambda d:d.accept())
+        race.goto(base+'/admin.html')
+        expect(race.locator('#studioPanel')).to_be_visible()
+        race.locator('[data-pane="site"]').click()
+        expect(race.locator('#siteHeroDescription')).to_have_value('original-hero')
+        race.evaluate("""() => {
+          const site=mock.settings.find(s=>s.key==='site');
+          site.value.about_body='new external about text';
+          site.updated_at='2026-11-26T06:00:00.000Z';
+        }""")
+        race.locator('[data-pane="recruitment"]').click()
+        expect(race.locator('#recruitTitle')).to_have_value('original-recruit')
+        race.evaluate('mock.readDelay=360')
+        race.locator('[data-pane="site"]').click()
+        race.locator('#siteHeroDescription').fill('my hero typed during pending Site reload')
+        race.wait_for_timeout(480)
+        race.evaluate('mock.readDelay=0')
+        race.locator('#siteForm button[type="submit"]').click()
+        expect(race.locator('#studioMessage')).to_contain_text('다른 관리자가 먼저 수정한 설정')
+        expect(race.locator('#siteHeroDescription')).to_have_value('my hero typed during pending Site reload')
+        assert race.evaluate("mock.settings.find(s=>s.key==='site').value.about_body")=='new external about text'
+        assert race.evaluate("mock.settings.find(s=>s.key==='site').value.hero_description")=='original-hero'
+        race.close()
+        ok('Codex P1: Site CAS version cannot advance without synchronized displayed form')
 
         assert not errors,errors
         assert page.evaluate("mock.calls.every(c=>['cms_site_settings','cms_people','cms_sessions'].includes(c.table))")
