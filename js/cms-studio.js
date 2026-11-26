@@ -4,6 +4,27 @@
   const util=()=>window.SFC_STUDIO;
   const cms=window.SFC_CMS;
   const state={site:{},recruitment:{},people:[],sessions:[],admins:[]};
+  // Never overwrite unsubmitted structured CMS input with asynchronous reads.
+  const dirtyForms={site:false,recruitment:false,people:false,sessions:false};
+  const busyForms={site:false,recruitment:false,people:false,sessions:false};
+  const settingVersions={site:null,recruitment:null};
+  const formIds={site:"siteForm",recruitment:"recruitForm",people:"peopleForm",sessions:"sessionForm"};
+  function lockForm(key,locked){
+    busyForms[key]=locked;
+    const form=document.getElementById(formIds[key]);
+    form.inert=locked;
+    form.setAttribute("aria-busy",String(locked));
+  }
+  for(const [key,id] of Object.entries(formIds)){
+    const form=document.getElementById(id);
+    form.addEventListener("input",()=>{if(!busyForms[key])dirtyForms[key]=true;});
+    form.addEventListener("change",()=>{if(!busyForms[key])dirtyForms[key]=true;});
+  }
+  window.addEventListener("beforeunload",event=>{
+    if(Object.values(dirtyForms).some(Boolean)){
+      event.preventDefault();event.returnValue="";
+    }
+  });
   const n=(tag,cls,text)=>{
     const e=document.createElement(tag);
     if(cls)e.className=cls;
@@ -32,11 +53,16 @@
     return [dt.getFullYear(),pad(dt.getMonth()+1),pad(dt.getDate())].join("-")+"T"+pad(dt.getHours())+":"+pad(dt.getMinutes());
   }
   function buttonBusy(button,state){button.disabled=state;}
-  async function fetchSettings(){
-    const {data,error}=await client().from("cms_site_settings").select("key,value");
+  async function fetchSettings(pane){
+    const {data,error}=await client().from("cms_site_settings").select("key,value,updated_at");
     if(error)throw error;
-    for(const row of data||[])state[row.key]=row.value||{};
-    fillSite();fillRecruitment();
+    for(const row of data||[]){
+      if(!(row.key in dirtyForms)||dirtyForms[row.key]||busyForms[row.key])continue;
+      state[row.key]=row.value||{};
+      settingVersions[row.key]=row.updated_at||null;
+    }
+    if(pane==="site"&&!dirtyForms.site&&!busyForms.site)fillSite();
+    if(pane==="recruitment"&&!dirtyForms.recruitment&&!busyForms.recruitment)fillRecruitment();
   }
   function fillSite(){
     const v=state.site;
@@ -64,11 +90,20 @@
     }
   }
   async function persistSetting(key,value){
-    const {data,error}=await client().from("cms_site_settings")
-      .upsert({key,value,updated_at:new Date().toISOString()},{onConflict:"key"})
-      .select("key,value").single();
+    const updated_at=new Date().toISOString();
+    const request=settingVersions[key]
+      ? client().from("cms_site_settings").update({value,updated_at})
+          .eq("key",key).eq("updated_at",settingVersions[key])
+          .select("key,value,updated_at").maybeSingle()
+      : client().from("cms_site_settings")
+          .upsert({key,value,updated_at},{onConflict:"key"})
+          .select("key,value,updated_at").single();
+    const {data,error}=await request;
     if(error)throw error;
+    if(!data)throw new Error("다른 관리자가 먼저 수정한 설정입니다. 입력 내용은 유지됩니다. 복사한 뒤 페이지를 새로고침해 최신 상태를 확인하세요.");
     state[key]=data.value||{};
+    settingVersions[key]=data.updated_at||updated_at;
+    dirtyForms[key]=false;
   }
   $("siteForm").addEventListener("submit",async event=>{
     event.preventDefault();
@@ -83,16 +118,16 @@
     };
     if(data.contact_email&&(!$("siteContactEmail").checkValidity()))
       return toast("이메일 주소를 확인해 주세요.",true);
-    buttonBusy(button,true);
+    buttonBusy(button,true);lockForm("site",true);
     try{await persistSetting("site",data);toast("홈페이지 문구를 저장했습니다. 공개 페이지에서 반영됩니다.");}
     catch(e){toast("저장 실패: "+e.message,true);}
-    finally{buttonBusy(button,false);}
+    finally{lockForm("site",false);buttonBusy(button,false);}
   });
   $("recruitForm").addEventListener("submit",async event=>{
     event.preventDefault();
     if(!client())return;
     const button=event.currentTarget.querySelector('button[type="submit"]');
-    buttonBusy(button,true);
+    buttonBusy(button,true);lockForm("recruitment",true);
     try{
       const start_at=formToIso(textVal("recruitStart")),end_at=formToIso(textVal("recruitEnd"));
       if(start_at&&end_at&&new Date(start_at)>=new Date(end_at))throw Error("모집 마감은 시작 시각보다 나중이어야 합니다.");
@@ -112,9 +147,10 @@
       fillRecruitment();
       toast("모집 설정과 지원서 파일을 저장했습니다.");
     }catch(e){toast("모집 설정 저장 실패: "+(e.message||e),true);}
-    finally{buttonBusy(button,false);}
+    finally{lockForm("recruitment",false);buttonBusy(button,false);}
   });
-  function clearPerson(){
+  function clearPerson(force=false){
+    if(busyForms.people&&!force)return;
     $("personId").value="";$("personName").value="";$("personPosition").value="";
     $("personTerm").value="";$("personBio").value="";$("personOrder").value="0";$("personVisible").checked=true;
   }
@@ -289,7 +325,7 @@
   });
   async function openPane(pane){
     try{
-      if(pane==="site"||pane==="recruitment")await fetchSettings();
+      if(pane==="site"||pane==="recruitment")await fetchSettings(pane);
       if(pane==="people")await loadPeople();
       if(pane==="sessions")await loadSessions();
       if(pane==="access")await loadAdmins();
