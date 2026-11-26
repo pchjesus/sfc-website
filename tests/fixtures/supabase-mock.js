@@ -2,11 +2,11 @@
 (() => {
  const clone=v=>JSON.parse(JSON.stringify(v));
  const row=(id,title,status='draft')=>({id,title,status,kind:'notice',body:'Original body',excerpt:'',updated_at:'2026-01-01T00:00:00Z',deleted_at:null,scheduled_at:null});
- window.mock={mode:'admin',delay:0,readDelay:0,conflict:false,fail:false,calls:[],clients:[],rows:[row('a','Article A'),row('b','Article B')],settings:[],sessions:[],people:[],history:[]};
+ window.mock={mode:'admin',delay:0,readDelay:0,conflict:false,fail:false,calls:[],uploads:[],clients:[],loseInsertAck:false,rows:[row('a','Article A'),row('b','Article B')],settings:[],sessions:[],people:[],history:[]};
  const m=window.mock;
  window.supabase={createClient:(url,key,options)=>{
   m.clients.push(options);
-  const db={auth:{getUser:async()=>({data:{user:m.mode==='anonymous'?null:{id:'test-user',email:'test@example.invalid'}}}),onAuthStateChange:cb=>{m.authEvent=cb;},signOut:async()=>{m.authEvent('SIGNED_OUT');return {}; }},from:table=>{
+  const db={storage:{from:bucket=>({upload:async(path,file,options)=>{m.uploads.push({bucket,path,name:file.name,type:file.type,size:file.size});return {error:null};},getPublicUrl:path=>({data:{publicUrl:"https://example.invalid/"+path}})})},auth:{getUser:async()=>({data:{user:m.mode==='anonymous'?null:{id:'test-user',email:'test@example.invalid'}}}),onAuthStateChange:cb=>{m.authEvent=cb;},signOut:async()=>{m.authEvent('SIGNED_OUT');return {}; }},from:table=>{
    const q={table,op:'select',filters:[],payload:null,one:false};
    q.sorts=[];q.maxRows=null;q.rangeRows=null;q.orFilters=[];
    q.order=(key,opt={})=>{q.sorts.push([key,opt.ascending!==false]);return q;};
@@ -41,13 +41,17 @@
        return {data:clone(saved),error:null};
      }
      let saved;
-     if(q.op==='insert'){saved=row('new-'+m.calls.length,q.payload.title);m.rows.push(saved);}
+     if(q.op==='insert'){
+       if(q.payload.id&&m.rows.some(r=>r.id===q.payload.id))return {data:null,error:{message:'duplicate primary key'}};
+       saved=row(q.payload.id||'new-'+m.calls.length,q.payload.title);m.rows.push(saved);
+     }
      else saved=m.rows.find(r=>q.filters.every(([k,v])=>r[k]===v));
      if(!saved)return {data:null,error:null};
      if(q.op==='delete'){m.rows=m.rows.filter(r=>r!==saved);return {data:clone(saved)};}
      Object.assign(saved,q.payload,{updated_at:new Date().toISOString()});
      if(saved.status==='draft')saved.scheduled_at=null;
      m.history.push({id:m.history.length+1,post_id:saved.id,snapshot:clone(saved)});
+     if(q.op==='insert'&&m.loseInsertAck){m.loseInsertAck=false;return {data:null,error:{message:'simulated lost acknowledgement'}};}
      return {data:clone(saved),error:null};
     }
     if(m.readDelay&&table==='cms_site_settings')await new Promise(r=>setTimeout(r,m.readDelay));
