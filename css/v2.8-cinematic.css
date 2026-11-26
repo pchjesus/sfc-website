@@ -1,29 +1,29 @@
-/* SFC v2.8.3 — transparent cinematic composition and Activity proportions / balanced Activities scale
+/* SFC v2.8.4 — distinct page signatures, balanced optical pacing and Activity proportions / balanced Activities scale
  * Built on the v2.7 visual language, not a replacement design.
  */
 :root{
-  --v282-hero:1700ms;
-  --v282-scene:1420ms;
-  --v282-enter:1700ms;
-  --v282-layout:780ms;
+  --v282-hero:1360ms;
+  --v282-scene:760ms;
+  --v282-enter:1180ms;
+  --v282-layout:670ms;
   --v282-control:420ms;
-  --v282-ease:cubic-bezier(.42,0,.58,1);
+  --v282-ease:cubic-bezier(.40,0,.20,1);
   --v282-settle:cubic-bezier(.4,0,.2,1);
   --motion-fast:300ms;
-  --motion-control:470ms;
-  --motion-layout:780ms;
-  --motion-reveal:1400ms;
-  --motion-photo:1700ms;
+  --motion-control:440ms;
+  --motion-layout:670ms;
+  --motion-reveal:1150ms;
+  --motion-photo:1360ms;
 }
 /* Spatial elements may begin outside their reading column. Clip only
    horizontal visual overflow so 768px/tablet scroll width never jumps. */
 .view{overflow-x:clip}
 /* Restore rich, non-jarring transitions from v2.7 rather than snapping
    every control and scene to the shortest possible timing. */
-.nav-links button::after{transition:right 580ms var(--v282-ease)}
+.nav-links button::after{transition:right 510ms var(--v282-ease)}
 .nav-links button{transition:color 360ms var(--v282-settle)}
-.nav-links.open{transition:transform 780ms var(--v282-ease)}
-.nav-links{transition:transform 780ms var(--v282-ease)}
+.nav-links.open{transition:transform 620ms var(--v282-ease)}
+.nav-links{transition:transform 620ms var(--v282-ease)}
 .motion-controls::after{
   transition:transform 560ms var(--v282-ease),width 560ms var(--v282-ease)
 }
@@ -57,11 +57,11 @@
   transition:background-color 540ms var(--v282-ease)
 }
 #about .experience-visual-stage{
-  transition:opacity 720ms var(--v282-ease),
+  transition:opacity 650ms var(--v282-ease),
     transform 720ms var(--v282-ease),visibility 0s 720ms
 }
 #about .experience-visual-stage.active{
-  transition:opacity 720ms var(--v282-ease),
+  transition:opacity 650ms var(--v282-ease),
     transform 720ms var(--v282-ease),visibility 0s
 }
 #about .experience-visual-stage.active path[stroke],
