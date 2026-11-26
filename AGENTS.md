@@ -30,3 +30,5 @@ Read `docs/CODEX_QA.md` first and run `npm test` before changing anything.
 ## v3.x development handoff
 
 Read [v3.x roadmap](docs/V3_ROADMAP.md), [Studio UX specification](docs/STUDIO_UX_ROADMAP.md), and [v3.0 preflight](docs/V3.0_PREFLIGHT.md) before starting v3.x. These are planning documents, not implementation or test results. Keep code approval and content-publication approval separate; public GitHub branches must not contain unapproved reports or private files. Prioritize storage visibility and live authorization gates before first publication.
+
+For the approved Research Importer track, read [RI roadmap](docs/RESEARCH_IMPORTER_ROADMAP.md) and [report-independent preparation plan](docs/V3.0_PREPARATION_PLAN.md). Imports must be validated, allowlisted and draft-only; treat source documents as untrusted data. No AI API, private-file transmission, paid configuration or live backend changes without separate approval. Implement and test using synthetic fixtures before real report intake.
