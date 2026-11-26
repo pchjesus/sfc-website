@@ -99,6 +99,18 @@ try:
         assert page.evaluate("mock.people.some(p=>p.name==='Mock Test Person')")
         ok('People save prevents new-item selection from erasing in-flight edits')
 
+        # A deliberate switch must not silently discard an unsaved profile.
+        page.locator('#personName').fill('Unsubmitted person')
+        page.evaluate('window.confirm=()=>false')
+        page.locator('#newPerson').click()
+        expect(page.locator('#personName')).to_have_value('Unsubmitted person')
+        page.locator('#peopleList button').filter(has_text='편집').first.click()
+        expect(page.locator('#personName')).to_have_value('Unsubmitted person')
+        page.evaluate('window.confirm=()=>true')
+        page.locator('#newPerson').click()
+        expect(page.locator('#personName')).to_have_value('')
+        ok('unsaved People editor rejects new and edit navigation until explicitly confirmed')
+
         page.locator('[data-pane="sessions"]').click()
         page.locator('#sessionWeek').fill('W01')
         page.locator('#sessionTitle').fill('Mock Test Lesson')
@@ -110,6 +122,18 @@ try:
         expect(page.locator('#sessionForm')).to_have_attribute('aria-busy','false')
         assert page.evaluate("mock.sessions.some(p=>p.title==='Mock Test Lesson')")
         ok('Activities save prevents new-row selection from erasing in-flight edits')
+
+        page.locator('#sessionWeek').fill('W02')
+        page.locator('#sessionTitle').fill('Unsubmitted lesson')
+        page.evaluate('window.confirm=()=>false')
+        page.locator('#newSession').click()
+        expect(page.locator('#sessionTitle')).to_have_value('Unsubmitted lesson')
+        page.locator('#sessionsList button').filter(has_text='편집').first.click()
+        expect(page.locator('#sessionTitle')).to_have_value('Unsubmitted lesson')
+        page.evaluate('window.confirm=()=>true')
+        page.locator('#newSession').click()
+        expect(page.locator('#sessionTitle')).to_have_value('')
+        ok('unsaved Activities editor rejects new and edit navigation until explicitly confirmed')
 
         assert not errors,errors
         assert page.evaluate("mock.calls.every(c=>['cms_site_settings','cms_people','cms_sessions'].includes(c.table))")
