@@ -6,6 +6,7 @@
   let autosaveTimer=null,stashTimer=null,toastTimer=null;
   const legacyKey="sfc-editor-draft-v2", recoveryPrefix="sfc-editor-draft-v3:";
   let workId=null,epoch=0,blockedRecovery=false,pendingFiles={},previewUrl=null;
+  let importCandidate=null,importRevision=0,importManual=false;
   const editorFields=["postKind","postTitle","postExcerpt","postBody","postCoverUrl","postAttachmentUrl",
    "postSchedule","researchSector","researchCompany","researchAuthor","researchMethod","researchLimitations"];
   function node(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;}
@@ -133,7 +134,7 @@
     if(!blockedRecovery)detail("마지막 서버 저장: "+savedTime());
     clearTimeout(stashTimer);stashTimer=setTimeout(stash,400);
     clearTimeout(autosaveTimer);
-    if(schedule!==false&&!blockedRecovery&&(!current||current.status==="draft"))autosaveTimer=setTimeout(()=>savePost("draft",true),2600);
+    if(schedule!==false&&!importManual&&!blockedRecovery&&(!current||current.status==="draft"))autosaveTimer=setTimeout(()=>savePost("draft",true),2600);
   }
   function selectPost(item,confirmDirty=true,newId=null){
     if(busy&&confirmDirty)return false;
@@ -142,7 +143,7 @@
       if(!stash()&&!confirm("복구본을 저장하지 못했습니다. 그래도 이동할까요?"))return false;
     }
     clearTimeout(autosaveTimer);clearTimeout(stashTimer);clearPreviewFile();
-    current=item||null;workId=newId||item?.id||crypto.randomUUID();dirty=false;pendingFiles={};blockedRecovery=false;applyForm(item);pendingNotice();updateCounts();
+    clearImportReview();importManual=false;current=item||null;workId=newId||item?.id||crypto.randomUUID();dirty=false;pendingFiles={};blockedRecovery=false;applyForm(item);pendingNotice();updateCounts();
     const trashed=Boolean(item?.deleted_at);
     $("editorMode").textContent=item?"EDIT / "+(trashed?"TRASHED":item.status.toUpperCase()):"NEW ARTICLE";
     $("editorSavedAt").textContent=item?"마지막 저장 "+cms.dateText(item.updated_at):"아직 저장되지 않음";detail("");
@@ -231,6 +232,7 @@
     if(status==="draft"&&current?.status==="published"&&!unpublish){if(stash())detail("공개본은 유지됩니다. 수정 내용은 이 기기에만 보관됩니다.");return;}
     if(blockedRecovery){if(!automatic)notify("복구본과 서버 버전이 다릅니다. 비교 후 새로 편집해 주세요.",true);return;}
     if(automatic&&(!dirty||current?.status==="published"))return;
+    if(automatic&&importManual)return;
     if(!automatic&&status==="draft"&&!unpublish&&!dirty&&current&&!hasPending()){detail("마지막 서버 저장: "+savedTime());return;}
     clearTimeout(autosaveTimer);
     let draft;
@@ -274,7 +276,7 @@
       if(response.error)throw response.error;
       if(!active())return;
       if(!response.data)throw Error("서버 저장 결과를 확인할 수 없습니다.");
-      current=response.data;saved=true;
+      current=response.data;saved=true;importManual=false;
       if(JSON.stringify(editorFields.map(id=>$(id).value))===fingerprint
         &&$("postCoverFile").files[0]===imageFile&&$("postPdfFile").files[0]===pdfFile){
         dirty=false;forget();
@@ -391,7 +393,7 @@
   function clearSession(preserve=true){
     if(preserve&&user&&(dirty||hasPending()))stash();
     epoch++;clearTimeout(autosaveTimer);clearTimeout(stashTimer);clearPreviewFile();
-    user=null;posts=[];current=null;workId=null;dirty=false;pendingFiles={};blockedRecovery=false;
+    user=null;posts=[];current=null;workId=null;dirty=false;pendingFiles={};blockedRecovery=false;importManual=false;closeImport();clearImportReview();
     $("postForm").inert=false;busyMode(false);applyForm(null);pendingNotice();renderRecovery();$("adminPostList").replaceChildren();$("historyList").replaceChildren();$("previewBody").replaceChildren();$("previewTitle").textContent="";$("previewExcerpt").textContent="";$("previewResearchMeta").textContent="";$("previewResearchNotes").replaceChildren();$("studioAccount").textContent="";detail("");visible("studioLogin");
   }
   async function checkUser(){
@@ -476,7 +478,7 @@
       if(!confirm("저장되지 않은 글이 있어요. 다른 메뉴로 이동할까요?"))return;
       if(!stash()&&!confirm("복구본을 저장하지 못했습니다. 그래도 이동할까요?"))return;
     }
-    showPane(button.dataset.pane);
+    if(button.dataset.pane!=="posts")closeImport();showPane(button.dataset.pane);
   }));
   document.querySelectorAll(".sidebar-tabs button").forEach(b=>b.addEventListener("click",()=>{
     filter=b.dataset.status;
@@ -493,6 +495,48 @@
   window.addEventListener("keydown",event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="s"&&user&&!document.querySelector('[data-pane-view="posts"]').hidden){event.preventDefault();if(!busy)void savePost("draft");}});
   $("newPost").addEventListener("click",newPost);
   $("postSearch").addEventListener("input",renderPosts);
+  const importer=window.SFC_RESEARCH_IMPORTER;
+  function resetImportResult(){importCandidate=null;importRevision++;$("applyImport").disabled=true;$("importResult").replaceChildren();}
+  function closeImport(){resetImportResult();$("importText").value="";$("importFile").value="";$("importPanel").hidden=true;}
+  function clearImportReview(){$("importReviewContent").replaceChildren();$("importReview").hidden=true;}
+  function reviewLines(container,result){
+    container.replaceChildren();
+    function line(text){container.append(node("p","",text));}
+    for(const warning of result.warnings)line("검토 필요: "+warning);
+    if(result.source?.filename)line("원본: "+result.source.filename);
+    for(const v of result.evidence||[])line("근거(미검증): "+[v.claim,v.locator,v.value,v.unit,v.period,v.short_excerpt].filter(Boolean).join(" · "));
+    for(const v of result.references||[])line("참고자료: "+[v.citation,v.locator].filter(Boolean).join(" · "));
+    for(const v of result.issues||[])line("검토 항목: "+[v.category,v.message,v.locator].filter(Boolean).join(" · "));
+  }
+  $("openImporter").addEventListener("click",()=>{if(!user||busy)return;closeImport();$("importPrompt").value=importer.prompt;$("importPanel").hidden=false;$("closeImporter").focus();});
+  $("closeImporter").addEventListener("click",()=>{closeImport();$("openImporter").focus();});
+  $("copyImportPrompt").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(importer.prompt);notify("분석 지침을 복사했습니다.");}catch(_){$("importPrompt").focus();$("importPrompt").select();notify("선택된 지침을 직접 복사하세요.");}});
+  $("importText").addEventListener("input",resetImportResult);
+  $("importFile").addEventListener("change",async()=>{
+    resetImportResult();const revision=importRevision,started=epoch,file=$("importFile").files[0];
+    if(!file)return;
+    if(file.size>1000000||!/\.json$/i.test(file.name)){notify("1MB 이하 JSON 파일을 선택하세요.",true);return;}
+    try{const value=await file.text();if(epoch!==started||revision!==importRevision||!user)return;
+      if(value.length>600000){notify("JSON 글자 수 제한을 초과했습니다.",true);return;}$("importText").value=value;
+    }catch(e){if(epoch===started&&revision===importRevision)notify("파일을 읽지 못했습니다.",true);}
+  });
+  $("validateImport").addEventListener("click",()=>{
+    if(!user||busy)return;resetImportResult();
+    const result=importer.parse($("importText").value);
+    if(!result.ok){for(const message of result.errors)$("importResult").append(node("p","",message));return;}
+    importCandidate=result;reviewLines($("importResult"),result);
+    $("importResult").prepend(node("p","","형식 검사 완료 · 제목: "+result.article.title+" · 본문 "+result.article.body.length+"자. 원문 검수는 필요합니다."));
+    $("applyImport").disabled=false;
+  });
+  $("applyImport").addEventListener("click",()=>{
+    if(!user||busy||!importCandidate)return;const result=importCandidate;
+    if(!confirm("현재 게시물은 변경하지 않고 새 연구 임시글에 적용할까요?"))return;
+    if(!selectPost(null))return;
+    applyForm({...result.article,kind:"research"});
+    importManual=true;markChanged(false);stash();reviewLines($("importReviewContent"),result);$("importReview").hidden=false;
+    detail("가져온 초안 · 확인 후 임시저장하세요. 자동저장은 첫 수동 저장 이후 시작됩니다.");
+    closeImport();$("postTitle").focus();
+  });
   document.querySelectorAll("[data-format]").forEach(button=>button.addEventListener("click",()=>{
     if(busy||!user)return;const field=$("postBody"),start=field.selectionStart,end=field.selectionEnd;
     const from=field.value.lastIndexOf("\n",start-1)+1;
