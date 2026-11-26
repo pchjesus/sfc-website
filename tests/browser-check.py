@@ -338,6 +338,7 @@ with sync_playwright() as p:
  x.context.close()
  # Every tab requires a different composition grammar; not just direction stagger.
  x=page('anonymous')
+ x.goto(base+'/#home')
  expected={
   'home':('photographic-typographic-mask','#heroHeading'),
   'about':('diagram-connect-and-column-reveal','.about-photo-panel'),
