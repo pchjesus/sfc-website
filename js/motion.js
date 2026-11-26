@@ -2,9 +2,9 @@
 /* Shared motion system: persistent controls, keyed reflow, visible-only animation. */
 (function(){
   const media=matchMedia("(prefers-reduced-motion: reduce)");
-  const ease="cubic-bezier(.16,1,.3,1)";
+  const ease="cubic-bezier(.42,0,.58,1)";
   // Fast controls and deliberate spatial reflow feel smoother than long full-page fades.
-  const timing=Object.freeze({page:920,recruitment:1060,reveal:820,unveil:990,layout:620,modal:520,close:420,hero:800});
+  const timing=Object.freeze({page:1420,recruitment:1560,reveal:1400,unveil:1550,layout:780,modal:650,close:530,hero:1490});
   const running=new WeakMap();
   const handlers=new WeakMap();
   const seen=new WeakSet();
@@ -77,8 +77,12 @@
       }else{
         // No vertical replacement gesture for unrelated results, irrespective
         // of whether their counts are equal or different.
-        const move=disjoint?"none":"translateY(3px)";
-        run(next.el,[{opacity:.78,transform:move},{opacity:1,transform:"none"}],{duration:Math.min(timing.layout,280)});
+        const move=disjoint?"none":"translateY(13px)";
+        run(next.el,[
+          {opacity:0,transform:move,offset:0},
+          {opacity:.20,transform:move,offset:.35},
+          {opacity:1,transform:"none",offset:1}
+        ],{duration:690,fill:"backwards"});
       }
     }
     if(Math.abs(before.rect.height-after.rect.height)>1){
@@ -208,10 +212,15 @@
         if(window.SFC_V28?.visible?.(el))continue;
         let kind=el.dataset.motion||"rise";
         if(innerWidth<760&&(kind==="left"||kind==="right"))kind="rise";
-        const starts={rise:"translateY(22px)",left:"translateX(-32px)",right:"translateX(32px)",scale:"scale(.97)",fade:"none"};
+        const starts={rise:"translateY(38px)",left:"translateX(-60px)",right:"translateX(60px)",scale:"scale(.97)",fade:"none"};
         const duration=kind==="unveil"?timing.unveil:timing.reveal;
-        play(el,[{opacity:.51,transform:starts[kind]||starts.rise},{opacity:1,transform:"none"}],
-          {duration,delay:Math.min((Number(el.dataset.motionDelay)||0)*1.4,220)});
+        play(el,[
+          {opacity:0,transform:starts[kind]||starts.rise,offset:0},
+          {opacity:.04,transform:starts[kind]||starts.rise,offset:.15},
+          {opacity:.25,transform:"translateY(8px)",offset:.45},
+          {opacity:.78,transform:"none",offset:.83},
+          {opacity:1,transform:"none",offset:1}
+        ],{duration,delay:Math.min((Number(el.dataset.motionDelay)||0)*1.9,250),fill:"backwards"});
       }
     },{threshold:.06});
     root.querySelectorAll(".reveal,[data-motion]").forEach(el=>{
