@@ -153,12 +153,15 @@
     if(busyForms.people&&!force)return;
     $("personId").value="";$("personName").value="";$("personPosition").value="";
     $("personTerm").value="";$("personBio").value="";$("personOrder").value="0";$("personVisible").checked=true;
+    dirtyForms.people=false;
   }
   function editPerson(item){
+    if(busyForms.people)return;
     $("personId").value=item.id;$("personName").value=item.name;
     $("personPosition").value=item.position||"";$("personTerm").value=item.term||"";
     $("personBio").value=item.bio||"";$("personOrder").value=String(item.sort_order||0);
     $("personVisible").checked=item.visible;
+    dirtyForms.people=false;
   }
   function renderPeople(){
     const list=$("peopleList");list.replaceChildren();
@@ -192,26 +195,30 @@
       term:textVal("personTerm"),bio:textVal("personBio"),
       sort_order:Number($("personOrder").value)||0,visible:$("personVisible").checked};
     if(!payload.name)return toast("성명을 입력해 주세요.",true);
-    buttonBusy(save,true);
+    buttonBusy(save,true);lockForm("people",true);
     try{
       let result;
       if(id)result=await client().from("cms_people").update(payload).eq("id",id);
       else result=await client().from("cms_people").insert(payload);
       if(result.error)throw result.error;
-      await loadPeople();clearPerson();toast("People 정보가 저장되었습니다.");
+      await loadPeople();clearPerson(true);toast("People 정보가 저장되었습니다.");
     }catch(e){toast("저장 실패: "+e.message,true);}
-    finally{buttonBusy(save,false);}
+    finally{lockForm("people",false);buttonBusy(save,false);}
   });
-  function clearSession(){
+  function clearSession(force=false){
+    if(busyForms.sessions&&!force)return;
     $("sessionId").value="";$("sessionWeek").value="";$("sessionTitle").value="";
     $("sessionSummary").value="";$("sessionDetail").value="";$("sessionStage").value="foundation";
     $("sessionOrder").value="0";$("sessionVisible").checked=true;
+    dirtyForms.sessions=false;
   }
   function editSession(s){
+    if(busyForms.sessions)return;
     $("sessionId").value=s.id;$("sessionWeek").value=s.week_label;
     $("sessionTitle").value=s.title;$("sessionSummary").value=s.summary||"";
     $("sessionDetail").value=s.detail||"";$("sessionStage").value=s.stage;
     $("sessionOrder").value=String(s.sort_order||0);$("sessionVisible").checked=s.visible;
+    dirtyForms.sessions=false;
   }
   function renderSessions(){
     const list=$("sessionsList");list.replaceChildren();
@@ -244,15 +251,15 @@
       stage:$("sessionStage").value,sort_order:Number($("sessionOrder").value)||0,
       visible:$("sessionVisible").checked};
     if(!payload.week_label||!payload.title)return toast("주차와 제목을 입력해 주세요.",true);
-    buttonBusy(save,true);
+    buttonBusy(save,true);lockForm("sessions",true);
     try{
       const result=id
         ? await client().from("cms_sessions").update(payload).eq("id",id)
         : await client().from("cms_sessions").insert(payload);
       if(result.error)throw result.error;
-      await loadSessions();clearSession();toast("Activities 프로그램이 저장되었습니다.");
+      await loadSessions();clearSession(true);toast("Activities 프로그램이 저장되었습니다.");
     }catch(e){toast("저장 실패: "+e.message,true);}
-    finally{buttonBusy(save,false);}
+    finally{lockForm("sessions",false);buttonBusy(save,false);}
   });
   async function loadAdmins(){
     const {data,error}=await client().from("cms_admins").select("user_id,email,created_at").order("created_at",{ascending:true});
