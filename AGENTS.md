@@ -26,3 +26,7 @@ Read `docs/CODEX_QA.md` first and run `npm test` before changing anything.
 ### Review scope and evidence
 - Focus on reproducible P0/P1 defects affecting data integrity, unauthorized access, publication visibility or persistent user content; attach the failing path or test. Keep v2.8.4's approved layout, photos, About copy, Research DEMO disclosure, animations and footer logo unchanged.
 - Code review must not merge to `main`, deploy GitHub Pages, or make production DB changes. Production security verification is an explicit separate gate.
+
+## v3.x development handoff
+
+Read [v3.x roadmap](docs/V3_ROADMAP.md), [Studio UX specification](docs/STUDIO_UX_ROADMAP.md), and [v3.0 preflight](docs/V3.0_PREFLIGHT.md) before starting v3.x. These are planning documents, not implementation or test results. Keep code approval and content-publication approval separate; public GitHub branches must not contain unapproved reports or private files. Prioritize storage visibility and live authorization gates before first publication.
