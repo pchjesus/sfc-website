@@ -188,6 +188,28 @@ with sync_playwright() as p:
  expect(x.locator('#postTitle')).to_have_value('')
  assert x.evaluate('document.querySelector("#adminPostList").childElementCount===0')
  ok('P1 stale save response does not repopulate editor after sign-out');x.context.close()
+ # P2/P3 offline import and authoring, synthetic content only.
+ x=page();x.goto(base+'/admin.html');expect(x.locator('#studioPanel')).to_be_visible()
+ x.locator('#postSearch').fill('Article B');expect(x.locator('.admin-post-item')).to_have_count(1)
+ x.locator('#postSearch').fill('');expect(x.locator('.admin-post-item')).to_have_count(2)
+ x.locator('#openImporter').click();expect(x.locator('#importPanel')).to_be_visible()
+ x.locator('#importText').fill('{"schema_version":"0.1","kind":"research","status":"published"}')
+ x.locator('#validateImport').click();expect(x.locator('#applyImport')).to_be_disabled()
+ payload={'schema_version':'0.1','kind':'research','source':{'filename':'TEST ONLY'},'article':{'title':'TEST ONLY imported research','body':'# Research question\nSynthetic body','research_author':'Test team'},'evidence':[{'claim':'Synthetic claim','locator':'p. 1','review_status':'unverified'}],'references':[],'issues':[]}
+ import json
+ x.locator('#importText').fill(json.dumps(payload));x.locator('#validateImport').click()
+ expect(x.locator('#applyImport')).to_be_enabled();x.locator('#applyImport').click()
+ expect(x.locator('#postTitle')).to_have_value(payload['article']['title'])
+ expect(x.locator('#postKind')).to_have_value('research')
+ expect(x.locator('#importReviewContent')).to_contain_text('Synthetic claim')
+ x.locator('#postExcerpt').fill('Synthetic excerpt');x.wait_for_timeout(2900)
+ assert x.evaluate('mock.calls.length')==0
+ x.locator('#previewButton').click();expect(x.locator('#previewTitle')).to_have_text(payload['article']['title'])
+ x.locator('#previewWidth').click();expect(x.locator('#previewPanel')).to_have_class(__import__('re').compile('mobile-preview'))
+ x.locator('#closePreview').click();x.locator('#saveDraft').click();expect(x.locator('#editorSavedAt')).to_have_text('서버에 저장됨')
+ assert x.evaluate("mock.rows.some(r=>r.kind==='research' && r.title==='TEST ONLY imported research' && r.status==='draft')")
+ ok('P2/P3 offline JSON validation, manual draft gate, preview, search and save');x.context.close()
+
  # Motion regression coverage: sample and live lists, same nodes/controls,
  # reverse selection, rapidly repeated clicks, scroll return and reduced motion.
  x=page('anonymous');x.goto(base+'/#activities')
