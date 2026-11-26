@@ -5,6 +5,6 @@
   "type": "module",
   "description": "Official Sangmyung Financial Club public website and editorial studio",
   "scripts": {
-    "test": "node tests/static-check.mjs && node tests/v28-motion-unit.mjs"
+    "test": "node tests/static-check.mjs && node tests/v28-motion-unit.mjs && node tests/research-importer-unit.mjs"
   }
 }
