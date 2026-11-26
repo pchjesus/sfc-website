@@ -2,7 +2,7 @@
 (() => {
  const clone=v=>JSON.parse(JSON.stringify(v));
  const row=(id,title,status='draft')=>({id,title,status,kind:'notice',body:'Original body',excerpt:'',updated_at:'2026-01-01T00:00:00Z',deleted_at:null,scheduled_at:null});
- window.mock={mode:'admin',delay:0,conflict:false,fail:false,calls:[],clients:[],rows:[row('a','Article A'),row('b','Article B')],settings:[],sessions:[],people:[],history:[]};
+ window.mock={mode:'admin',delay:0,readDelay:0,conflict:false,fail:false,calls:[],clients:[],rows:[row('a','Article A'),row('b','Article B')],settings:[],sessions:[],people:[],history:[]};
  const m=window.mock;
  window.supabase={createClient:(url,key,options)=>{
   m.clients.push(options);
@@ -50,6 +50,7 @@
      m.history.push({id:m.history.length+1,post_id:saved.id,snapshot:clone(saved)});
      return {data:clone(saved),error:null};
     }
+    if(m.readDelay&&table==='cms_site_settings')await new Promise(r=>setTimeout(r,m.readDelay));
     let data=table==='cms_admins'?(m.mode==='admin'?[{user_id:'test-user',email:'test@example.invalid'}]:[]):table==='cms_posts'?m.rows:table==='cms_site_settings'?m.settings:table==='cms_post_revisions'?m.history:table==='cms_sessions'?m.sessions:table==='cms_people'?m.people:[];
     data=data.filter(r=>q.filters.every(([k,v])=>{
       if(v&&typeof v==='object'&&v.pattern)return String(r[k]||'').toLowerCase().includes(v.pattern.replace(/[%*]/g,'').toLowerCase());
