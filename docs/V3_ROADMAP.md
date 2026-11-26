@@ -83,3 +83,7 @@ Studio S2/S3 중심: 검수 체크리스트/검수 상태(초안→검수→승�
 - pchjesus. (2026). *SFC official website* [Source code]. GitHub. https://github.com/pchjesus/sfc-website/tree/9be1e6caef29ee9490527e3b39782ee859d98f8f
 - pchjesus. (2026). *SFC 2.0—Codex verification handoff*. GitHub. https://github.com/pchjesus/sfc-website/blob/main/docs/CODEX_QA.md
 - Supabase. (n.d.). *Storage buckets*. https://supabase.com/docs/guides/storage/buckets/fundamentals
+
+## 7. 개발자 계정 및 운영 인수인계 추가 (2026-11-26)
+
+[Developer access, login design and Studio guide](DEVELOPER_ACCESS_AND_STUDIO_GUIDE.md): 제작자 전용 명시적 개발자/소유자 역할(운영 관리자 최대 3명과 분리, 실제 권한 변경 별도 승인), 공개 홈페이지 규격과 로그인 상단 통일 및 비로그인 공개 열람 안내, P4 이후 기능 검증된 Studio 한국어 설명서와 개발자 유지보수 부록. 기존 권한 정책을 우회하지 않으며 역할 도입은 staging 및 실제 권한 검증 후 진행한다.
