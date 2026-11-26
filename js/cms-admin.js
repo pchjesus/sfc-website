@@ -118,7 +118,7 @@
     else applyForm(v.values);
     pendingFiles={};for(const field of ["postCoverFile","postPdfFile"])if(typeof v.pendingFiles?.[field]==="string")pendingFiles[field]=v.pendingFiles[field];
     blockedRecovery=Boolean(v.blockedRecovery||(current&&v.baseVersion!==current.updated_at));
-    $("researchFields").hidden=$("postKind").value!=="research";markChanged(false);pendingNotice();
+    $("researchFields").hidden=$("postKind").value!=="research";$("publishPost").textContent=$("postSchedule").value?"예약·게시하기 ↗":"게시하기 ↗";markChanged(false);pendingNotice();
     if(blockedRecovery){detail("복구본과 서버 버전이 다릅니다. 서버 최신본과 비교하기 전에는 저장할 수 없습니다. 내용을 복사하거나 복구 목록에서 다시 열 수 있습니다.");notify("저장 충돌: 복구본의 기준 버전이 다릅니다.",true);}
     else detail("이 기기의 복구본을 불러왔습니다. 확인 후 저장하세요.");
   }
@@ -246,7 +246,7 @@
     }
     const active=()=>user?.id===owner&&epoch===started&&workId===id;
     let saved=false;
-    busyMode(true);$("editorSavedAt").textContent="저장 중";detail("서버 저장 요청 중");
+    stash();busyMode(true);$("editorSavedAt").textContent="저장 중";detail("서버 저장 요청 중");
     try{
       if(status==="published"){
         const img=await upload(imageFile,"image");if(!active())return;
@@ -266,6 +266,7 @@
       }
       if(response.error)throw response.error;
       if(!active())return;
+      if(!response.data)throw Error("서버 저장 결과를 확인할 수 없습니다.");
       current=response.data;saved=true;
       if(JSON.stringify(editorFields.map(id=>$(id).value))===fingerprint
         &&$("postCoverFile").files[0]===imageFile&&$("postPdfFile").files[0]===pdfFile){
@@ -295,7 +296,10 @@
   async function changeDeleted(restore=false){
     if(!current||busy)return;
     if(!restore&&!confirm("글을 휴지통으로 이동할까요? 공개 화면에서는 즉시 사라져요."))return;
-    busyMode(true);
+    if(dirty||hasPending()){notify("미저장 변경사항을 먼저 저장하거나 다른 글로 이동해 주세요.",true);return;}
+    const started=epoch,owner=user?.id,id=current.id;
+    const active=()=>epoch===started&&user?.id===owner&&current?.id===id;
+    busyMode(true);$("postForm").inert=true;
     try{
       const {data,error}=await client.from("cms_posts")
         .update({deleted_at:restore?null:new Date().toISOString()})
@@ -303,33 +307,37 @@
         .select("*").maybeSingle();
       if(error)throw error;
       if(!data)throw Error("글이 다른 곳에서 수정됐습니다. 새로고침해 주세요.");
-      await loadPosts();selectPost(data,false);
+      if(!active())return;
+      await loadPosts();if(!active())return;selectPost(data,false);
       notify(restore?"게시글을 복구했습니다.":"게시글을 휴지통으로 이동했습니다.");
-    }catch(e){notify((restore?"복구":"삭제")+" 실패: "+e.message,true);}
-    finally{busyMode(false);}
+    }catch(e){if(active())notify((restore?"복구":"삭제")+" 실패: "+e.message,true);}
+    finally{if(epoch===started){$("postForm").inert=false;busyMode(false);}}
   }
   async function purgePost(){
     if(!current?.deleted_at||busy)return;
     if(!confirm("완전히 삭제할까요? 게시글 본문은 되돌릴 수 없어요."))return;
-    busyMode(true);
+    const started=epoch,owner=user?.id,id=current.id;
+    const active=()=>epoch===started&&user?.id===owner&&current?.id===id;
+    busyMode(true);$("postForm").inert=true;
     try{
       const {data,error}=await client.from("cms_posts").delete().eq("id",current.id)
         .eq("updated_at",current.updated_at).select("id").maybeSingle();
       if(error)throw error;
       if(!data)throw Error("글이 다른 곳에서 수정됐습니다. 새로고침해 주세요.");
-      forget();current=null;await loadPosts();selectPost(null,false);
+      if(!active())return;
+      forget();await loadPosts();if(!active())return;selectPost(null,false);
       notify("게시글이 영구 삭제되었습니다. 첨부 파일과 수정 이력은 별도 정리가 필요할 수 있어요.");
-    }catch(e){notify("삭제 실패: "+e.message,true);}
-    finally{busyMode(false);}
+    }catch(e){if(active())notify("삭제 실패: "+e.message,true);}
+    finally{if(epoch===started){$("postForm").inert=false;busyMode(false);}}
   }
   async function loadHistory(){
     if(!current||busy)return;
-    const id=current.id;
+    const id=current.id,started=epoch;
     const {data,error}=await client.from("cms_post_revisions")
       .select("id,post_id,snapshot,recorded_at").eq("post_id",id)
       .order("id",{ascending:false}).limit(40);
+    if(epoch!==started||current?.id!==id)return;
     if(error){notify("이력 조회 실패: "+error.message,true);return;}
-    if(current?.id!==id)return;
     $("historyPanel").hidden=false;
     const holder=$("historyList");holder.replaceChildren();
     for(const revision of data||[]){
@@ -338,10 +346,11 @@
       const stamp=cms.dateText(revision.recorded_at);
       item.append(node("strong","","Revision #"+revision.id),node("small","",stamp+" · "+(revision.snapshot?.title||"제목 없음")));
       item.addEventListener("click",()=>{
-        if(busy||current?.id!==id)return;
+        if(busy||epoch!==started||current?.id!==id)return;
         if(current.deleted_at){notify("휴지통의 글은 먼저 복구해 주세요.",true);return;}
         if(!confirm("이 버전을 편집기에 불러올까요? 저장하기 전에는 실제 글이 변경되지 않습니다."))return;
-        applyForm(revision.snapshot);markChanged(false);$("historyPanel").hidden=true;
+        if((dirty||hasPending())&&!confirm("현재 편집 내용이 이 버전으로 대체됩니다. 계속할까요?"))return;
+        pendingFiles={};applyForm(revision.snapshot);pendingNotice();markChanged(false);$("historyPanel").hidden=true;
         notify("과거 버전을 편집기에 불러왔어요. 내용을 확인한 후 저장하세요.");
       });
       holder.append(item);
@@ -372,8 +381,8 @@
     if(file&&file.type==="application/pdf"&&file.size>0&&file.size<=20*1024*1024){previewUrl=URL.createObjectURL(file);$("previewLocalPdf").href=previewUrl;$("previewLocalPdf").hidden=false;}
     $("postForm").hidden=true;$("previewPanel").hidden=false;
   }
-  function clearSession(){
-    if(user&&(dirty||hasPending()))stash();
+  function clearSession(preserve=true){
+    if(preserve&&user&&(dirty||hasPending()))stash();
     epoch++;clearTimeout(autosaveTimer);clearTimeout(stashTimer);clearPreviewFile();
     user=null;posts=[];current=null;workId=null;dirty=false;pendingFiles={};blockedRecovery=false;
     $("postForm").inert=false;busyMode(false);applyForm(null);pendingNotice();renderRecovery();$("adminPostList").replaceChildren();$("historyList").replaceChildren();$("previewBody").replaceChildren();$("previewTitle").textContent="";$("previewExcerpt").textContent="";$("previewResearchMeta").textContent="";$("previewResearchNotes").replaceChildren();$("studioAccount").textContent="";detail("");visible("studioLogin");
@@ -452,13 +461,13 @@
     const {error}=await client.auth.signOut();
     if(error){notify("로그아웃 실패: "+error.message,true);return;}
     for(const v of snapshots(owner))forget(v.workId,owner);
-    clearSession();notify("로그아웃했습니다.");
+    clearSession(false);notify("로그아웃했습니다.");
   });
   document.querySelectorAll("[data-pane]").forEach(button=>button.addEventListener("click",()=>{
     if(busy)return;
     if((dirty||hasPending())&&button.dataset.pane!=="posts"){
       if(!confirm("저장되지 않은 글이 있어요. 다른 메뉴로 이동할까요?"))return;
-      stash();
+      if(!stash()&&!confirm("복구본을 저장하지 못했습니다. 그래도 이동할까요?"))return;
     }
     showPane(button.dataset.pane);
   }));
