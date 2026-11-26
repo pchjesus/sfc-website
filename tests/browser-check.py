@@ -225,11 +225,11 @@ with sync_playwright() as p:
     b.click();
     const list=document.querySelector(root);
     return [...list.children].filter(e=>e.dataset.active==='true').map(e=>{
-      const a=e.getAnimations()[0];
+      const a=e.getAnimations().find(a=>a.effect?.getKeyframes().some(k=>k.height));
       return a?{duration:a.effect.getTiming().duration,frames:a.effect.getKeyframes().map(k=>({opacity:k.opacity,height:k.height,transform:k.transform}))}:null;
     });
   }""",[root,control,value])
-  assert len(result)==expected and all(a and a['duration']==780 for a in result),result
+  assert len(result)==expected and all(a and a['duration']==670 for a in result),result
   assert all(all(k.get('transform') in (None,'none') for k in a['frames']) for a in result),result
   expect(x.locator('.motion-snapshot-layer')).to_have_count(0)
   x.wait_for_function("(root)=>document.querySelector(root).getAnimations({subtree:true}).length===0",arg=root)
@@ -246,7 +246,7 @@ with sync_playwright() as p:
  assert str(forward['frames'][-1]['opacity']) in ('1','1.0')
  ok('activities disjoint 5-to-2 and 2-to-5 swaps share the same timeline')
  duration=x.evaluate("""()=>{navigate('recruitment');return document.querySelector('#recruitment').getAnimations()[0].effect.getTiming().duration}""")
- assert duration==1420,'v2.8.3 must gradually reveal the full scene over 1420ms'
+ assert duration==760,'v2.8.4 scene settles in 760ms'
  x.locator('#applicationTrigger').scroll_into_view_if_needed()
  # Wait for viewport-triggered transforms before positioning the mouse.
  x.wait_for_function("""()=>{const e=document.querySelector('#applicationTrigger');return [e.closest('.application-cta'),e.closest('.view')].every(n=>!n||n.getAnimations().length===0)}""")
@@ -291,12 +291,12 @@ with sync_playwright() as p:
  x.locator('#archiveGridButton').click()
  expect(x.locator('#archiveResults')).to_have_class('archive-results grid')
  assert x.evaluate("window.v28FirstReport===document.querySelector('#archiveResults .archive-report')")
- assert x.evaluate("Boolean(window.SFC_V28?.enter) && window.SFC_MOTION.timing.layout===780")
+ assert x.evaluate("Boolean(window.SFC_V28?.enter) && window.SFC_MOTION.timing.layout===670")
  x.locator('#archiveListButton').click()
  expect(x.locator('#archiveResults')).to_have_class('archive-results')
  x.wait_for_function("document.querySelector('#archiveResults').getAnimations({subtree:true}).length===0")
  assert x.locator('.motion-snapshot-layer').count()==0
- ok('v2.8.3: list/grid preserves DOM while restored scene plays independently')
+ ok('v2.8.4: list/grid preserves DOM while restored scene plays independently')
  x.context.close()
  # Activities page title and supporting type must share the same size scale
  # as the other public tabs, rather than the older oversized default.
@@ -311,7 +311,7 @@ with sync_playwright() as p:
   assert x.evaluate("document.documentElement.scrollWidth <= innerWidth+1"),width
   x.context.close()
  ok('Activities title scale matches Research at four desktop/mobile widths')
- # Long-duration visual opacity regression: the title must genuinely start
+ # Balanced-duration opacity regression: the title must genuinely start
  # transparent, remain partially faded mid-way, then finish fully visible.
  # A delayed WAAPI effect must use fill:backwards to prevent pre-animation flashes.
  x=page('anonymous')
@@ -334,7 +334,35 @@ with sync_playwright() as p:
  assert early_activity<0.15,early_activity
  x.wait_for_timeout(2300)
  assert float(activity_title.evaluate("e=>getComputedStyle(e).opacity"))>=.98
- ok('v2.8.3: headings start nearly invisible and fade smoothly over 1.5–2 seconds')
+ ok('v2.8.4: headings remain transparent initially at a moderate pace')
+ x.context.close()
+ # Every tab requires a different composition grammar; not just direction stagger.
+ x=page('anonymous')
+ expected={
+  'home':('photographic-typographic-mask','#heroHeading'),
+  'about':('diagram-connect-and-column-reveal','.about-photo-panel'),
+  'research':('workspace-expand-and-spatial-flip','.archive-search-row'),
+  'activities':('fifteen-week-timeline-drop','#scheduleList .session[data-active="true"]'),
+  'people':('typographic-index-print','.page-head h1'),
+  'recruitment':('fact-grid-center-bloom','.recruit-fact'),
+  'updates':('publication-line-ink','.updates-section-heading')
+ }
+ starts={}
+ for route,(signature,selector) in expected.items():
+  x.evaluate("(r)=>navigate(r)",route)
+  assert x.locator('#'+route).get_attribute('data-motion-signature')==signature,(route,signature)
+  snapshot=x.evaluate("""({route,selector})=>{
+    const el=document.querySelector('#'+route+' '+selector);
+    const animation=el?.getAnimations()[0];
+    return animation?{duration:animation.effect.getTiming().duration,
+      start:animation.effect.getKeyframes()[0]?.clipPath||null}:null;
+  }""",{'route':route,'selector':selector})
+  assert snapshot and snapshot['start'],(route,snapshot)
+  starts[route]=snapshot['start']
+ assert starts['home']!=starts['people']
+ assert starts['research']!=starts['activities']
+ assert starts['recruitment']!=starts['updates']
+ ok('v2.8.4: seven independent page signatures and structural motion keyframes')
  x.context.close()
  # About experience communicates 4 distinct stages without a real-results claim.
  x=page('anonymous');x.goto(base+'/#about')
