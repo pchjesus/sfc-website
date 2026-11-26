@@ -54,6 +54,47 @@ with sync_playwright() as p:
    assert x.evaluate('document.documentElement.scrollWidth <= innerWidth'),(width,pane)
   x.screenshot(path=f'/tmp/sfc-studio-{width}.png',full_page=True)
   ok(f'Studio six panes {width}px (mock)');x.context.close()
+ # D3 developer UI and mock role boundary. NOT evidence of live RLS.
+ for width in [1440,768,390,360]:
+  x=page('developer',width);x.goto(base+'/admin.html');expect(x.locator('#studioPanel')).to_be_visible()
+  expect(x.locator('#developerTab')).to_be_visible()
+  for pane in ['posts','site','people','sessions','recruitment','access','developer']:
+   x.locator(f'[data-pane="{pane}"]').click();expect(x.locator(f'[data-pane-view="{pane}"]')).to_be_visible()
+   assert x.evaluate('document.documentElement.scrollWidth<=innerWidth+1'),(width,pane)
+  expect(x.locator('#devConnection')).to_have_text('조회 성공')
+  expect(x.locator('#devCounts')).to_contain_text('1 / 3')
+  assert x.evaluate('mock.calls.length')==0
+  x.locator('#devGoAccounts').click();expect(x.locator('#developerIdentity')).to_be_visible()
+  expect(x.locator('#superadminCount')).to_have_text('1 / 3')
+  ok(f'D3 developer seven panes, read-only diagnostics and separate membership {width}px');x.context.close()
+ x=page();x.goto(base+'/admin.html');expect(x.locator('#studioPanel')).to_be_visible()
+ expect(x.locator('#developerTab')).to_be_hidden()
+ x.evaluate("SFC_STUDIO.showPane('developer')");expect(x.locator('[data-pane-view="developer"]')).to_be_hidden()
+ x.locator('[data-pane="access"]').click();expect(x.locator('#developerIdentity')).to_be_hidden()
+ ok('D3 ordinary admin has no developer UI');x.context.close()
+ x=page('developer');x.goto(base+'/admin.html');expect(x.locator('#studioPanel')).to_be_visible()
+ x.locator('[data-pane="access"]').click();expect(x.locator('#superadminCount')).to_have_text('1 / 3')
+ for i in range(2):
+  x.locator('#memberEmail').fill(f'manager{i}@example.invalid');x.locator('#memberAddButton').click()
+  expect(x.locator('#superadminCount')).to_have_text(f'{i+2} / 3')
+ expect(x.locator('#memberAddButton')).to_be_disabled()
+ assert x.evaluate("mock.developers.length===1 && mock.admins.length===3")
+ x.locator('#memberList .studio-member-row').filter(has_text='manager0@example.invalid').get_by_role('button').click()
+ expect(x.locator('#superadminCount')).to_have_text('2 / 3')
+ x.locator('#developerTab').click();expect(x.locator('#devConnection')).to_have_text('조회 성공')
+ x.evaluate("mock.mode='nonadmin';mock.authEvent('TOKEN_REFRESHED')")
+ expect(x.locator('#studioLogin')).to_be_visible();expect(x.locator('#developerTab')).to_be_hidden()
+ ok('D3 mock admin rotation and revoked session denied');x.context.close()
+ # Standalone preview deliberately uses no production client, real network or login.
+ c=browser.new_context(viewport={'width':390,'height':900});x=c.new_page();reqs=[]
+ x.on('request',lambda req:reqs.append(req.url))
+ c.route('**/*',lambda route:route.continue_() if route.request.url.startswith(base) else route.abort())
+ x.goto(base+'/preview/developer-studio-demo.html');expect(x.locator('#studioPanel')).to_be_visible();expect(x.locator('#developerTab')).to_be_visible()
+ x.locator('#developerTab').click();expect(x.locator('#devConnection')).to_have_text('조회 성공')
+ assert all(url.startswith(base) for url in reqs),reqs
+ x.locator('#previewSwitch').click();expect(x.locator('#studioPanel')).to_be_visible();expect(x.locator('#developerTab')).to_be_hidden()
+ assert x.evaluate("SFC_STUDIO.getRole()")== 'admin'
+ ok('D3 self-contained preview starts without login, switches mock roles, zero external requests');c.close()
  # Anonymous/public client never restores a privileged session.
  x=page();x.goto(base);x.wait_for_function('mock.clients.length===2')
  assert x.evaluate('mock.clients[1].auth.persistSession===false && mock.clients[1].auth.detectSessionInUrl===false')
