@@ -1,297 +1,360 @@
 "use strict";
-/* SFC v2.8.2 — cinematic editorial motion, faithful to the existing design.
- * Page identity is revealed through spatial composition, not speed alone.
- * State, copy, and actions remain available even before all motion completes.
+/* SFC v2.8.4: One shared optical tempo, seven different page signatures.
+ * Shared: 0->1 opacity in ~1.2s, backwards fill during entrance delays,
+ * interruptions cancel. Unique: image/typography, diagrams, spatial reflow,
+ * weekly timeline, typeset index, facts/steps, publication ink.
+ * This module NEVER rewrites editorial text, CMS state or navigation.
  */
 (function(){
   const motion=window.SFC_MOTION;
-  const ease="cubic-bezier(.42,0,.58,1)"; // opacity builds across the whole duration
-  const settle="cubic-bezier(.42,0,.58,1)";
   const reduced=()=>motion?.reduced?.()||false;
-  const active=new WeakMap(), observed=new WeakSet(), firstLists=new WeakSet();
-  const stageAnimations=[];
-  const viewSeen=new WeakSet();
-  let sceneId=0;
-  let routeAnimations=[];
-  const isMobile=()=>window.innerWidth<=760;
-  function tween(el,frames,duration=950,delay=0,easing=ease){
+  const ease="cubic-bezier(.40,0,.20,1)";
+  const moving=new WeakMap();
+  const stages=[];
+  const enteredLists=new WeakSet();
+  const watched=new WeakSet();
+  let scene=[];
+  const mobile=()=>innerWidth<760;
+  const opt=(duration=1190,delay=0)=>({duration,delay,easing:ease,fill:"backwards"});
+  function animate(el,frames,duration=1190,delay=0){
     if(!el||reduced()||!el.animate||!el.getClientRects().length)return null;
-    const prior=active.get(el);
-    if(prior)try{prior.cancel()}catch(_){}
-    const a=el.animate(frames,{duration,delay,easing,fill:"backwards"}); // no flash before delay
-    active.set(el,a);
-    a.finished.then(()=>{if(active.get(el)===a)active.delete(el)},()=>{});
-    return a;
+    const old=moving.get(el);
+    try{old?.cancel()}catch(_){}
+    const animation=el.animate(frames,opt(duration,delay));
+    moving.set(el,animation);
+    animation.finished.then(()=>{
+      if(moving.get(el)===animation)moving.delete(el);
+    },()=>{});
+    return animation;
   }
-  function gather(el,side="up",delay=0,duration=1720){
-    const distance=isMobile()?28:side==="up"?58:side==="short"?22:86;
-    const x=side==="left"?-distance:side==="right"?distance:0;
-    const y=side==="up"||side==="short"?distance:0;
-    // Nearly invisible -> prolonged fade -> fully assembled reading position.
-    return tween(el,[
-      {opacity:0,transform:`translate3d(${x}px,${y}px,0) scale(.972)`,offset:0},
-      {opacity:.035,transform:`translate3d(${x*.94}px,${y*.94}px,0) scale(.974)`,offset:.14},
-      {opacity:.20,transform:`translate3d(${x*.66}px,${y*.66}px,0) scale(.985)`,offset:.38},
-      {opacity:.68,transform:`translate3d(${x*.20}px,${y*.20}px,0) scale(.997)`,offset:.73},
-      {opacity:.94,transform:"translate3d(0,0,0) scale(1)",offset:.93},
+  function track(animation){if(animation)scene.push(animation);return animation}
+  function fade(el,d=1000,delay=0){
+    return animate(el,[
+      {opacity:0,offset:0},{opacity:.12,offset:.23},
+      {opacity:.68,offset:.68},{opacity:1,offset:1}
+    ],d,delay);
+  }
+  function float(el,d=1170,delay=0,from=21){
+    const y=mobile()?Math.min(from,12):from;
+    return animate(el,[
+      {opacity:0,transform:`translate3d(0,${y}px,0)`,offset:0},
+      {opacity:.17,transform:`translate3d(0,${y*.8}px,0)`,offset:.28},
+      {opacity:.78,transform:"translate3d(0,2px,0)",offset:.78},
       {opacity:1,transform:"none",offset:1}
-    ],duration,delay);
+    ],d,delay);
   }
-  function underline(el,delay=0){
-    // One brief line accent, never a false progress indicator.
-    return gather(el,"left",delay,1500);
+  // Text rises INSIDE a local mask (no off-canvas zigzag).
+  function typeMask(el,d=1220,delay=0){
+    return animate(el,[
+      {opacity:0,clipPath:"inset(90% 0 0 0)",offset:0},
+      {opacity:.20,clipPath:"inset(70% 0 0 0)",offset:.27},
+      {opacity:.76,clipPath:"inset(8% 0 0 0)",offset:.79},
+      {opacity:1,clipPath:"inset(0 0 0 0)",offset:1}
+    ],d,delay);
   }
-  function sequence(root,selector,side="up",options={}){
-    if(!root)return;
-    const {step=155,base=0,max=5,duration=1630}=options;
-    [...root.querySelectorAll(selector)].slice(0,max).forEach((el,i)=>
-      gather(el,typeof side==="function"?side(i):side,base+i*step,duration));
+  // Information is 'printed' left-to-right: no object translation.
+  function ink(el,d=1190,delay=0){
+    return animate(el,[
+      {opacity:0,clipPath:"inset(0 100% 0 0)",offset:0},
+      {opacity:.28,clipPath:"inset(0 76% 0 0)",offset:.34},
+      {opacity:.84,clipPath:"inset(0 11% 0 0)",offset:.82},
+      {opacity:1,clipPath:"inset(0 0 0 0)",offset:1}
+    ],d,delay);
   }
-  function firstList(root,selector,cap=5){
-    if(!root||firstLists.has(root)||!root.closest(".view.active"))return;
-    const rows=[...root.querySelectorAll(selector)].slice(0,cap);
-    if(!rows.length)return;
-    firstLists.add(root);
-    rows.forEach((el,i)=>gather(el,i%2?"right":"left",i*145,1720));
+  // Editorial rows open down the reading flow.
+  function dropReveal(el,d=1150,delay=0){
+    return animate(el,[
+      {opacity:0,clipPath:"inset(0 0 100% 0)",offset:0},
+      {opacity:.18,clipPath:"inset(0 0 75% 0)",offset:.28},
+      {opacity:.78,clipPath:"inset(0 0 12% 0)",offset:.76},
+      {opacity:1,clipPath:"inset(0 0 0 0)",offset:1}
+    ],d,delay);
   }
-  // Route composition runs each time the visitor enters a tab: the old v2.7
-  // sense of a new scene returning, without waiting to navigate or use it.
-  function enter(root){
-    if(!root)return;
-    sceneId++;
-    routeAnimations.forEach(a=>{try{a.cancel()}catch(_){}});
-    routeAnimations=[];
-    if(reduced())return;
-    const track=a=>{if(a)routeAnimations.push(a);return a};
-    // Restore a gentle whole-scene settle that v2.8 mistakenly removed.
-    track(tween(root,[
-      {opacity:.06,transform:"translate3d(0,15px,0)",offset:0},
-      {opacity:.18,transform:"translate3d(0,12px,0)",offset:.28},
-      {opacity:.58,transform:"translate3d(0,5px,0)",offset:.63},
-      {opacity:.92,transform:"translate3d(0,0,0)",offset:.9},
-      {opacity:1,transform:"none",offset:1}
-    ],1420,0,settle));
+  // Center-out expansion of factual groups; geometry and column widths stay fixed.
+  function bloom(el,d=1240,delay=0){
+    return animate(el,[
+      {opacity:0,clipPath:"inset(45% 43% 45% 43%)",transform:"scale(.973)",offset:0},
+      {opacity:.17,clipPath:"inset(33% 28% 33% 28%)",transform:"scale(.984)",offset:.30},
+      {opacity:.76,clipPath:"inset(5% 3% 5% 3%)",transform:"scale(.997)",offset:.79},
+      {opacity:1,clipPath:"inset(0 0 0 0)",transform:"none",offset:1}
+    ],d,delay);
+  }
+  function sweep(el,d=1160,delay=0){
+    return animate(el,[
+      {opacity:0,clipPath:"inset(0 54% 0 46%)",offset:0},
+      {opacity:.20,clipPath:"inset(0 39% 0 30%)",offset:.32},
+      {opacity:.76,clipPath:"inset(0 6% 0 5%)",offset:.77},
+      {opacity:1,clipPath:"inset(0 0 0 0)",offset:1}
+    ],d,delay);
+  }
+  function signature(root){
+    if(!root||reduced())return;
     const head=root.querySelector(".page-head");
-    if(head){
-      track(gather(head.querySelector(".eyebrow"),"left",60,1147));
-      track(gather(head.querySelector("h1"),"left",100,1736));
-      track(gather(head.querySelector("p"),"right",210,1659));
-    }
+    if(!head)return;
+    const label=head.querySelector(".eyebrow"),title=head.querySelector("h1"),copy=head.querySelector("p");
+    // Shared baseline is opacity, not identical geometry or entrance direction.
+    track(fade(label,680,40));
     switch(root.id){
-      case "home":
-        track(gather(root.querySelector(".hero-top"),"up",80,1318));
-        track(gather(root.querySelector("#heroNumber"),"left",120,1178));
-        track(gather(root.querySelector("#heroHeading"),"left",160,1845));
-        track(gather(root.querySelector("#heroDescription"),"right",350,1628));
-        track(gather(root.querySelector("#heroButton"),"up",520,1473));
-        track(gather(root.querySelector(".hero-controls"),"right",610,1488));
-        break;
       case "about":
-        track(gather(root.querySelector(".about-photo-panel h2"),"left",230,1736));
-        sequence(root,".about-photo-panel .about-approved-copy .about-line","right",
-          {step:95,base:310,max:3,duration:1628});
+        track(ink(title,1220,90));
+        track(float(copy,970,180,7));
         break;
       case "research":
-        track(gather(root.querySelector(".archive-intro"),"right",310,1535));
-        track(gather(root.querySelector(".archive-search-row"),"left",400,1535));
-        track(gather(root.querySelector(".archive-controls"),"right",470,1550));
-        requestAnimationFrame(()=>firstList(root.querySelector("#archiveResults"),".archive-report",5));
+        track(dropReveal(title,1090,70));
+        track(fade(copy,950,140));
         break;
       case "activities":
-        track(gather(root.querySelector(".schedule-header"),"left",300,1473));
-        track(gather(root.querySelector("#journeyContext"),"right",360,1674));
-        const stageButtons=[...root.querySelectorAll("#scheduleTabs button")];
-        stageButtons.forEach((b,i)=>track(gather(b,i<2?"left":"right",520+i*95,1473)));
-        [...root.querySelectorAll("#scheduleList>.session:not([hidden]),#scheduleList>.cms-session:not([hidden])")]
-          .slice(0,4).forEach((row,i)=>track(tween(row,[
-            {opacity:0,clipPath:"inset(0 0 26% 0)",offset:0},
-            {opacity:.12,clipPath:"inset(0 0 20% 0)",offset:.3},
-            {opacity:.58,clipPath:"inset(0 0 6% 0)",offset:.72},
-            {opacity:1,clipPath:"inset(0 0 0 0)",offset:1}
-          ],1640,660+i*175)));
+        track(float(title,1110,100,13));
+        track(fade(copy,990,140));
         break;
       case "people":
-        track(gather(root.querySelector(".people-editorial-lead h2"),"left",230,1674));
-        track(gather(root.querySelector(".people-editorial-lead p"),"right",340,1612));
-        people();
+        track(ink(title,1180,90));
+        track(ink(copy,1160,210));
         break;
       case "recruitment":
-        track(gather(root.querySelector(".recruit-intro-copy"),"left",240,1690));
-        track(gather(root.querySelector(".recruit-fact-grid"),"right",320,1721));
-        track(gather(root.querySelector("#recruitActionCard"),"up",480,1752));
+        track(bloom(title,1190,100));
+        track(fade(copy,950,220));
         break;
       case "updates":
-        track(gather(root.querySelector(".updates-section-heading"),"left",300,1457));
-        track(gather(root.querySelector("#updatesFilters"),"right",410,1488));
-        requestAnimationFrame(()=>firstList(root.querySelector("#updatesList"),".cms-card",5));
+        track(ink(title,1180,105));
+        track(dropReveal(copy,1050,170));
         break;
-      case "post":
-      case "detail":
-        track(gather(root.querySelector(".cms-post-head,.detail-masthead"),"left",220,1783));
-        track(gather(root.querySelector(".reader-layout,.detail-body"),"right",350,1519));
+      default:
+        track(typeMask(title,1180,90));
+        track(fade(copy,1000,180));
+    }
+  }
+  const PAGE_SHAPE=Object.freeze({
+    home:"photographic-typographic-mask",
+    about:"diagram-connect-and-column-reveal",
+    research:"workspace-expand-and-spatial-flip",
+    activities:"fifteen-week-timeline-drop",
+    people:"typographic-index-print",
+    recruitment:"fact-grid-center-bloom",
+    updates:"publication-line-ink"
+  });
+  function enter(root){
+    if(!root)return;
+    for(const a of scene){try{a.cancel()}catch(_){}}
+    scene=[];
+    if(reduced())return;
+    // The same optical softness opens all pages, not the same stagger/slide.
+    track(animate(root,[{opacity:.43},{opacity:.82,offset:.72},{opacity:1}],760));
+    root.dataset.motionSignature=PAGE_SHAPE[root.id]||"reader";
+    signature(root);
+    switch(root.id){
+      case "home":
+        track(fade(root.querySelector(".hero-top"),890,50));
+        track(typeMask(root.querySelector("#heroHeading"),1260,70));
+        track(fade(root.querySelector("#heroNumber"),860,90));
+        track(typeMask(root.querySelector("#heroDescription"),1050,240));
+        track(float(root.querySelector("#heroButton"),1090,290,14));
+        track(ink(root.querySelector(".hero-controls"),1120,280));
+        // Preserve all existing pictures; only apply a subtle first-view
+        // exposure that never changes their identity or position.
+        track(animate(root.querySelector(".hero-photo.active"),[
+          {filter:"brightness(.86)",opacity:.75},
+          {filter:"brightness(1)",opacity:1}
+        ],1180));
         break;
+      case "about":{
+        const panel=root.querySelector(".about-photo-panel");
+        track(sweep(panel,1280,140));
+        track(typeMask(panel?.querySelector("h2"),1280,160));
+        [...(panel?.querySelectorAll(".about-approved-copy .about-line")||[])].forEach((line,i)=>
+          track(ink(line,1150,210+i*95)));
+        break;
+      }
+      case "research":{
+        track(ink(root.querySelector(".archive-intro"),980,160));
+        track(sweep(root.querySelector(".archive-search-row"),1120,130));
+        track(bloom(root.querySelector(".archive-controls"),1150,210));
+        requestAnimationFrame(()=>firstList(root.querySelector("#archiveResults"),".archive-report",4));
+        break;
+      }
+      case "activities":{
+        track(dropReveal(root.querySelector(".schedule-header"),1000,180));
+        track(sweep(root.querySelector("#journeyContext"),1130,180));
+        const buttons=[...root.querySelectorAll("#scheduleTabs button")];
+        buttons.forEach((button,i)=>track(bloom(button,1060,215+i*60)));
+        const rows=[...root.querySelectorAll("#scheduleList>.session:not([hidden]),#scheduleList>.cms-session:not([hidden])")].slice(0,4);
+        rows.forEach((row,i)=>track(dropReveal(row,1110,350+i*130)));
+        break;
+      }
+      case "people":
+        track(typeMask(root.querySelector(".people-editorial-lead h2"),1120,140));
+        track(fade(root.querySelector(".people-editorial-lead p"),1050,190));
+        people();
+        break;
+      case "recruitment":{
+        track(typeMask(root.querySelector(".recruit-intro-copy h2"),1170,130));
+        track(fade(root.querySelector("#recruitMessage"),990,210));
+        [...root.querySelectorAll(".recruit-fact")].forEach((fact,i)=>
+          track(bloom(fact,1140,160+i*86)));
+        track(dropReveal(root.querySelector("#recruitActionCard"),1190,300));
+        break;
+      }
+      case "updates":
+        track(ink(root.querySelector(".updates-section-heading"),930,180));
+        track(sweep(root.querySelector("#updatesFilters"),1080,250));
+        requestAnimationFrame(()=>firstList(root.querySelector("#updatesList"),".cms-card",4));
+        break;
+      default:
+        track(typeMask(root.querySelector(".cms-post-head h1,.detail-masthead h1"),1150,120));
+        track(fade(root.querySelector(".reader-layout,.detail-body"),1100,190));
     }
     watch(root);
   }
-  function slide(copy){
-    // The image remains the dominant 1250ms crossfade; copy gently catches up.
-    gather(copy,"up",0,1490);
-  }
+  // User-triggered slider changes should remain shorter than first page entry.
+  function slide(el){typeMask(el,930,0)}
   function visible(el){
     if(!el)return false;
     if(el.matches(".page-head")||el.id==="heroHeading")return true;
-    const root=el.closest(".view");
-    if(!root)return false;
     if(el.matches("#home .home-value-copy")){
-      gather(el.querySelector("h2"),"left",0,1705);
-      gather(el.querySelector("p"),"right",150,1488);
-      gather(el.querySelector(".home-value-link"),"up",280,1349);
+      typeMask(el.querySelector("h2"),1260);
+      fade(el.querySelector("p"),1050,80);
+      ink(el.querySelector(".home-value-link"),970,200);
       return true;
     }
     if(el.matches("#home .home-section")){
-      gather(el.querySelector(".section-head"),"left",0,1333);
-      gather(el.querySelector(".featured-photo"),"left",100,1798);
-      gather(el.querySelector(".featured-copy"),"right",220,1829);
+      ink(el.querySelector(".section-head"),1000);
+      sweep(el.querySelector(".featured-photo"),1210,90);
+      dropReveal(el.querySelector(".featured-copy"),1120,190);
       return true;
     }
     if(el.matches("#home .process-layout")){
-      gather(el.querySelector("h2"),"left",0,1690);
-      sequence(el,".process-point","right",{base:150,step:120,max:3,duration:1550});
+      ink(el.querySelector("h2"),1100);
+      [...el.querySelectorAll(".process-point")].forEach((point,i)=>
+        dropReveal(point,980,100+i*115));
       return true;
     }
     if(el.matches("#home .join-layout")){
-      gather(el.querySelector("p,h2"),"left",0,1535);
-      gather(el.querySelector("a,button"),"right",160,1612);
-      return true;
+      sweep(el,1150);return true;
     }
-    if(el.matches("#about .about-photo-panel"))return true; // Enter() owns first scene
+    if(el.matches("#about .about-photo-panel"))return true; // enter() handles panel
     if(el.matches("#about .about-reason")){
-      const parent=el.parentElement;
-      const idx=[...parent.children].indexOf(el);
-      gather(el,idx===0?"left":idx===2?"right":"up",idx*105,1628);
-      const svg=el.querySelector("svg");
-      tween(svg,[
-        {opacity:0,transform:"scale(.94)",offset:0},
-        {opacity:.18,transform:"scale(.955)",offset:.38},
-        {opacity:.75,transform:"scale(.99)",offset:.82},
-        {opacity:1,transform:"none",offset:1}
-      ],1460,160);
+      const svg=el.querySelector(".reason-art svg");
+      bloom(svg,1090,60);
+      dropReveal(el.querySelector("h3"),940,180);
+      fade(el.querySelector("p"),900,220);
       return true;
     }
     if(el.matches("#about .about-section-heading")){
-      gather(el.querySelector("h2"),"left",0,1612);
-      gather(el.querySelector("p"),"right",145,1473);
-      return true;
+      ink(el,1000);return true;
     }
     if(el.matches("#people .people-editorial-lead"))return true;
     if(el.matches("#people .people-next-link")){
-      gather(el,"up",0,1535);return true;
+      ink(el,1100);return true;
     }
-    if(el.matches("#recruitment .recruit-intro")||el.matches("#recruitment #recruitActionCard"))return true;
+    if(el.matches("#recruitment .recruit-intro,#recruitment #recruitActionCard"))return true;
     if(el.matches("#recruitment .recruitment-process")){
-      sequence(el,".process-step",i=>i%2?"right":"left",
-        {step:125,base:0,max:4,duration:1659});return true;
+      processSteps(el);return true;
     }
     return false;
   }
-  // Secondary content enters on scroll. It never rearranges information.
-  const watchSelectors={
-    about:".experience-layout",
-    activities:".session-list",
-    people:".team-node",
-    recruitment:".recruitment-process,.recruitment-faq-heading",
-    updates:""
-  };
-  const intersection=typeof IntersectionObserver!=="undefined"
-    ?new IntersectionObserver(entries=>{
-      for(const {target,isIntersecting} of entries){
-        if(!isIntersecting)continue;
-        intersection.unobserve(target);
-        if(reduced()||!target.closest(".view.active"))continue;
-        if(target.matches(".team-node")){
-          const i=[...target.parentElement.children].indexOf(target);
-          gather(target,i%2?"right":"left",Math.min(i*85,250),1643);
-        }else if(target.matches(".experience-layout")){
-          gather(target.querySelector(".experience-selector"),"left",0,1628);
-          gather(target.querySelector(".experience-panel"),"right",190,1798);
-        }else if(target.matches(".recruitment-process")){
-          sequence(target,".process-step",i=>i%2?"right":"left",{base:90,step:120,duration:1581});
-        }else if(target.matches(".recruitment-faq-heading")){
-          gather(target,"left",0,1426);
-        }else if(target.matches(".session-list")){
-          // The top rows have the route-composition reveal. The list itself
-          // stays static so expanded content and filter state are preserved.
-        }else if(target.matches(".cms-card")){
-          gather(target,"up",0,1426);
-        }
-      }
-    },{threshold:.10,rootMargin:"0px 0px -8% 0px"}):null;
-  function watch(root){
-    if(!intersection||!root)return;
-    const selector=watchSelectors[root.id];
-    if(!selector)return;
-    root.querySelectorAll(selector).forEach(el=>{
-      if(observed.has(el))return;
-      observed.add(el);
-      intersection.observe(el);
+  // Search/filters are spatial; the results are editorial shelves, not zig-zags.
+  function firstList(root,selector,cap=4){
+    if(!root||enteredLists.has(root)||!root.closest(".view.active"))return;
+    const rows=[...root.querySelectorAll(selector)].slice(0,cap);
+    if(!rows.length)return;
+    enteredLists.add(root);
+    rows.forEach((el,i)=>{
+      if(root.closest("#research"))dropReveal(el,1090,i*110);
+      else ink(el,1070,i*125);
     });
   }
-  function people(){
-    const list=document.getElementById("roleList");
-    if(!list)return;
-    // Actual CMS members are inserted dynamically; observe newly created DOM.
-    watch(document.getElementById("people"));
+  function processSteps(root){
+    if(!root)return;
+    [...root.querySelectorAll(".process-step")].forEach((el,i)=>{
+      bloom(el,1110,i*110);
+      ink(el.querySelector(".process-step-no"),930,130+i*105);
+    });
   }
+  const watcher=typeof IntersectionObserver!=="undefined"
+    ?new IntersectionObserver(entries=>{
+      for(const ent of entries){
+        if(!ent.isIntersecting)continue;
+        watcher.unobserve(ent.target);
+        if(reduced()||!ent.target.closest(".view.active"))continue;
+        const el=ent.target;
+        if(el.matches("#people .team-node")){
+          ink(el,1190,0);
+          const label=el.querySelector(".team-node-index");
+          fade(label,870,120);
+        }else if(el.matches("#about .experience-layout")){
+          sweep(el.querySelector(".experience-figure"),1190,70);
+          dropReveal(el.querySelector(".experience-description"),1110,220);
+        }else if(el.matches("#recruitment .recruitment-process")){
+          processSteps(el);
+        }else if(el.matches("#recruitment .recruitment-faq-heading")){
+          ink(el,1050);
+        }
+      }
+    },{threshold:.08,rootMargin:"0px 0px -6% 0px"}):null;
+  function watch(root){
+    if(!root||!watcher)return;
+    const selectors={
+      about:".experience-layout",
+      people:".team-node",
+      recruitment:".recruitment-process,.recruitment-faq-heading"
+    };
+    const query=selectors[root.id];
+    if(!query)return;
+    root.querySelectorAll(query).forEach(el=>{
+      if(watched.has(el))return;
+      watched.add(el);watcher.observe(el);
+    });
+  }
+  function people(){watch(document.getElementById("people"))}
+  // Four analytical diagrams receive four distinct semantic motions.
   function stage(index){
-    stageAnimations.splice(0).forEach(a=>{try{a.cancel()}catch(_){}});
+    stages.splice(0).forEach(a=>{try{a.cancel()}catch(_){}});
     if(reduced())return;
     const group=document.querySelector('[data-experience-visual="'+index+'"]');
     if(!group)return;
-    const step=(el,frames,duration=1420,delay=0)=>{
-      const a=tween(el,frames,duration,delay);
-      if(a)stageAnimations.push(a);
+    const add=a=>{if(a)stages.push(a)};
+    const pathDraw=(el,d=790,delay=0)=>{
+      let length=0;
+      try{length=el.getTotalLength()}catch(_){}
+      if(!(length>0))return;
+      add(animate(el,[
+        {opacity:0,strokeDasharray:length+" "+length,strokeDashoffset:length},
+        {opacity:.54,strokeDasharray:length+" "+length,strokeDashoffset:length*.25,offset:.69},
+        {opacity:1,strokeDasharray:length+" "+length,strokeDashoffset:0}
+      ],d,delay));
     };
-    const highlight=[
-      {opacity:0,transform:"translateY(16px)",offset:0},
-      {opacity:.12,transform:"translateY(13px)",offset:.32},
-      {opacity:.62,transform:"translateY(4px)",offset:.72},
-      {opacity:1,transform:"none",offset:1}
-    ];
-    if(index===0){
-      [...group.querySelectorAll("path[stroke]")].forEach((path,i)=>{
-        let length=0;try{length=path.getTotalLength()}catch(_){}
-        if(length<1)return;
-        step(path,[{opacity:0,strokeDasharray:length+" "+length,strokeDashoffset:length,offset:0},
-          {opacity:.20,strokeDasharray:length+" "+length,strokeDashoffset:length*.75,offset:.4},
-          {opacity:1,strokeDasharray:length+" "+length,strokeDashoffset:0,offset:1}],1500,i*140);
-      });
-      [...group.querySelectorAll("rect,circle")].slice(0,4).forEach((r,i)=>
-        step(r,highlight,1330,160+i*110));
-    }else if(index===1){
-      [...group.querySelectorAll("rect")].forEach((r,i)=>
-        step(r,[{opacity:0,transform:"translateY(8px)"},{opacity:1,transform:"none"}],1440,i*110));
-      [...group.querySelectorAll("path[stroke]")].forEach((p,i)=>
-        step(p,highlight,1570,220+i*100));
-    }else if(index===2){
-      [...group.querySelectorAll("path[stroke]")].forEach((p,i)=>step(p,highlight,1620,i*120));
-      [...group.querySelectorAll("rect[stroke]")].slice(0,3).forEach((r,i)=>
-        step(r,[{opacity:0},{opacity:1}],1360,240+i*105));
-    }else if(index===3){
-      [...group.querySelectorAll("rect")].slice(0,4).forEach((r,i)=>
-        step(r,[{opacity:0,transform:"translateY(10px)"},{opacity:1,transform:"none"}],1500,i*100));
-      [...group.querySelectorAll("path[stroke]")].slice(0,4).forEach((p,i)=>
-        step(p,[{opacity:0},{opacity:1}],1360,240+i*95));
+    switch(index){
+      case 0: // Observe: node boxes, then edges connect the relationships.
+        [...group.querySelectorAll("rect")].forEach((el,i)=>add(bloom(el,850,i*105)));
+        [...group.querySelectorAll("path[stroke]")].forEach((el,i)=>pathDraw(el,850,220+i*80));
+        break;
+      case 1: // Analyze: financial bars rise from their baseline; trend follows.
+        [...group.querySelectorAll("rect")].forEach((el,i)=>
+          add(animate(el,[
+            {opacity:0,transform:"translateY(15px) scaleY(.65)",offset:0},
+            {opacity:1,transform:"none",offset:1}
+          ],800,i*85)));
+        [...group.querySelectorAll("path[stroke]")].forEach((el,i)=>pathDraw(el,850,260+i*80));
+        break;
+      case 2: // Value: compare 2 distinct estimated-value trajectories.
+        [...group.querySelectorAll("path[stroke]")].forEach((el,i)=>pathDraw(el,950,i*145));
+        add(bloom(group.querySelector("rect[stroke]"),800,270));
+        break;
+      case 3: // Defend: report pages layer front to back, then evidence lines.
+        [...group.querySelectorAll("rect")].forEach((el,i)=>add(dropReveal(el,870,i*120)));
+        [...group.querySelectorAll("path[stroke]")].forEach((el,i)=>pathDraw(el,870,300+i*75));
+        break;
     }
   }
   function recruitment(action){
     if(!action)return;
-    const status=action.dataset.state;
-    if(!action.dataset.v28State){action.dataset.v28State=status;return}
-    if(action.dataset.v28State===status)return;
-    action.dataset.v28State=status;
-    // Color/background already reflect the truthful recruitment state.
-    tween(action,[{filter:"brightness(1.075)"},{filter:"brightness(1)"}],720);
+    const state=action.dataset.state;
+    if(!action.dataset.v28State){action.dataset.v28State=state;return}
+    if(action.dataset.v28State===state)return;
+    action.dataset.v28State=state;
+    animate(action,[{filter:"brightness(1.045)"},{filter:"brightness(1)"}],380);
   }
-  const api={enter,visible,slide,stage,people,firstList,recruitment,watch};
-  window.SFC_V28=Object.freeze(api);
+  const api=Object.freeze({enter,visible,slide,stage,people,firstList,recruitment,
+    signatures:PAGE_SHAPE});
+  window.SFC_V28=api;
 })();
