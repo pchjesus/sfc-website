@@ -202,6 +202,28 @@ textarea{resize:vertical;line-height:1.8}input[type=file]{font-size:12px;backgro
 /* D2 developer workspace */
 .studio-role-label{font-size:9px;font-weight:700;letter-spacing:.08em;color:#547f9e;border:1px solid #d2dce3;padding:5px 7px;white-space:nowrap}.developer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:24px 0 45px}.developer-card{border:1px solid var(--line);padding:clamp(16px,2.6vw,30px);min-width:0;overflow-wrap:anywhere}.developer-card h3{font-size:28px;font-weight:500;letter-spacing:-.04em;margin:10px 0 17px}.developer-card strong{font-size:17px}.developer-card p,.developer-card small,.developer-identity small{display:block;color:var(--muted);font-size:13px;line-height:1.8}.developer-card a{display:block;width:fit-content;font-size:12px;margin:12px 0;border-bottom:1px solid currentColor}.developer-card dl{display:grid;grid-template-columns:1fr auto;gap:12px;font-size:13px;margin:18px 0 0}.developer-card dd{margin:0;text-align:right;font-weight:700}.developer-identity{display:grid;gap:8px;border-left:3px solid #547f9e;background:#f4f7f9;padding:18px;margin:16px 0;overflow-wrap:anywhere}.developer-card button{margin-bottom:10px}.studio-preview-banner{background:#eaf0f5;color:#172433;padding:12px 18px;font-size:13px;line-height:1.6;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}.studio-preview-banner button{border:1px solid #c5d2db;background:white;padding:8px 12px;color:inherit;font-size:12px}@media(max-width:680px){.developer-grid{grid-template-columns:minmax(0,1fr)}.studio-role-label{display:none}}
 
+/* D3.1 compact pane tools; member label is separate from the aligned controls. */
+.studio-member-form{display:block;max-width:760px;margin-bottom:24px}
+.studio-member-form>label{display:block;margin:0 0 10px}
+.studio-member-form>.member-input-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px}
+.studio-member-form .member-input-row>input,.studio-member-form .member-input-row>button{box-sizing:border-box;margin:0!important;min-height:48px;height:48px;max-height:48px;align-self:center}
+.studio-member-form .member-input-row>input{width:100%;min-width:0;padding:0 12px}
+.studio-member-form .member-input-row>button{display:flex;align-items:center;justify-content:center;min-width:0;white-space:nowrap;padding:0 14px;line-height:1.2;font-size:12px}
+.studio-member-identity{min-width:0;overflow-wrap:anywhere}
+.studio-filter-pair,.studio-list-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+.studio-filter-pair label,.studio-list-filters label{margin:0;min-width:0;font-size:11px}
+.studio-filter-pair select,.studio-list-filters select,.studio-list-filters input{margin:6px 0 0;min-width:0;width:100%;min-height:40px;padding:8px 10px;font-size:12px}
+.studio-list-filters label:first-child{grid-column:1/-1}
+.studio-filter-summary{color:var(--muted);font-size:12px;line-height:1.7;margin:8px 0 12px}
+.studio-inline-preview{border:1px solid var(--line);padding:16px;margin:20px 0;background:#f8fafb}
+.studio-inline-preview summary{cursor:pointer;font-size:13px;font-weight:600}
+.studio-preview-copy{display:grid;gap:12px;padding-top:14px;overflow-wrap:anywhere}
+.studio-preview-copy>div{border-top:1px solid var(--line);padding-top:10px}
+.studio-preview-copy small{display:block;font-size:10px;color:var(--muted);letter-spacing:.04em;margin-bottom:6px}
+.studio-preview-copy p{white-space:pre-wrap;font-size:13px;line-height:1.7;margin:0}
+.studio-inline-warning{color:#983f39;font-size:12px;line-height:1.7}
+@media(max-width:380px){.studio-member-form .member-input-row>button{font-size:11px;padding:0 9px}}
+
 /* SFC 2.3.3 — balanced, direction-independent editorial motion */
 :root{
   --motion-ease:cubic-bezier(.4,0,.2,1);
@@ -599,7 +621,7 @@ button:disabled{cursor:not-allowed;opacity:.55}
 <button type="button" data-status="published">게시됨</button>
 <button type="button" data-status="scheduled">예약</button>
 <button type="button" data-status="trash">휴지통</button></div>
-<label class="studio-post-search">게시글 검색<input id="postSearch" type="search" placeholder="제목 · 저자 · 유형"></label><div id="adminPostList" class="admin-post-list"></div><div id="recoveryControls" hidden><label>이 탭의 복구본<select id="recoverySelect"><option value="">복구본 선택</option></select></label><div class="editor-toolbar"><button type="button" id="recoverWork" class="secondary">열기</button><button type="button" id="discardRecovery" class="secondary">복구본 삭제</button></div></div></aside>
+<label class="studio-post-search">게시글 검색<input id="postSearch" type="search" placeholder="제목 · 저자 · 유형"></label><div class="studio-filter-pair"><label>글 유형<select id="postKindFilter"><option value="">전체</option><option value="research">Research</option><option value="notice">공지사항</option><option value="activity">활동 소식</option></select></label><label>정렬<select id="postSort"><option value="updated">최근 수정</option><option value="title">제목순</option><option value="oldest">오래된 수정</option></select></label></div><p id="postFilterSummary" class="studio-filter-summary" aria-live="polite"></p><div id="adminPostList" class="admin-post-list"></div><div id="recoveryControls" hidden><label>이 탭의 복구본<select id="recoverySelect"><option value="">복구본 선택</option></select></label><div class="editor-toolbar"><button type="button" id="recoverWork" class="secondary">열기</button><button type="button" id="discardRecovery" class="secondary">복구본 삭제</button></div></div></aside>
 <section class="studio-editor">
 <form id="postForm" novalidate>
 <div class="editor-topline"><span class="eyebrow" id="editorMode">NEW ARTICLE</span><span id="editorSavedAt" role="status">아직 저장되지 않음</span></div><p class="editor-hint" id="editorSaveDetail" role="status"></p>
@@ -642,7 +664,7 @@ button:disabled{cursor:not-allowed;opacity:.55}
 <label>About 소개<textarea id="siteAboutBody" rows="5" maxlength="1800"></textarea></label>
 <label>학회 운영 안내<textarea id="siteProgramNote" rows="3" maxlength="800"></textarea></label>
 <label>공식 연락 이메일<input id="siteContactEmail" type="email" maxlength="180" placeholder="공개할 이메일 (선택)"></label>
-<button type="submit" class="primary">공개 문구 저장 →</button></form></section>
+<details class="studio-inline-preview"><summary>작성 중인 공개 문구 확인</summary><div id="sitePreview" class="studio-preview-copy" aria-live="polite"></div></details><button type="submit" class="primary">공개 문구 저장 →</button></form></section>
 <section data-pane-view="people" class="studio-pane" hidden>
 <div class="studio-section-bar"><div><span class="eyebrow">PEOPLE / TEAM</span><h2>People.</h2></div><button type="button" class="secondary" id="newPerson">＋ 신규 인물</button></div>
 <div class="studio-two-columns"><form id="peopleForm">
@@ -653,7 +675,7 @@ button:disabled{cursor:not-allowed;opacity:.55}
 <label>표시 순서<input id="personOrder" type="number" value="0" min="0" max="9999"></label>
 <label class="studio-checkbox"><input id="personVisible" type="checkbox" checked> 홈페이지에 공개</label>
 <button type="submit" class="primary">인물 정보 저장 →</button></form>
-<div><span class="eyebrow">등록된 인물</span><div id="peopleList" class="studio-manage-list"></div></div></div>
+<div><span class="eyebrow">등록된 인물</span><p id="peopleSummary" class="studio-filter-summary" aria-live="polite">조회 전</p><div class="studio-list-filters"><label>이름 · 직책 · 기수 검색<input id="peopleSearch" type="search" placeholder="검색"></label><label>공개 상태<select id="peopleVisibility"><option value="">전체</option><option value="public">공개</option><option value="private">비공개</option></select></label></div><div id="peopleList" class="studio-manage-list"></div></div></div>
 </section>
 <section data-pane-view="sessions" class="studio-pane" hidden>
 <div class="studio-section-bar"><div><span class="eyebrow">ACTIVITIES / CURRICULUM</span><h2>Program.</h2></div><button type="button" id="newSession" class="secondary">＋ 주차 추가</button></div>
@@ -667,7 +689,7 @@ button:disabled{cursor:not-allowed;opacity:.55}
 <label>표시 순서<input id="sessionOrder" type="number" value="0" min="0" max="9999"></label>
 <label class="studio-checkbox"><input id="sessionVisible" type="checkbox" checked> 공개</label>
 <button type="submit" class="primary">교육과정 저장 →</button></form>
-<div><span class="eyebrow">등록된 교육과정</span><div id="sessionsList" class="studio-manage-list"></div></div></div>
+<div><span class="eyebrow">등록된 교육과정</span><p id="sessionSummaryCount" class="studio-filter-summary" aria-live="polite">조회 전</p><div class="studio-list-filters"><label>주차 · 제목 검색<input id="sessionSearch" type="search" placeholder="검색"></label><label>교육 단계<select id="sessionFilterStage"><option value="">전체</option><option value="foundation">기초교육</option><option value="application">기업분석 실습</option><option value="research">최종 연구</option></select></label><label>공개 상태<select id="sessionVisibility"><option value="">전체</option><option value="public">공개</option><option value="private">비공개</option></select></label></div><div id="sessionsList" class="studio-manage-list"></div></div></div>
 </section>
 <section data-pane-view="recruitment" class="studio-pane" hidden>
 <div class="studio-section-bar"><div><span class="eyebrow">RECRUITMENT / APPLICATION</span><h2>Recruitment.</h2></div></div>
@@ -682,12 +704,11 @@ button:disabled{cursor:not-allowed;opacity:.55}
 <label>편집 가능한 DOCX 지원서 (선택)<input type="file" id="recruitDocx" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label>
 <div class="studio-file-links"><a id="currentRecruitPdf" hidden target="_blank" rel="noopener noreferrer">현재 등록된 PDF ↗</a><a id="currentRecruitDocx" hidden target="_blank" rel="noopener noreferrer">현재 등록된 DOCX ↗</a></div>
 <p class="editor-hint">지원서에는 개인정보가 포함될 수 있지만, 여기 올리는 파일은 작성 전 공통 양식이야. 제출 완료된 지원서는 공개 Storage에 올리면 안 돼.</p>
-<button type="submit" class="primary">모집 설정 저장 →</button></form></section>
-<section data-pane-view="access" class="studio-pane" hidden><div class="studio-section-bar"><div><span class="eyebrow">SECURITY / MAX 3 ADMIN ACCOUNTS</span><h2>Superadmins.</h2></div></div>
+<details class="studio-inline-preview"><summary>모집 문구 및 공개 준비 상태 확인</summary><div id="recruitPreview" class="studio-preview-copy" aria-live="polite"></div></details><p id="recruitDateWarning" class="studio-inline-warning" role="status" hidden></p><button type="submit" class="primary">모집 설정 저장 →</button></form></section>
+<section data-pane-view="access" class="studio-pane" hidden><div class="studio-section-bar"><div><span class="eyebrow">SECURITY / MAX 3 ADMIN ACCOUNTS</span><h2>Accounts.</h2></div></div>
 <p class="studio-pane-intro">운영 관리자는 최대 3명입니다. 새로운 계정은 Supabase Auth → Users에서 먼저 등록하고 이메일 인증을 완료해야 합니다. 개발자 권한은 이곳에서 변경할 수 없습니다.</p><div id="developerIdentity" class="developer-identity" hidden><span class="eyebrow">DEVELOPER / OWNER</span><strong id="developerEmail"></strong><small>운영 관리자 정원과 별도 · 권한 변경은 인프라 관리 절차에서만 가능합니다.</small></div>
-<div class="studio-role-stats"><div><small>최고관리자</small><strong id="superadminCount">0 / 3</strong></div><div><small>운영 권한</small><strong>Full access</strong></div></div>
-<form id="memberAddForm" class="studio-member-form"><div><label for="memberEmail">기존 계정 이메일</label><input id="memberEmail" type="email" autocomplete="off" required placeholder="manager@example.com"></div>
-<button type="submit" id="memberAddButton" class="primary">최고관리자 추가 →</button></form>
+<div class="studio-role-stats"><div><small>운영 관리자</small><strong id="superadminCount">0 / 3</strong></div><div><small>운영 권한</small><strong>Full access</strong></div></div>
+<form id="memberAddForm" class="studio-member-form"><label for="memberEmail">기존 계정 이메일</label><div class="member-input-row"><input id="memberEmail" type="email" autocomplete="off" required placeholder="manager@example.com"><button type="submit" id="memberAddButton" class="primary">최고관리자 추가 →</button></div><p id="memberCapacityNote" class="studio-filter-summary" role="status"></p></form>
 <div id="memberList" class="studio-member-list" aria-live="polite"></div>
 <div class="studio-backup"><span class="eyebrow">DATA / EXPORT</span>
   <h3>Content archive.</h3><p>공개 및 비공개 게시글, 수정 이력, 설정과 운영 데이터를 JSON 파일로 내보냅니다. 관리자 이메일·임시글도 포함되니 안전하게 보관하세요.</p>
@@ -699,10 +720,10 @@ button:disabled{cursor:not-allowed;opacity:.55}
 <div class="studio-section-bar"><div><span class="eyebrow">DEVELOPMENT / MAINTENANCE</span><h2>Developer desk.</h2></div><button type="button" id="devRefresh" class="secondary">진단 새로고침 ↻</button></div>
 <p class="studio-pane-intro">Studio의 모든 운영 기능을 그대로 사용하면서 배포 정보와 데이터 연결 상태를 확인합니다. 진단은 읽기 전용입니다.</p>
 <div class="developer-grid">
-<article class="developer-card"><span class="eyebrow">01 / RELEASE</span><h3>Release.</h3><strong id="devRelease">v3.0 · Developer demo</strong><p>실제 배포 커밋과 이력은 저장소에서 확인합니다.</p><a href="#" target="_blank" rel="noopener noreferrer">GitHub 저장소 ↗</a><a href="#" target="_blank" rel="noopener noreferrer">배포 및 검증 기록 ↗</a></article>
-<article class="developer-card"><span class="eyebrow">02 / DATABASE</span><h3>Database.</h3><strong id="devConnection" role="status">확인 전</strong><dl id="devCounts"><dt>게시글</dt><dd>—</dd><dt>임시글</dt><dd>—</dd><dt>운영 관리자</dt><dd>—</dd><dt>People / Activities</dt><dd>—</dd></dl></article>
-<article class="developer-card"><span class="eyebrow">03 / DIAGNOSTICS</span><h3>Diagnostics.</h3><p id="devAuth">권한 확인 전</p><p id="devChecked">진단 기록 없음</p><p>현재 계정의 조회 요청 결과만 표시합니다. 서버 오류 로그 또는 전체 RLS 검증 결과는 아닙니다.</p></article>
-<article class="developer-card"><span class="eyebrow">04 / MAINTENANCE</span><h3>Maintenance.</h3><p>기존 계정 관리에서 운영 관리자 등록 및 권한 해제, JSON 백업을 이용할 수 있습니다.</p><button type="button" id="devGoAccounts" class="secondary">계정 관리 및 백업 →</button><small>격리된 테스트 환경·감사 로그·복원 도구는 D5 예정.</small></article>
+<article class="developer-card"><span class="eyebrow">01 / RELEASE</span><h3>Release.</h3><strong id="devRelease">v3.0 · Developer D3.1 demo</strong><p>실제 배포 커밋과 이력은 저장소에서 확인합니다.</p><a href="#" target="_blank" rel="noopener noreferrer">GitHub 저장소 ↗</a><a href="#" target="_blank" rel="noopener noreferrer">배포 및 검증 기록 ↗</a></article>
+<article class="developer-card"><span class="eyebrow">02 / DATABASE</span><h3>Database.</h3><strong id="devConnection" role="status">확인 전</strong><dl id="devCounts"><dt>전체 게시글 (휴지통 포함)</dt><dd>—</dd><dt>임시 상태 (휴지통 포함)</dt><dd>—</dd><dt>운영 관리자</dt><dd>—</dd><dt>People / Activities</dt><dd>—</dd><dt>사이트 설정</dt><dd>—</dd></dl></article>
+<article class="developer-card"><span class="eyebrow">03 / DIAGNOSTICS</span><h3>Diagnostics.</h3><p id="devAuth">권한 확인 전</p><p id="devChecked">진단 기록 없음</p><button type="button" id="devExport" class="secondary" disabled>진단 결과 JSON ↗</button><p>현재 계정의 조회 요청 결과만 표시합니다. 서버 오류 로그 또는 전체 RLS 검증 결과는 아닙니다.</p></article>
+<article class="developer-card"><span class="eyebrow">04 / MAINTENANCE</span><h3>Maintenance.</h3><p>기존 계정 관리에서 운영 관리자 등록 및 권한 해제, JSON 백업을 이용할 수 있습니다.</p><button type="button" id="devGoAccounts" class="secondary">계정 관리 및 백업 →</button><small>운영 데이터의 백업과 진단은 별도입니다. 격리된 테스트 환경·감사 로그·복원 도구는 D5 예정.</small></article>
 </div>
 </section>
 </section>
@@ -807,7 +828,13 @@ button:disabled{cursor:not-allowed;opacity:.55}
 })();
 
 ;
-window.SFC_CMS_CONFIG={url:"https://preview-only.supabase.co",publishableKey:"sb_publishable_mock_only"};window.mock.mode=location.hash==="#admin"?"admin":"developer";window.mock.rows[0].title="예시 연구보고서 — 기업 가치 분석";window.mock.rows[1].title="예시 학회 공지";window.mock.rows[0].kind="research";window.mock.rows[0].research_author="가상 연구팀";window.mock.rows[0].body="# 연구 질문\n이 문서는 기능 검증용 가상 자료입니다.\n\n## 분석 방법\n가상 재무 데이터를 이용합니다.";window.mock.rows[1].status="published";
+window.SFC_CMS_CONFIG={url:"https://preview-only.supabase.co",publishableKey:"sb_publishable_mock_only"};
+window.mock.mode=location.hash==="#admin"?"admin":"developer";
+Object.assign(window.mock.rows[0],{title:"예시 연구보고서 — 기업 가치 분석",kind:"research",research_author:"가상 연구팀",research_company:"예시 기업",research_sector:"산업재",body:"# 연구 질문\n이 문서는 기능 검증용 가상 자료입니다.\n\n## 분석 방법\n가상 재무 데이터를 이용합니다."});
+Object.assign(window.mock.rows[1],{title:"예시 학회 공지",status:"published"});
+window.mock.settings=[{key:"site",updated_at:"2026-01-01T00:00:00Z",value:{hero_description:"기업의 숫자를 읽고, 가치의 근거를 찾다.",about_heading:"Research.\nThink beyond numbers.",about_body:"학회의 연구와 교육을 소개하는 가상 문구입니다.",program_note:"2027년 봄학기 예시 교육과정",contact_email:"contact@example.invalid"}},{key:"recruitment",updated_at:"2026-01-01T00:00:00Z",value:{status:"planned",title:"2027 Spring Recruitment",message:"가상 모집 안내입니다.",audience:"재학생",capacity:"00명",meeting:"주 1회",method:"이메일 지원",instructions:"공통 양식을 작성해 제출",start_at:null,end_at:null}}];
+window.mock.people=[{id:"person-demo-1",name:"예시 회장",position:"회장",term:"2027 SPRING",bio:"가상 프로필",sort_order:1,visible:true},{id:"person-demo-2",name:"예시 연구장",position:"리서치장",term:"2027 SPRING",bio:"가상 프로필",sort_order:2,visible:false}];
+window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 기초",stage:"foundation",summary:"기초교육",detail:"가상 교육 내용",sort_order:1,visible:true},{id:"session-demo-2",week_label:"02",title:"기업가치 분석",stage:"application",summary:"실습",detail:"가상 교육 내용",sort_order:2,visible:true},{id:"session-demo-3",week_label:"03",title:"최종 연구",stage:"research",summary:"발표",detail:"가상 교육 내용",sort_order:3,visible:false}];
 ;
 "use strict";
 /* Shared browser-only CMS adapter. All authorization is enforced by Supabase RLS,
@@ -1133,7 +1160,11 @@ window.SFC_CMS_CONFIG={url:"https://preview-only.supabase.co",publishableKey:"sb
     const list=$("adminPostList");list.replaceChildren();
     $("postsCount").textContent=posts.filter(p=>!p.deleted_at).length+" POSTS";
     const query=$("postSearch").value.trim().toLocaleLowerCase("ko-KR");
-    const selected=posts.filter(p=>included(p)&&(!query||[p.title,p.research_author,p.research_company,p.research_sector,cms.kindNames[p.kind]].some(v=>String(v||"").toLocaleLowerCase("ko-KR").includes(query))));
+    const kind=$("postKindFilter").value,sort=$("postSort").value;
+    const selected=posts.filter(p=>included(p)&&(!kind||p.kind===kind)&&(!query||[p.title,p.research_author,p.research_company,p.research_sector,cms.kindNames[p.kind]].some(v=>String(v||"").toLocaleLowerCase("ko-KR").includes(query))));
+    if(sort==="title")selected.sort((a,b)=>String(a.title||"").localeCompare(String(b.title||""),"ko"));
+    else if(sort==="oldest")selected.sort((a,b)=>String(a.updated_at||"").localeCompare(String(b.updated_at||"")));
+    $("postFilterSummary").textContent=selected.length+"개 표시 · 최근 조회 "+posts.length+"개"+(posts.length>=300?" (최대 300개)":"");
     if(!selected.length){list.append(node("p","sidebar-empty","표시할 글이 없습니다."));return;}
     for(const post of selected){
       const b=node("button","admin-post-item"+(current?.id===post.id?" selected":""));
@@ -1454,6 +1485,7 @@ window.SFC_CMS_CONFIG={url:"https://preview-only.supabase.co",publishableKey:"sb
   window.addEventListener("keydown",event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="s"&&user&&!document.querySelector('[data-pane-view="posts"]').hidden){event.preventDefault();if(!busy)void savePost("draft");}});
   $("newPost").addEventListener("click",newPost);
   $("postSearch").addEventListener("input",renderPosts);
+  ["postKindFilter","postSort"].forEach(id=>$(id).addEventListener("change",renderPosts));
   const importer=window.SFC_RESEARCH_IMPORTER;
   function resetImportResult(){importCandidate=null;importRevision++;$("applyImport").disabled=true;$("importResult").replaceChildren();}
   function closeImport(){resetImportResult();$("importText").value="";$("importFile").value="";$("importPanel").hidden=true;}
@@ -1633,6 +1665,25 @@ window.SFC_CMS_CONFIG={url:"https://preview-only.supabase.co",publishableKey:"sb
     if(pane==="site")fillSite();
     else fillRecruitment();
   }
+  function previewRows(target,rows){
+    $(target).replaceChildren(...rows.map(([label,value])=>{const item=n("div","");item.append(n("small","",label),n("p","",value||"미입력 · 공개 기본값 또는 미표시"));return item;}));
+  }
+  function previewSite(){previewRows("sitePreview",[
+    ["HERO",textVal("siteHeroDescription")],["ABOUT 제목",textVal("siteAboutHeading")],["ABOUT 소개",textVal("siteAboutBody")],
+    ["운영 안내",textVal("siteProgramNote")],["공개 연락처",textVal("siteContactEmail")]
+  ]);}
+  function previewRecruitment(){
+    const start=$("recruitStart").value,end=$("recruitEnd").value;
+    const warning=start&&end&&start>=end?"모집 마감은 시작 시각보다 나중이어야 합니다.":"";
+    $("recruitDateWarning").hidden=!warning;$("recruitDateWarning").textContent=warning;
+    const fileState=(id,key)=>$(id).files[0]?"선택됨 (저장 전): "+$(id).files[0].name:safe(state.recruitment?.[key])?"등록됨":"미등록";
+    const status={planned:"모집 예정",open:"모집 중",closed:"모집 마감"}[$("recruitStatus").value];
+    previewRows("recruitPreview",[["모집 상태",status],["제목",textVal("recruitTitle")],["안내",textVal("recruitMessage")],
+      ["일정 (현지 시간)",(start||"미정")+" ~ "+(end||"미정")],["대상 / 인원 / 시간",[textVal("recruitAudience"),textVal("recruitCapacity"),textVal("recruitMeeting")].filter(Boolean).join(" · ")],["지원 방법 및 안내",[textVal("recruitMethod"),textVal("recruitInstructions")].filter(Boolean).join("\n")],["공통 양식", "PDF: "+fileState("recruitPdf","pdf_url")+" / DOCX: "+fileState("recruitDocx","docx_url")],["공개 준비",warning||($("recruitStatus").value==="open"&&!textVal("recruitMethod")?"모집 중: 지원 방법을 입력했는지 확인하세요.":"저장 전 문구와 파일 공개 승인 여부를 확인하세요.")]]);
+  }
+  for(const [id,fn] of [["siteForm",previewSite],["recruitForm",previewRecruitment]]){
+    $(id).addEventListener("input",fn);$(id).addEventListener("change",fn);
+  }
   function fillSite(){
     const v=state.site;
     for(const [id,key] of [
@@ -1640,6 +1691,7 @@ window.SFC_CMS_CONFIG={url:"https://preview-only.supabase.co",publishableKey:"sb
       ["siteAboutBody","about_body"],["siteProgramNote","program_note"],
       ["siteContactEmail","contact_email"]
     ])$(id).value=v?.[key]||"";
+    previewSite();
   }
   function fillRecruitment(){
     const v=state.recruitment;
@@ -1657,6 +1709,7 @@ window.SFC_CMS_CONFIG={url:"https://preview-only.supabase.co",publishableKey:"sb
       $(id).hidden=!url;
       if(url)$(id).href=url;else $(id).removeAttribute("href");
     }
+    previewRecruitment();
   }
   async function persistSetting(key,value){
     // Both records are seeded by SQL migration. Saving with an unknown
@@ -1732,10 +1785,16 @@ window.SFC_CMS_CONFIG={url:"https://preview-only.supabase.co",publishableKey:"sb
     $("personVisible").checked=item.visible;
     dirtyForms.people=false;
   }
+  function matchesText(query,values){return !query||values.some(v=>String(v||"").toLocaleLowerCase("ko-KR").includes(query));}
+  function matchesVisibility(value,record){return !value||(value==="public"&&record.visible)||(value==="private"&&!record.visible);}
+  function filterSummary(rows,filtered){const visible=rows.filter(v=>v.visible).length;return "전체 "+rows.length+" · 공개 "+visible+" · 비공개 "+(rows.length-visible)+" · 표시 "+filtered.length+(rows.length>=300?" (최근 조회 최대 300개)":"");}
   function renderPeople(){
     const list=$("peopleList");list.replaceChildren();
-    if(!state.people.length)list.append(n("p","sidebar-empty","등록된 인물이 없어요. 실제 운영진부터 추가해 주세요."));
-    for(const p of [...state.people].sort((a,b)=>a.sort_order-b.sort_order)){
+    const query=textVal("peopleSearch").toLocaleLowerCase("ko-KR"),visibility=$("peopleVisibility").value;
+    const filtered=state.people.filter(p=>matchesVisibility(visibility,p)&&matchesText(query,[p.name,p.position,p.term]));
+    $("peopleSummary").textContent=filterSummary(state.people,filtered);
+    if(!filtered.length)list.append(n("p","sidebar-empty",state.people.length?"검색 조건에 맞는 인물이 없습니다.":"등록된 인물이 없어요. 실제 운영진부터 추가해 주세요."));
+    for(const p of filtered.sort((a,b)=>a.sort_order-b.sort_order)){
       const row=n("div","studio-record");const info=n("div","");
       info.append(n("strong","",p.name+" · "+(p.position||"직책 미지정")),
         n("small","",(p.term||"")+" / "+(p.visible?"공개":"비공개")));
@@ -1794,8 +1853,11 @@ window.SFC_CMS_CONFIG={url:"https://preview-only.supabase.co",publishableKey:"sb
   }
   function renderSessions(){
     const list=$("sessionsList");list.replaceChildren();
-    if(!state.sessions.length)list.append(n("p","sidebar-empty","아직 등록된 교육과정이 없어요. 이전 기획안은 샘플로 남아 있어요."));
-    for(const s of [...state.sessions].sort((a,b)=>a.sort_order-b.sort_order)){
+    const query=textVal("sessionSearch").toLocaleLowerCase("ko-KR"),visibility=$("sessionVisibility").value,stage=$("sessionFilterStage").value;
+    const filtered=state.sessions.filter(s=>matchesVisibility(visibility,s)&&(!stage||s.stage===stage)&&matchesText(query,[s.week_label,s.title,s.summary]));
+    $("sessionSummaryCount").textContent=filterSummary(state.sessions,filtered);
+    if(!filtered.length)list.append(n("p","sidebar-empty",state.sessions.length?"검색 조건에 맞는 교육과정이 없습니다.":"아직 등록된 교육과정이 없어요. 이전 기획안은 샘플로 남아 있어요."));
+    for(const s of filtered.sort((a,b)=>a.sort_order-b.sort_order)){
       const row=n("div","studio-record"),info=n("div","");
       info.append(n("strong","",s.week_label+" · "+s.title),
         n("small","",s.stage+" / "+(s.visible?"공개":"비공개")));
@@ -1836,6 +1898,8 @@ window.SFC_CMS_CONFIG={url:"https://preview-only.supabase.co",publishableKey:"sb
     }catch(e){toast("저장 실패: "+e.message,true);}
     finally{lockForm("sessions",false);buttonBusy(save,false);}
   });
+  $("peopleSearch").addEventListener("input",renderPeople);$("peopleVisibility").addEventListener("change",renderPeople);
+  $("sessionSearch").addEventListener("input",renderSessions);["sessionVisibility","sessionFilterStage"].forEach(id=>$(id).addEventListener("change",renderSessions));
   async function loadAdmins(){
     const {data,error}=await client().from("cms_admins").select("user_id,email,created_at").order("created_at",{ascending:true});
     if(error)throw error;
@@ -1845,6 +1909,7 @@ window.SFC_CMS_CONFIG={url:"https://preview-only.supabase.co",publishableKey:"sb
     const list=$("memberList");list.replaceChildren();
     $("superadminCount").textContent=state.admins.length+" / 3";
     $("memberAddButton").disabled=state.admins.length>=3;
+    $("memberCapacityNote").textContent=state.admins.length>=3?"관리자 정원이 찼습니다. 기존 권한을 해제한 뒤 추가할 수 있습니다.":"남은 운영 관리자 자리: "+(3-state.admins.length)+"명 · 개발자는 별도";
     for(const a of state.admins){
       const isSelf=util().getUser()?.id===a.user_id;
       const row=n("div","studio-member-row"),info=n("div","studio-member-identity");
@@ -1868,6 +1933,9 @@ window.SFC_CMS_CONFIG={url:"https://preview-only.supabase.co",publishableKey:"sb
     event.preventDefault();
     if(state.admins.length>=3)return toast("최고관리자는 최대 3명입니다.",true);
     const email=textVal("memberEmail").toLowerCase();
+    if(!util().getUser())return;
+    if(state.admins.some(a=>String(a.email||"").toLowerCase()===email))return toast("이미 등록된 운영 관리자입니다.",true);
+    if(util().getRole()==="developer"&&email===String(util().getUser()?.email||"").toLowerCase())return toast("개발자는 운영 관리자 정원과 별도입니다.",true);
     const button=$("memberAddButton");buttonBusy(button,true);
     try{
       const {error}=await client().from("cms_admins").insert({email});
@@ -1905,28 +1973,34 @@ window.SFC_CMS_CONFIG={url:"https://preview-only.supabase.co",publishableKey:"sb
     }catch(e){toast("백업 실패: "+(e.message||e),true);}
     finally{buttonBusy(button,false);}
   });
-  let diagnosticSequence=0;
+  let diagnosticSequence=0,lastDiagnostic=null;
   async function developerDiagnostic(){
     if(util().getRole()!=="developer")return;
     const started=++diagnosticSequence,owner=util().getUser()?.id;
     const active=()=>started===diagnosticSequence&&util().getRole()==="developer"&&util().getUser()?.id===owner;
-    $("devConnection").textContent="조회 중";$("devRefresh").disabled=true;
+    lastDiagnostic=null;$("devExport").disabled=true;$("devConnection").textContent="조회 중";$("devRefresh").disabled=true;
     $("devCounts").querySelectorAll("dd").forEach(e=>e.textContent="—");
     try{
-      const queries=[client().from("cms_posts").select("id",{count:"exact",head:true}),client().from("cms_posts").select("id",{count:"exact",head:true}).eq("status","draft"),client().from("cms_admins").select("user_id",{count:"exact",head:true}),client().from("cms_people").select("id",{count:"exact",head:true}),client().from("cms_sessions").select("id",{count:"exact",head:true})];
+      const queries=[client().from("cms_posts").select("id",{count:"exact",head:true}),client().from("cms_posts").select("id",{count:"exact",head:true}).eq("status","draft"),client().from("cms_admins").select("user_id",{count:"exact",head:true}),client().from("cms_people").select("id",{count:"exact",head:true}),client().from("cms_sessions").select("id",{count:"exact",head:true}),client().from("cms_site_settings").select("key",{count:"exact",head:true})];
       const results=await Promise.all(queries);
       if(!active())return;
       if(results.some(v=>v.error||typeof v.count!=="number"))throw Error("일부 조회 요청이 실패했습니다.");
-      const values=[results[0].count,results[1].count,results[2].count+" / 3",results[3].count+" / "+results[4].count];
+      const values=[results[0].count,results[1].count,results[2].count+" / 3",results[3].count+" / "+results[4].count,results[5].count];
       $("devCounts").querySelectorAll("dd").forEach((e,i)=>e.textContent=String(values[i]));
       $("devConnection").textContent="조회 성공";
       $("devAuth").textContent="현재 세션: Developer · 서버 회원 조회 확인";
+      lastDiagnostic={format:"sfc-diagnostic-v1",checked_at:new Date().toISOString(),role:"developer",query_status:"success",counts:{all_posts:results[0].count,draft_status:results[1].count,operational_admins:results[2].count,people:results[3].count,activities:results[4].count,settings:results[5].count}};$("devExport").disabled=false;
     }catch(e){if(active()){$("devConnection").textContent="조회 실패";$("devAuth").textContent="조회 상태를 확인할 수 없습니다.";}}
     finally{if(active()){$("devRefresh").disabled=false;$("devChecked").textContent="최근 진단: "+new Date().toLocaleString("ko-KR");}}
   }
   $("devRefresh").addEventListener("click",developerDiagnostic);
+  $("devExport").addEventListener("click",()=>{
+    if(util().getRole()!=="developer"||!lastDiagnostic)return;
+    const url=URL.createObjectURL(new Blob([JSON.stringify(lastDiagnostic,null,2)],{type:"application/json"}));
+    const link=document.createElement("a");link.href=url;link.download="sfc-diagnostic-"+new Date().toISOString().slice(0,10)+".json";document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  });
   $("devGoAccounts").addEventListener("click",()=>{if(util().getRole()==="developer")util().showPane("access");});
-  window.addEventListener("sfc:admin-cleared",()=>{diagnosticSequence++;$("devRefresh").disabled=false;});
+  window.addEventListener("sfc:admin-cleared",()=>{diagnosticSequence++;lastDiagnostic=null;$("devRefresh").disabled=false;$("devExport").disabled=true;});
   async function openPane(pane){
     try{
       if(pane==="site"||pane==="recruitment")await fetchSettings(pane);
