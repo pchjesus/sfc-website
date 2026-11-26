@@ -186,7 +186,7 @@
   async function loadPeople(){
     state.people=await queryAll("cms_people");renderPeople();
   }
-  $("newPerson").addEventListener("click",clearPerson);
+  $("newPerson").addEventListener("click",()=>clearPerson());
   $("peopleForm").addEventListener("submit",async event=>{
     event.preventDefault();
     const save=event.currentTarget.querySelector('button[type="submit"]');
@@ -241,7 +241,7 @@
     }
   }
   async function loadSessions(){state.sessions=await queryAll("cms_sessions");renderSessions();}
-  $("newSession").addEventListener("click",clearSession);
+  $("newSession").addEventListener("click",()=>clearSession());
   $("sessionForm").addEventListener("submit",async event=>{
     event.preventDefault();
     const save=event.currentTarget.querySelector('button[type="submit"]');
