@@ -5,6 +5,7 @@ on:
     branches:
       - preview/sfc-v2.8-motion
       - preview/sfc-v2.8-cinematic-rebuild
+      - preview/sfc-v2.8.3-reveal-rebuild
   pull_request:
     branches:
       - main
