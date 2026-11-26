@@ -57,8 +57,11 @@
     animation?.cancel();animation=null;
     if(!reduced.matches&&panel.animate){
       animation=panel.querySelector(".experience-description").animate(
-        [{opacity:.49,transform:"translateX(16px)"},{opacity:1,transform:"none"}],
-        {duration:760,easing:"cubic-bezier(.16,1,.3,1)"}
+        [{opacity:0,transform:"translateX(26px)",offset:0},
+         {opacity:.20,transform:"translateX(18px)",offset:.38},
+         {opacity:.72,transform:"translateX(4px)",offset:.8},
+         {opacity:1,transform:"none",offset:1}],
+        {duration:1190,easing:"cubic-bezier(.42,0,.58,1)",fill:"backwards"}
       );
     }
     window.SFC_V28?.stage(index);
