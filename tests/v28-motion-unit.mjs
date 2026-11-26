@@ -128,7 +128,7 @@ const updates=root("updates",{"#updatesList":news});
 api.enter(updates);
 assertSignature(updates,"publication-line-ink");
 assert.equal(last("updates:.updates-section-heading").frames[0].clipPath,"inset(0 100% 0 0)");
-assert.equal(last("post1").frames[0].clipPath,"inset(0 100% 0 0)");
+assert.equal(last("post1").frames[0].clipPath,"inset(100% 0 0 0)");
 
 api.stage(0);
 assert.equal(last("observe-edge").options.duration,850);
