@@ -35,7 +35,17 @@ def capture(browser,label,route,width=1440,height=900):
     errors=[]
     page.on("pageerror",lambda e:errors.append(str(e)))
     page.goto(base+"#"+route,wait_until="domcontentloaded")
-    page.wait_for_timeout(1450)
+    # Capture the actual growing-opacity curve, not only the finished frame.
+    # Videos run from navigation, so these PNGs establish distinct phases.
+    if route in ("home","about","activities") and width>=1000:
+        elapsed=0
+        for t in (180,820,1500,2400):
+            page.wait_for_timeout(t-elapsed)
+            elapsed=t
+            page.screenshot(path=str(OUT/(f"{label}-t{t:04d}.png")),
+                animations="allow",full_page=False)
+    else:
+        page.wait_for_timeout(2400)
     if route=="home":
         page.locator(".hero-controls button").nth(1).click()
         page.wait_for_timeout(1450)
