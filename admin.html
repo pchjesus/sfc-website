@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="css/integrated.css?v=2.6-preview">
 <script defer src="js/cms-config.js?v=2.0"></script>
 <script defer src="js/cms-core.js?v=2.0"></script>
-<script defer src="js/cms-admin.js?v=2.0"></script>
+<script defer src="js/cms-admin.js?v=3.0-prep-p1"></script>
 <script defer src="js/cms-studio.js?v=2.9.0-qa"></script>
 </head>
 <body>
@@ -54,10 +54,10 @@
 <button type="button" data-status="published">게시됨</button>
 <button type="button" data-status="scheduled">예약</button>
 <button type="button" data-status="trash">휴지통</button></div>
-<div id="adminPostList" class="admin-post-list"></div></aside>
+<div id="recoveryControls" hidden><label>이 탭의 복구본<select id="recoverySelect"><option value="">복구본 선택</option></select></label><div class="editor-toolbar"><button type="button" id="recoverWork" class="secondary">열기</button><button type="button" id="discardRecovery" class="secondary">복구본 삭제</button></div></div><div id="adminPostList" class="admin-post-list"></div></aside>
 <section class="studio-editor">
 <form id="postForm" novalidate>
-<div class="editor-topline"><span class="eyebrow" id="editorMode">NEW ARTICLE</span><span id="editorSavedAt" role="status">아직 저장되지 않음</span></div>
+<div class="editor-topline"><span class="eyebrow" id="editorMode">NEW ARTICLE</span><span id="editorSavedAt" role="status">아직 저장되지 않음</span></div><p class="editor-hint" id="editorSaveDetail" role="status"></p>
 <label>글 유형<select id="postKind"><option value="notice">공지사항</option><option value="research">Research</option><option value="activity">활동 소식</option></select></label>
 <label>제목<input id="postTitle" required maxlength="180" minlength="3" placeholder="제목을 입력하세요"></label>
 <label>요약<textarea id="postExcerpt" rows="2" maxlength="350" placeholder="목록에 표시할 간단한 소개"></textarea></label>
@@ -78,14 +78,14 @@
 <label>대표 이미지 URL<input id="postCoverUrl" type="url" placeholder="https://..."></label>
 <label>대표 이미지 업로드<input id="postCoverFile" type="file" accept="image/jpeg,image/png,image/webp"></label>
 <label>첨부 PDF URL<input id="postAttachmentUrl" type="url" placeholder="https://..."></label>
-<label>첨부 PDF 업로드<input id="postPdfFile" type="file" accept="application/pdf"></label>
+<label>첨부 PDF 업로드<input id="postPdfFile" type="file" accept="application/pdf"></label><p class="editor-hint">임시저장은 텍스트만 서버에 저장합니다. 선택한 파일은 공개 허가 확인 후 즉시 발행할 때 업로드됩니다. 예약 발행에는 공개 첨부를 연결하지 않습니다.</p><p class="editor-hint" id="editorFileNote" role="status"></p><button type="button" id="discardPendingFiles" class="secondary" hidden>첨부 선택 취소</button>
 </div>
 <label>예약 발행 (선택, 현지 시간)<input type="datetime-local" id="postSchedule"><span class="form-help">미래 시각을 지정한 뒤 '게시'하면 해당 시각부터 공개돼요. 빈칸이면 즉시 게시합니다.</span></label>
 <div class="editor-toolbar"><button type="button" id="previewButton" class="secondary">미리보기</button><button type="button" id="saveDraft" class="secondary">임시저장</button><button type="button" id="publishPost" class="primary">게시하기 ↗</button></div>
 </form>
 <div id="previewPanel" class="preview-panel" hidden><span class="eyebrow">ARTICLE PREVIEW</span><h2 id="previewTitle"></h2><p id="previewExcerpt"></p><p id="previewResearchMeta" class="editor-hint"></p>
 <div class="cms-richtext" id="previewBody"></div>
-<div id="previewResearchNotes" class="cms-richtext"></div><button type="button" id="closePreview" class="secondary">편집으로 돌아가기</button></div>
+<div id="previewResearchNotes" class="cms-richtext"></div><a id="previewLocalPdf" class="secondary" target="_blank" rel="noopener noreferrer" hidden>선택한 PDF 열기 (이 기기)</a><button type="button" id="closePreview" class="secondary">편집으로 돌아가기</button></div>
 <div class="editor-danger"><button type="button" id="unpublishPost" hidden>게시 취소</button><button type="button" id="trashPost" hidden>휴지통으로</button><button type="button" id="restorePost" hidden>복구하기</button><button type="button" id="deletePost" hidden>영구 삭제</button><button type="button" id="historyButton" hidden>수정 이력</button></div>
 <div id="historyPanel" class="studio-history" hidden><div class="studio-history-head"><h3>수정 이력</h3><button type="button" id="historyClose">닫기</button></div><p class="editor-hint">이전을 선택하면 편집기에 불러와져요. 실제 복원은 다시 저장한 후 적용됩니다.</p><div id="historyList"></div></div>
 </section></div></section>
