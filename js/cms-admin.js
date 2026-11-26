@@ -113,7 +113,10 @@
   function clearPreviewFile(){if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl=null;$("previewLocalPdf").hidden=true;$("previewLocalPdf").removeAttribute("href");}
   function restoreScratch(id,force=false){
     const v=readScratch(id);if(!v||v.userId!==user?.id||v.workId!==id||!v.values)return;
-    if(!force&&!confirm("이전에 저장되지 않은 편집 내용이 있어요. 복구할까요? (취소해도 목록에 남습니다.)"))return;
+    if(!force&&!confirm("이전에 저장되지 않은 편집 내용이 있어요. 복구할까요? (취소해도 목록에 남습니다.)")){
+      // A new editing session must never overwrite a deferred recovery.
+      const fresh=crypto.randomUUID();workId=fresh;return;
+    }
     if(Object.hasOwn(v.values,"postTitle"))for(const field of editorFields)$(field).value=typeof v.values[field]==="string"?v.values[field]:"";
     else applyForm(v.values);
     pendingFiles={};for(const field of ["postCoverFile","postPdfFile"])if(typeof v.pendingFiles?.[field]==="string")pendingFiles[field]=v.pendingFiles[field];
@@ -137,7 +140,7 @@
       if(!stash()&&!confirm("복구본을 저장하지 못했습니다. 그래도 이동할까요?"))return false;
     }
     clearTimeout(autosaveTimer);clearTimeout(stashTimer);clearPreviewFile();
-    current=item||null;workId=item?.id||newId||crypto.randomUUID();dirty=false;pendingFiles={};blockedRecovery=false;applyForm(item);pendingNotice();
+    current=item||null;workId=newId||item?.id||crypto.randomUUID();dirty=false;pendingFiles={};blockedRecovery=false;applyForm(item);pendingNotice();
     const trashed=Boolean(item?.deleted_at);
     $("editorMode").textContent=item?"EDIT / "+(trashed?"TRASHED":item.status.toUpperCase()):"NEW ARTICLE";
     $("editorSavedAt").textContent=item?"마지막 저장 "+cms.dateText(item.updated_at):"아직 저장되지 않음";detail("");
@@ -151,7 +154,7 @@
   function newPost(){selectPost(null);}
   function openRecovery(){
     const id=$("recoverySelect").value,v=readScratch(id);if(!v)return;
-    const item=posts.find(p=>p.id===id);
+    const item=posts.find(p=>p.id===(v.id||id));
     if(!item&&v.id){notify("서버 글을 먼저 확인해 주세요. 복구본은 보존됩니다.",true);return;}
     if(item?.deleted_at){notify("휴지통의 글은 먼저 복구해 주세요.",true);return;}
     if(selectPost(item||null,true,id))restoreScratch(id,true);
@@ -247,7 +250,7 @@
     }
     const active=()=>user?.id===owner&&epoch===started&&workId===id;
     let saved=false;
-    stash();busyMode(true);if(status==="published")$("postForm").inert=true;$("editorSavedAt").textContent="저장 중";detail("서버 저장 요청 중");
+    busyMode(true);stash();if(status==="published")$("postForm").inert=true;$("editorSavedAt").textContent="저장 중";detail("서버 저장 요청 중");
     try{
       if(status==="published"){
         const img=await upload(imageFile,"image");if(!active())return;
