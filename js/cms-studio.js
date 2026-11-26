@@ -53,6 +53,11 @@
     return [dt.getFullYear(),pad(dt.getMonth()+1),pad(dt.getDate())].join("-")+"T"+pad(dt.getHours())+":"+pad(dt.getMinutes());
   }
   function buttonBusy(button,state){button.disabled=state;}
+  function allowDiscard(key){
+    if(busyForms[key])return false;
+    if(!dirtyForms[key])return true;
+    return confirm("저장하지 않은 입력 내용이 있습니다. 다른 항목으로 이동하면 내용이 사라집니다. 계속할까요?");
+  }
   async function fetchSettings(pane){
     const {data,error}=await client().from("cms_site_settings").select("key,value,updated_at");
     if(error)throw error;
@@ -150,13 +155,13 @@
     finally{lockForm("recruitment",false);buttonBusy(button,false);}
   });
   function clearPerson(force=false){
-    if(busyForms.people&&!force)return;
+    if(!force&&!allowDiscard("people"))return;
     $("personId").value="";$("personName").value="";$("personPosition").value="";
     $("personTerm").value="";$("personBio").value="";$("personOrder").value="0";$("personVisible").checked=true;
     dirtyForms.people=false;
   }
   function editPerson(item){
-    if(busyForms.people)return;
+    if(!allowDiscard("people"))return;
     $("personId").value=item.id;$("personName").value=item.name;
     $("personPosition").value=item.position||"";$("personTerm").value=item.term||"";
     $("personBio").value=item.bio||"";$("personOrder").value=String(item.sort_order||0);
@@ -173,11 +178,11 @@
       const controls=n("div","studio-record-actions");
       const edit=n("button","","편집");edit.type="button";edit.addEventListener("click",()=>editPerson(p));
       const del=n("button","","삭제");del.type="button";del.addEventListener("click",async()=>{
-        if(!confirm(p.name+" 님의 프로필을 삭제할까요?"))return;
+        if(!allowDiscard("people")||!confirm(p.name+" 님의 프로필을 삭제할까요?"))return;
         del.disabled=true;
         const {error}=await client().from("cms_people").delete().eq("id",p.id);
         if(error)toast("삭제 실패: "+error.message,true);
-        else{await loadPeople();clearPerson();toast("인물 정보를 삭제했습니다.");}
+        else{await loadPeople();clearPerson(true);toast("인물 정보를 삭제했습니다.");}
         del.disabled=false;
       });
       controls.append(edit,del);row.append(info,controls);list.append(row);
@@ -206,14 +211,14 @@
     finally{lockForm("people",false);buttonBusy(save,false);}
   });
   function clearSession(force=false){
-    if(busyForms.sessions&&!force)return;
+    if(!force&&!allowDiscard("sessions"))return;
     $("sessionId").value="";$("sessionWeek").value="";$("sessionTitle").value="";
     $("sessionSummary").value="";$("sessionDetail").value="";$("sessionStage").value="foundation";
     $("sessionOrder").value="0";$("sessionVisible").checked=true;
     dirtyForms.sessions=false;
   }
   function editSession(s){
-    if(busyForms.sessions)return;
+    if(!allowDiscard("sessions"))return;
     $("sessionId").value=s.id;$("sessionWeek").value=s.week_label;
     $("sessionTitle").value=s.title;$("sessionSummary").value=s.summary||"";
     $("sessionDetail").value=s.detail||"";$("sessionStage").value=s.stage;
@@ -230,11 +235,11 @@
       const controls=n("div","studio-record-actions");
       const edit=n("button","","편집");edit.type="button";edit.addEventListener("click",()=>editSession(s));
       const del=n("button","","삭제");del.type="button";del.addEventListener("click",async()=>{
-        if(!confirm(s.title+" 과정을 삭제할까요?"))return;
+        if(!allowDiscard("sessions")||!confirm(s.title+" 과정을 삭제할까요?"))return;
         del.disabled=true;
         const {error}=await client().from("cms_sessions").delete().eq("id",s.id);
         if(error)toast("삭제 실패: "+error.message,true);
-        else{await loadSessions();clearSession();toast("교육과정을 삭제했습니다.");}
+        else{await loadSessions();clearSession(true);toast("교육과정을 삭제했습니다.");}
         del.disabled=false;
       });
       controls.append(edit,del);row.append(info,controls);list.append(row);
