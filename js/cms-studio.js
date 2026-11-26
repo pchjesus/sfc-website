@@ -185,11 +185,14 @@
       const edit=n("button","","편집");edit.type="button";edit.addEventListener("click",()=>editPerson(p));
       const del=n("button","","삭제");del.type="button";del.addEventListener("click",async()=>{
         if(!allowDiscard("people")||!confirm(p.name+" 님의 프로필을 삭제할까요?"))return;
-        del.disabled=true;
-        const {error}=await client().from("cms_people").delete().eq("id",p.id);
-        if(error)toast("삭제 실패: "+error.message,true);
-        else{await loadPeople();clearPerson(true);toast("인물 정보를 삭제했습니다.");}
-        del.disabled=false;
+        del.disabled=true;lockForm("people",true);
+        try{
+          const {error}=await client().from("cms_people").delete().eq("id",p.id);
+          if(error)throw error;
+          await loadPeople();clearPerson(true);
+          toast("인물 정보를 삭제했습니다.");
+        }catch(error){toast("삭제 실패: "+(error.message||error),true);}
+        finally{lockForm("people",false);del.disabled=false;}
       });
       controls.append(edit,del);row.append(info,controls);list.append(row);
     }
@@ -242,11 +245,14 @@
       const edit=n("button","","편집");edit.type="button";edit.addEventListener("click",()=>editSession(s));
       const del=n("button","","삭제");del.type="button";del.addEventListener("click",async()=>{
         if(!allowDiscard("sessions")||!confirm(s.title+" 과정을 삭제할까요?"))return;
-        del.disabled=true;
-        const {error}=await client().from("cms_sessions").delete().eq("id",s.id);
-        if(error)toast("삭제 실패: "+error.message,true);
-        else{await loadSessions();clearSession(true);toast("교육과정을 삭제했습니다.");}
-        del.disabled=false;
+        del.disabled=true;lockForm("sessions",true);
+        try{
+          const {error}=await client().from("cms_sessions").delete().eq("id",s.id);
+          if(error)throw error;
+          await loadSessions();clearSession(true);
+          toast("교육과정을 삭제했습니다.");
+        }catch(error){toast("삭제 실패: "+(error.message||error),true);}
+        finally{lockForm("sessions",false);del.disabled=false;}
       });
       controls.append(edit,del);row.append(info,controls);list.append(row);
     }
