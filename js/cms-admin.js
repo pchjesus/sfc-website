@@ -225,6 +225,7 @@
     if(status==="draft"&&current?.status==="published"&&!unpublish){if(stash())detail("공개본은 유지됩니다. 수정 내용은 이 기기에만 보관됩니다.");return;}
     if(blockedRecovery){if(!automatic)notify("복구본과 서버 버전이 다릅니다. 비교 후 새로 편집해 주세요.",true);return;}
     if(automatic&&(!dirty||current?.status==="published"))return;
+    if(!automatic&&status==="draft"&&!unpublish&&!dirty&&current&&!hasPending()){detail("마지막 서버 저장: "+savedTime());return;}
     clearTimeout(autosaveTimer);
     let draft;
     try{draft=readPost();}catch(e){if(!automatic)notify(e.message,true);return;}
@@ -246,7 +247,7 @@
     }
     const active=()=>user?.id===owner&&epoch===started&&workId===id;
     let saved=false;
-    stash();busyMode(true);$("editorSavedAt").textContent="저장 중";detail("서버 저장 요청 중");
+    stash();busyMode(true);if(status==="published")$("postForm").inert=true;$("editorSavedAt").textContent="저장 중";detail("서버 저장 요청 중");
     try{
       if(status==="published"){
         const img=await upload(imageFile,"image");if(!active())return;
@@ -260,7 +261,7 @@
       if(current){
         response=await client.from("cms_posts").update(payload).eq("id",current.id)
           .eq("updated_at",current.updated_at).select("*").maybeSingle();
-        if(!response.error&&!response.data)throw Error("다른 관리자가 수정했을 수 있어요. 최신 글을 다시 확인해 주세요.");
+        if(!response.error&&!response.data){const conflict=Error("다른 관리자가 수정했을 수 있어요. 최신 글을 다시 확인해 주세요.");conflict.isConflict=true;throw conflict;}
       }else{
         response=await client.from("cms_posts").insert({...payload,id,author_id:owner}).select("*").single();
       }
@@ -285,9 +286,9 @@
       $("publishPost").textContent=status==="published"?"변경사항 게시 ↗":"게시하기 ↗";
       try{await loadPosts();}catch(e){if(active())notify("글은 저장됐지만 목록 갱신 실패: "+e.message,true);}
       if(active()&&!automatic)notify(status==="published"?(current.scheduled_at&&new Date(current.scheduled_at)>new Date()?"예약 발행이 저장되었습니다.":"공개 게시되었습니다."):"임시저장이 완료되었습니다.");
-    }catch(e){if(active()){clearTimeout(autosaveTimer);$("editorSavedAt").textContent="저장 실패";detail((navigator.onLine?"서버 저장 실패 / 충돌 가능":"오프라인")+" · 입력 유지 · 마지막 서버 저장: "+savedTime());stash();notify((automatic?"자동저장":"저장")+" 실패: "+(e.message||e),true);}}
+    }catch(e){if(active()){clearTimeout(autosaveTimer);$("editorSavedAt").textContent="저장 실패";detail((e.isConflict?"저장 충돌":navigator.onLine?"서버 저장 실패":"오프라인")+" · 입력 유지 · 마지막 서버 저장: "+savedTime());stash();notify((automatic?"자동저장":"저장")+" 실패: "+(e.message||e),true);}}
     finally{
-      if(active())busyMode(false);
+      if(active()){$("postForm").inert=false;busyMode(false);}
       if(active()&&saved&&dirty&&current?.status==="draft"){
         clearTimeout(autosaveTimer);autosaveTimer=setTimeout(()=>savePost("draft",true),3500);
       }
