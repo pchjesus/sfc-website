@@ -229,7 +229,7 @@ with sync_playwright() as p:
       return a?{duration:a.effect.getTiming().duration,frames:a.effect.getKeyframes().map(k=>({opacity:k.opacity,height:k.height,transform:k.transform}))}:null;
     });
   }""",[root,control,value])
-  assert len(result)==expected and all(a and a['duration']==620 for a in result),result
+  assert len(result)==expected and all(a and a['duration']==780 for a in result),result
   assert all(all(k.get('transform') in (None,'none') for k in a['frames']) for a in result),result
   expect(x.locator('.motion-snapshot-layer')).to_have_count(0)
   x.wait_for_function("(root)=>document.querySelector(root).getAnimations({subtree:true}).length===0",arg=root)
@@ -246,7 +246,7 @@ with sync_playwright() as p:
  assert str(forward['frames'][-1]['opacity']) in ('1','1.0')
  ok('activities disjoint 5-to-2 and 2-to-5 swaps share the same timeline')
  duration=x.evaluate("""()=>{navigate('recruitment');return document.querySelector('#recruitment').getAnimations()[0].effect.getTiming().duration}""")
- assert duration==920,'v2.8.2 must restore the 920ms whole-scene settle'
+ assert duration==1420,'v2.8.3 must gradually reveal the full scene over 1420ms'
  x.locator('#applicationTrigger').scroll_into_view_if_needed()
  # Wait for viewport-triggered transforms before positioning the mouse.
  x.wait_for_function("""()=>{const e=document.querySelector('#applicationTrigger');return [e.closest('.application-cta'),e.closest('.view')].every(n=>!n||n.getAnimations().length===0)}""")
@@ -291,12 +291,12 @@ with sync_playwright() as p:
  x.locator('#archiveGridButton').click()
  expect(x.locator('#archiveResults')).to_have_class('archive-results grid')
  assert x.evaluate("window.v28FirstReport===document.querySelector('#archiveResults .archive-report')")
- assert x.evaluate("Boolean(window.SFC_V28?.enter) && window.SFC_MOTION.timing.layout===620")
+ assert x.evaluate("Boolean(window.SFC_V28?.enter) && window.SFC_MOTION.timing.layout===780")
  x.locator('#archiveListButton').click()
  expect(x.locator('#archiveResults')).to_have_class('archive-results')
  x.wait_for_function("document.querySelector('#archiveResults').getAnimations({subtree:true}).length===0")
  assert x.locator('.motion-snapshot-layer').count()==0
- ok('v2.8.2: list/grid preserves DOM while restored scene plays independently')
+ ok('v2.8.3: list/grid preserves DOM while restored scene plays independently')
  x.context.close()
  # Activities page title and supporting type must share the same size scale
  # as the other public tabs, rather than the older oversized default.
@@ -311,6 +311,31 @@ with sync_playwright() as p:
   assert x.evaluate("document.documentElement.scrollWidth <= innerWidth+1"),width
   x.context.close()
  ok('Activities title scale matches Research at four desktop/mobile widths')
+ # Long-duration visual opacity regression: the title must genuinely start
+ # transparent, remain partially faded mid-way, then finish fully visible.
+ # A delayed WAAPI effect must use fill:backwards to prevent pre-animation flashes.
+ x=page('anonymous')
+ x.goto(base+'/#home')
+ x.evaluate("navigate('about')")
+ heading=x.locator('#about .page-head h1')
+ x.wait_for_timeout(120)
+ early=float(heading.evaluate("e=>getComputedStyle(e).opacity"))
+ x.wait_for_timeout(650)
+ middle=float(heading.evaluate("e=>getComputedStyle(e).opacity"))
+ x.wait_for_timeout(1650)
+ finished=float(heading.evaluate("e=>getComputedStyle(e).opacity"))
+ assert 0<=early<0.12,(early,middle,finished)
+ assert early<middle<0.93,(early,middle,finished)
+ assert finished>=.98,(early,middle,finished)
+ x.evaluate("navigate('activities')")
+ activity_title=x.locator('#activities .page-head h1')
+ x.wait_for_timeout(150)
+ early_activity=float(activity_title.evaluate("e=>getComputedStyle(e).opacity"))
+ assert early_activity<0.15,early_activity
+ x.wait_for_timeout(2300)
+ assert float(activity_title.evaluate("e=>getComputedStyle(e).opacity"))>=.98
+ ok('v2.8.3: headings start nearly invisible and fade smoothly over 1.5–2 seconds')
+ x.context.close()
  # About experience communicates 4 distinct stages without a real-results claim.
  x=page('anonymous');x.goto(base+'/#about')
  expect(x.locator('.about-reason')).to_have_count(3)
