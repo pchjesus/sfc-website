@@ -2,7 +2,7 @@
 (() => {
  const clone=v=>JSON.parse(JSON.stringify(v));
  const row=(id,title,status='draft')=>({id,title,status,kind:'notice',body:'Original body',excerpt:'',updated_at:'2026-01-01T00:00:00Z',deleted_at:null,scheduled_at:null});
- window.mock={mode:'admin',delay:0,conflict:false,fail:false,calls:[],clients:[],rows:[row('a','Article A'),row('b','Article B')],settings:[],sessions:[],people:[],history:[]};
+ window.mock={mode:'admin',delay:0,readDelay:0,conflict:false,fail:false,calls:[],clients:[],rows:[row('a','Article A'),row('b','Article B')],settings:[],sessions:[],people:[],history:[]};
  const m=window.mock;
  window.supabase={createClient:(url,key,options)=>{
   m.clients.push(options);
@@ -16,7 +16,7 @@
    q.ilike=(key,pattern)=>{q.filters.push([key,{pattern}]);return q;};
    q.select=(columns='*',opt={})=>{q.columns=columns;q.withCount=opt.count==='exact';return q;};
    q.eq=(k,v)=>{q.filters.push([k,v]);return q;};q.is=q.eq;
-   q.update=v=>{q.op='update';q.payload=v;return q;};q.insert=v=>{q.op='insert';q.payload=v;return q;};q.delete=()=>{q.op='delete';return q;};
+   q.update=v=>{q.op='update';q.payload=v;return q;};q.insert=v=>{q.op='insert';q.payload=v;return q;};q.upsert=v=>{q.op='upsert';q.payload=v;return q;};q.delete=()=>{q.op='delete';return q;};
    q.single=q.maybeSingle=()=>{q.one=true;return q;};
    q.then=(resolve,reject)=>(async()=>{
     if(q.op!=='select'){
@@ -24,6 +24,22 @@
      if(m.delay)await new Promise(r=>setTimeout(r,m.delay));
      if(m.fail)return {data:null,error:{message:'simulated failure'}};
      if(m.conflict)return {data:null,error:null};
+     // Structured Studio tables use separate collections and optimistic
+     // version filters; the old mock incorrectly wrote everything to posts.
+     if(['cms_site_settings','cms_people','cms_sessions'].includes(table)){
+       const dest=table==='cms_site_settings'?m.settings:table==='cms_people'?m.people:m.sessions;
+       let saved;
+       if(q.op==='insert'){
+         saved={id:'new-'+m.calls.length,...q.payload};dest.push(saved);
+       }else if(q.op==='upsert'){
+         saved=dest.find(r=>r.key===q.payload.key);
+         if(!saved){saved={...q.payload};dest.push(saved);}
+       }else saved=dest.find(r=>q.filters.every(([k,v])=>r[k]===v));
+       if(!saved)return {data:null,error:null};
+       if(q.op==='delete'){dest.splice(dest.indexOf(saved),1);return {data:clone(saved),error:null};}
+       Object.assign(saved,q.payload);
+       return {data:clone(saved),error:null};
+     }
      let saved;
      if(q.op==='insert'){saved=row('new-'+m.calls.length,q.payload.title);m.rows.push(saved);}
      else saved=m.rows.find(r=>q.filters.every(([k,v])=>r[k]===v));
@@ -34,6 +50,7 @@
      m.history.push({id:m.history.length+1,post_id:saved.id,snapshot:clone(saved)});
      return {data:clone(saved),error:null};
     }
+    if(m.readDelay&&table==='cms_site_settings')await new Promise(r=>setTimeout(r,m.readDelay));
     let data=table==='cms_admins'?(m.mode==='admin'?[{user_id:'test-user',email:'test@example.invalid'}]:[]):table==='cms_posts'?m.rows:table==='cms_site_settings'?m.settings:table==='cms_post_revisions'?m.history:table==='cms_sessions'?m.sessions:table==='cms_people'?m.people:[];
     data=data.filter(r=>q.filters.every(([k,v])=>{
       if(v&&typeof v==='object'&&v.pattern)return String(r[k]||'').toLowerCase().includes(v.pattern.replace(/[%*]/g,'').toLowerCase());

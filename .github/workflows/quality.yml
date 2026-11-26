@@ -36,3 +36,4 @@ jobs:
       - run: python tests/browser-check.py
       - run: python tests/integrated-check.py
       - run: python tests/people-recruitment-check.py
+      - run: python tests/v29-structured-studio-check.py

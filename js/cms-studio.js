@@ -4,6 +4,27 @@
   const util=()=>window.SFC_STUDIO;
   const cms=window.SFC_CMS;
   const state={site:{},recruitment:{},people:[],sessions:[],admins:[]};
+  // Never overwrite unsubmitted structured CMS input with asynchronous reads.
+  const dirtyForms={site:false,recruitment:false,people:false,sessions:false};
+  const busyForms={site:false,recruitment:false,people:false,sessions:false};
+  const settingVersions={site:null,recruitment:null};
+  const formIds={site:"siteForm",recruitment:"recruitForm",people:"peopleForm",sessions:"sessionForm"};
+  function lockForm(key,locked){
+    busyForms[key]=locked;
+    const form=document.getElementById(formIds[key]);
+    form.inert=locked;
+    form.setAttribute("aria-busy",String(locked));
+  }
+  for(const [key,id] of Object.entries(formIds)){
+    const form=document.getElementById(id);
+    form.addEventListener("input",()=>{if(!busyForms[key])dirtyForms[key]=true;});
+    form.addEventListener("change",()=>{if(!busyForms[key])dirtyForms[key]=true;});
+  }
+  window.addEventListener("beforeunload",event=>{
+    if(Object.values(dirtyForms).some(Boolean)){
+      event.preventDefault();event.returnValue="";
+    }
+  });
   const n=(tag,cls,text)=>{
     const e=document.createElement(tag);
     if(cls)e.className=cls;
@@ -32,11 +53,27 @@
     return [dt.getFullYear(),pad(dt.getMonth()+1),pad(dt.getDate())].join("-")+"T"+pad(dt.getHours())+":"+pad(dt.getMinutes());
   }
   function buttonBusy(button,state){button.disabled=state;}
-  async function fetchSettings(){
-    const {data,error}=await client().from("cms_site_settings").select("key,value");
+  function allowDiscard(key){
+    if(busyForms[key])return false;
+    if(!dirtyForms[key])return true;
+    return confirm("저장하지 않은 입력 내용이 있습니다. 다른 항목으로 이동하면 내용이 사라집니다. 계속할까요?");
+  }
+  const settingReadTickets={site:0,recruitment:0};
+  async function fetchSettings(pane){
+    if(!(pane in settingReadTickets))return;
+    const ticket=++settingReadTickets[pane];
+    // Read only the pane being displayed. A Recruitment read must never
+    // advance Site's version while its old inputs are still on screen.
+    const {data,error}=await client().from("cms_site_settings")
+      .select("key,value,updated_at").eq("key",pane).maybeSingle();
     if(error)throw error;
-    for(const row of data||[])state[row.key]=row.value||{};
-    fillSite();fillRecruitment();
+    if(!data)throw new Error("설정 데이터를 찾을 수 없습니다. 관리자에게 문의해 주세요.");
+    if(ticket!==settingReadTickets[pane]||dirtyForms[pane]||busyForms[pane])return;
+    // The form and the optimistic-concurrency token are updated as one snapshot.
+    state[pane]=data.value||{};
+    settingVersions[pane]=data.updated_at||null;
+    if(pane==="site")fillSite();
+    else fillRecruitment();
   }
   function fillSite(){
     const v=state.site;
@@ -64,11 +101,20 @@
     }
   }
   async function persistSetting(key,value){
-    const {data,error}=await client().from("cms_site_settings")
-      .upsert({key,value,updated_at:new Date().toISOString()},{onConflict:"key"})
-      .select("key,value").single();
+    // Both records are seeded by SQL migration. Saving with an unknown
+    // version would bypass conflict checking and silently replace an unseen
+    // record after a failed initial read.
+    if(!settingVersions[key])throw new Error("설정의 최신 버전을 읽지 못했습니다. 새로고침한 뒤 다시 저장해 주세요.");
+    const updated_at=new Date().toISOString();
+    const request=client().from("cms_site_settings").update({value,updated_at})
+      .eq("key",key).eq("updated_at",settingVersions[key])
+      .select("key,value,updated_at").maybeSingle();
+    const {data,error}=await request;
     if(error)throw error;
+    if(!data)throw new Error("다른 관리자가 먼저 수정한 설정입니다. 입력 내용은 유지됩니다. 복사한 뒤 페이지를 새로고침해 최신 상태를 확인하세요.");
     state[key]=data.value||{};
+    settingVersions[key]=data.updated_at||updated_at;
+    dirtyForms[key]=false;
   }
   $("siteForm").addEventListener("submit",async event=>{
     event.preventDefault();
@@ -83,16 +129,16 @@
     };
     if(data.contact_email&&(!$("siteContactEmail").checkValidity()))
       return toast("이메일 주소를 확인해 주세요.",true);
-    buttonBusy(button,true);
+    buttonBusy(button,true);lockForm("site",true);
     try{await persistSetting("site",data);toast("홈페이지 문구를 저장했습니다. 공개 페이지에서 반영됩니다.");}
     catch(e){toast("저장 실패: "+e.message,true);}
-    finally{buttonBusy(button,false);}
+    finally{lockForm("site",false);buttonBusy(button,false);}
   });
   $("recruitForm").addEventListener("submit",async event=>{
     event.preventDefault();
     if(!client())return;
     const button=event.currentTarget.querySelector('button[type="submit"]');
-    buttonBusy(button,true);
+    buttonBusy(button,true);lockForm("recruitment",true);
     try{
       const start_at=formToIso(textVal("recruitStart")),end_at=formToIso(textVal("recruitEnd"));
       if(start_at&&end_at&&new Date(start_at)>=new Date(end_at))throw Error("모집 마감은 시작 시각보다 나중이어야 합니다.");
@@ -112,17 +158,21 @@
       fillRecruitment();
       toast("모집 설정과 지원서 파일을 저장했습니다.");
     }catch(e){toast("모집 설정 저장 실패: "+(e.message||e),true);}
-    finally{buttonBusy(button,false);}
+    finally{lockForm("recruitment",false);buttonBusy(button,false);}
   });
-  function clearPerson(){
+  function clearPerson(force=false){
+    if(!force&&!allowDiscard("people"))return;
     $("personId").value="";$("personName").value="";$("personPosition").value="";
     $("personTerm").value="";$("personBio").value="";$("personOrder").value="0";$("personVisible").checked=true;
+    dirtyForms.people=false;
   }
   function editPerson(item){
+    if(!allowDiscard("people"))return;
     $("personId").value=item.id;$("personName").value=item.name;
     $("personPosition").value=item.position||"";$("personTerm").value=item.term||"";
     $("personBio").value=item.bio||"";$("personOrder").value=String(item.sort_order||0);
     $("personVisible").checked=item.visible;
+    dirtyForms.people=false;
   }
   function renderPeople(){
     const list=$("peopleList");list.replaceChildren();
@@ -134,12 +184,15 @@
       const controls=n("div","studio-record-actions");
       const edit=n("button","","편집");edit.type="button";edit.addEventListener("click",()=>editPerson(p));
       const del=n("button","","삭제");del.type="button";del.addEventListener("click",async()=>{
-        if(!confirm(p.name+" 님의 프로필을 삭제할까요?"))return;
-        del.disabled=true;
-        const {error}=await client().from("cms_people").delete().eq("id",p.id);
-        if(error)toast("삭제 실패: "+error.message,true);
-        else{await loadPeople();clearPerson();toast("인물 정보를 삭제했습니다.");}
-        del.disabled=false;
+        if(!allowDiscard("people")||!confirm(p.name+" 님의 프로필을 삭제할까요?"))return;
+        del.disabled=true;lockForm("people",true);
+        try{
+          const {error}=await client().from("cms_people").delete().eq("id",p.id);
+          if(error)throw error;
+          await loadPeople();clearPerson(true);
+          toast("인물 정보를 삭제했습니다.");
+        }catch(error){toast("삭제 실패: "+(error.message||error),true);}
+        finally{lockForm("people",false);del.disabled=false;}
       });
       controls.append(edit,del);row.append(info,controls);list.append(row);
     }
@@ -147,7 +200,7 @@
   async function loadPeople(){
     state.people=await queryAll("cms_people");renderPeople();
   }
-  $("newPerson").addEventListener("click",clearPerson);
+  $("newPerson").addEventListener("click",()=>clearPerson());
   $("peopleForm").addEventListener("submit",async event=>{
     event.preventDefault();
     const save=event.currentTarget.querySelector('button[type="submit"]');
@@ -156,26 +209,30 @@
       term:textVal("personTerm"),bio:textVal("personBio"),
       sort_order:Number($("personOrder").value)||0,visible:$("personVisible").checked};
     if(!payload.name)return toast("성명을 입력해 주세요.",true);
-    buttonBusy(save,true);
+    buttonBusy(save,true);lockForm("people",true);
     try{
       let result;
       if(id)result=await client().from("cms_people").update(payload).eq("id",id);
       else result=await client().from("cms_people").insert(payload);
       if(result.error)throw result.error;
-      await loadPeople();clearPerson();toast("People 정보가 저장되었습니다.");
+      await loadPeople();clearPerson(true);toast("People 정보가 저장되었습니다.");
     }catch(e){toast("저장 실패: "+e.message,true);}
-    finally{buttonBusy(save,false);}
+    finally{lockForm("people",false);buttonBusy(save,false);}
   });
-  function clearSession(){
+  function clearSession(force=false){
+    if(!force&&!allowDiscard("sessions"))return;
     $("sessionId").value="";$("sessionWeek").value="";$("sessionTitle").value="";
     $("sessionSummary").value="";$("sessionDetail").value="";$("sessionStage").value="foundation";
     $("sessionOrder").value="0";$("sessionVisible").checked=true;
+    dirtyForms.sessions=false;
   }
   function editSession(s){
+    if(!allowDiscard("sessions"))return;
     $("sessionId").value=s.id;$("sessionWeek").value=s.week_label;
     $("sessionTitle").value=s.title;$("sessionSummary").value=s.summary||"";
     $("sessionDetail").value=s.detail||"";$("sessionStage").value=s.stage;
     $("sessionOrder").value=String(s.sort_order||0);$("sessionVisible").checked=s.visible;
+    dirtyForms.sessions=false;
   }
   function renderSessions(){
     const list=$("sessionsList");list.replaceChildren();
@@ -187,18 +244,21 @@
       const controls=n("div","studio-record-actions");
       const edit=n("button","","편집");edit.type="button";edit.addEventListener("click",()=>editSession(s));
       const del=n("button","","삭제");del.type="button";del.addEventListener("click",async()=>{
-        if(!confirm(s.title+" 과정을 삭제할까요?"))return;
-        del.disabled=true;
-        const {error}=await client().from("cms_sessions").delete().eq("id",s.id);
-        if(error)toast("삭제 실패: "+error.message,true);
-        else{await loadSessions();clearSession();toast("교육과정을 삭제했습니다.");}
-        del.disabled=false;
+        if(!allowDiscard("sessions")||!confirm(s.title+" 과정을 삭제할까요?"))return;
+        del.disabled=true;lockForm("sessions",true);
+        try{
+          const {error}=await client().from("cms_sessions").delete().eq("id",s.id);
+          if(error)throw error;
+          await loadSessions();clearSession(true);
+          toast("교육과정을 삭제했습니다.");
+        }catch(error){toast("삭제 실패: "+(error.message||error),true);}
+        finally{lockForm("sessions",false);del.disabled=false;}
       });
       controls.append(edit,del);row.append(info,controls);list.append(row);
     }
   }
   async function loadSessions(){state.sessions=await queryAll("cms_sessions");renderSessions();}
-  $("newSession").addEventListener("click",clearSession);
+  $("newSession").addEventListener("click",()=>clearSession());
   $("sessionForm").addEventListener("submit",async event=>{
     event.preventDefault();
     const save=event.currentTarget.querySelector('button[type="submit"]');
@@ -208,15 +268,15 @@
       stage:$("sessionStage").value,sort_order:Number($("sessionOrder").value)||0,
       visible:$("sessionVisible").checked};
     if(!payload.week_label||!payload.title)return toast("주차와 제목을 입력해 주세요.",true);
-    buttonBusy(save,true);
+    buttonBusy(save,true);lockForm("sessions",true);
     try{
       const result=id
         ? await client().from("cms_sessions").update(payload).eq("id",id)
         : await client().from("cms_sessions").insert(payload);
       if(result.error)throw result.error;
-      await loadSessions();clearSession();toast("Activities 프로그램이 저장되었습니다.");
+      await loadSessions();clearSession(true);toast("Activities 프로그램이 저장되었습니다.");
     }catch(e){toast("저장 실패: "+e.message,true);}
-    finally{buttonBusy(save,false);}
+    finally{lockForm("sessions",false);buttonBusy(save,false);}
   });
   async function loadAdmins(){
     const {data,error}=await client().from("cms_admins").select("user_id,email,created_at").order("created_at",{ascending:true});
@@ -289,7 +349,7 @@
   });
   async function openPane(pane){
     try{
-      if(pane==="site"||pane==="recruitment")await fetchSettings();
+      if(pane==="site"||pane==="recruitment")await fetchSettings(pane);
       if(pane==="people")await loadPeople();
       if(pane==="sessions")await loadSessions();
       if(pane==="access")await loadAdmins();
