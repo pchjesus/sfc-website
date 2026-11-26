@@ -2,9 +2,9 @@
 /* Shared motion system: persistent controls, keyed reflow, visible-only animation. */
 (function(){
   const media=matchMedia("(prefers-reduced-motion: reduce)");
-  const ease="cubic-bezier(.42,0,.58,1)";
+  const ease="cubic-bezier(.40,0,.20,1)";
   // Fast controls and deliberate spatial reflow feel smoother than long full-page fades.
-  const timing=Object.freeze({page:1420,recruitment:1560,reveal:1400,unveil:1550,layout:780,modal:650,close:530,hero:1490});
+  const timing=Object.freeze({page:760,recruitment:1170,reveal:1150,unveil:1210,layout:670,modal:540,close:420,hero:930});
   const running=new WeakMap();
   const handlers=new WeakMap();
   const seen=new WeakSet();
@@ -212,13 +212,13 @@
         if(window.SFC_V28?.visible?.(el))continue;
         let kind=el.dataset.motion||"rise";
         if(innerWidth<760&&(kind==="left"||kind==="right"))kind="rise";
-        const starts={rise:"translateY(38px)",left:"translateX(-60px)",right:"translateX(60px)",scale:"scale(.97)",fade:"none"};
+        const starts={rise:"translateY(19px)",left:"translateX(-25px)",right:"translateX(25px)",scale:"scale(.985)",fade:"none"};
         const duration=kind==="unveil"?timing.unveil:timing.reveal;
         play(el,[
           {opacity:0,transform:starts[kind]||starts.rise,offset:0},
-          {opacity:.04,transform:starts[kind]||starts.rise,offset:.15},
-          {opacity:.25,transform:"translateY(8px)",offset:.45},
-          {opacity:.78,transform:"none",offset:.83},
+          {opacity:.16,transform:starts[kind]||starts.rise,offset:.22},
+          {opacity:.66,transform:"translateY(3px)",offset:.68},
+          {opacity:.92,transform:"none",offset:.9},
           {opacity:1,transform:"none",offset:1}
         ],{duration,delay:Math.min((Number(el.dataset.motionDelay)||0)*1.9,250),fill:"backwards"});
       }
