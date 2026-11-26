@@ -39,13 +39,13 @@ def capture(browser,label,route,width=1440,height=900):
     # Videos run from navigation, so these PNGs establish distinct phases.
     if route in ("home","about","activities") and width>=1000:
         elapsed=0
-        for t in (180,820,1500,2400):
+        for t in (120,520,1050,1700):
             page.wait_for_timeout(t-elapsed)
             elapsed=t
             page.screenshot(path=str(OUT/(f"{label}-t{t:04d}.png")),
                 animations="allow",full_page=False)
     else:
-        page.wait_for_timeout(2400)
+        page.wait_for_timeout(1750)
     if route=="home":
         page.locator(".hero-controls button").nth(1).click()
         page.wait_for_timeout(1450)
@@ -109,4 +109,4 @@ finally:
 
 if error_count:
     raise RuntimeError(f"Video capture page errors: {error_count}")
-print("PASS: 9 videos and 9 screenshots from real branch HTML and mock CMS")
+print("PASS: 9 videos, 9 final screenshots and 12 four-phase screenshots from actual branch HTML with mock CMS")
