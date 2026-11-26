@@ -166,7 +166,7 @@ function setSlide(index){
   $("heroButton").style.backgroundColor=entry.color;
   $("heroButton").dataset.route=entry.route;
   copy.getAnimations().forEach(a=>a.cancel());
-  motion.play(copy,[{opacity:.25,transform:"translateY(10px)"},{opacity:1,transform:"none"}],{duration:motion.timing.hero});
+  window.SFC_V28?.slide(copy);
   resetSlideshow(true);
 }
 function syncHeroLabels(){

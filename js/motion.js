@@ -2,9 +2,9 @@
 /* Shared motion system: persistent controls, keyed reflow, visible-only animation. */
 (function(){
   const media=matchMedia("(prefers-reduced-motion: reduce)");
-  const ease="cubic-bezier(.4,0,.2,1)";
-  const timing=Object.freeze({page:520,recruitment:570,reveal:780,unveil:950,layout:550,modal:410,close:300,hero:720});
-  let pageAnimation=null;
+  const ease="cubic-bezier(.40,0,.20,1)";
+  // Fast controls and deliberate spatial reflow feel smoother than long full-page fades.
+  const timing=Object.freeze({page:760,recruitment:1170,reveal:1150,unveil:1210,layout:670,modal:540,close:420,hero:930});
   const running=new WeakMap();
   const handlers=new WeakMap();
   const seen=new WeakSet();
@@ -33,7 +33,7 @@
     const can=animate&&!reduced()&&root.getClientRects().length>0&&before.rect.width>0&&before.map.size>0;
     // Snapshot the old list in its original layout, not individual fixed-position
     // buttons. This keeps the grid/typography intact in disjoint filter swaps.
-    const snapshot=can&&exit&&!interrupted?root.cloneNode(true):null;
+    const snapshot=can&&exit&&!interrupted&&before.map.size<=10?root.cloneNode(true):null;
     stop(root);
     mutate();
     if(!can)return;
@@ -67,13 +67,22 @@
       const old=before.map.get(key);
       if(old){
         const dx=old.rect.left-next.rect.left,dy=old.rect.top-next.rect.top;
-        if(Math.abs(dx)+Math.abs(dy)>1||old.opacity<.99)
-          run(next.el,[{transform:"translate("+dx+"px,"+dy+"px)",opacity:old.opacity},{transform:"translate(0,0)",opacity:1}],{duration:timing.layout});
+        if(Math.abs(dx)+Math.abs(dy)>1||old.opacity<.99){
+          // A soft optical settle keeps moving text legible and prevents
+          // list/grid cards from looking like hard overlapping duplicates.
+          const startOpacity=Math.hypot(dx,dy)>90?Math.min(old.opacity,.84):old.opacity;
+          run(next.el,[{transform:"translate("+dx+"px,"+dy+"px)",opacity:startOpacity},
+            {transform:"translate(0,0)",opacity:1}],{duration:timing.layout});
+        }
       }else{
         // No vertical replacement gesture for unrelated results, irrespective
         // of whether their counts are equal or different.
-        const move=disjoint?"none":"translateY(6px)";
-        run(next.el,[{opacity:0,transform:move,offset:0},{opacity:0,transform:move,offset:interrupted?.12:.30},{opacity:1,transform:"none",offset:1}],{duration:timing.layout,fill:"backwards"});
+        const move=disjoint?"none":"translateY(13px)";
+        run(next.el,[
+          {opacity:0,transform:move,offset:0},
+          {opacity:.20,transform:move,offset:.35},
+          {opacity:1,transform:"none",offset:1}
+        ],{duration:690,fill:"backwards"});
       }
     }
     if(Math.abs(before.rect.height-after.rect.height)>1){
@@ -198,13 +207,20 @@
         const el=e.target;observer.unobserve(el);
         if(seen.has(el))continue;seen.add(el);
         el.classList.add("visible");
+        // Distinct page choreography takes precedence over generic reveal.
+        // All text is present and legible before a non-blocking animation starts.
+        if(window.SFC_V28?.visible?.(el))continue;
         let kind=el.dataset.motion||"rise";
         if(innerWidth<760&&(kind==="left"||kind==="right"))kind="rise";
-        const starts={rise:"translateY(14px)",left:"translateX(-18px)",right:"translateX(18px)",scale:"scale(.985)",fade:"translateY(0)"};
-        const recruitment=el.closest("#recruitment");
-        const duration=recruitment?timing.recruitment:timing.reveal;
-        if(kind==="unveil")play(el,[{opacity:.3,clipPath:"inset(0 0 9% 0)"},{opacity:1,clipPath:"inset(0 0 0 0)"}],{duration:timing.unveil});
-        else play(el,[{opacity:.28,transform:starts[kind]||starts.rise},{opacity:1,transform:"none"}],{duration,delay:Math.min((Number(el.dataset.motionDelay)||0)*1.25,150),fill:"backwards"});
+        const starts={rise:"translateY(19px)",left:"translateX(-25px)",right:"translateX(25px)",scale:"scale(.985)",fade:"none"};
+        const duration=kind==="unveil"?timing.unveil:timing.reveal;
+        play(el,[
+          {opacity:0,transform:starts[kind]||starts.rise,offset:0},
+          {opacity:.16,transform:starts[kind]||starts.rise,offset:.22},
+          {opacity:.66,transform:"translateY(3px)",offset:.68},
+          {opacity:.92,transform:"none",offset:.9},
+          {opacity:1,transform:"none",offset:1}
+        ],{duration,delay:Math.min((Number(el.dataset.motionDelay)||0)*1.9,250),fill:"backwards"});
       }
     },{threshold:.06});
     root.querySelectorAll(".reveal,[data-motion]").forEach(el=>{
@@ -220,9 +236,11 @@
   }
   function page(root){
     if(!root)return;
-    pageAnimation?.cancel();
-    pageAnimation=play(root,[{opacity:.35},{opacity:.85,offset:.58},{opacity:1}],{duration:root.id==="recruitment"?timing.recruitment:timing.page});
+    // v2.8.2: cinematic composition restores a visible, smoothly settling
+    // scene on every route entry, with semantic child choreography.
+    // DOM state and pointer interaction remain available throughout.
     reveal(root);
+    window.SFC_V28?.enter?.(root);
   }
   window.SFC_MOTION=Object.freeze({reduced,timing,play,reconcile,transition,filterRows,controls,accordion,reveal,page,stop});
   media.addEventListener?.("change",()=>{if(reduced()){document.getAnimations().forEach(a=>a.cancel());document.querySelectorAll(".reveal,[data-motion]").forEach(el=>el.classList.add("visible"));}});

@@ -1,0 +1,275 @@
+/* SFC v2.8.4 — distinct page signatures, balanced optical pacing and Activity proportions / balanced Activities scale
+ * Built on the v2.7 visual language, not a replacement design.
+ */
+:root{
+  --v282-hero:1360ms;
+  --v282-scene:1100ms;
+  --v282-enter:1180ms;
+  --v282-layout:670ms;
+  --v282-control:420ms;
+  --v282-ease:cubic-bezier(.40,0,.20,1);
+  --v282-settle:cubic-bezier(.4,0,.2,1);
+  --motion-fast:300ms;
+  --motion-control:440ms;
+  --motion-layout:670ms;
+  --motion-reveal:1150ms;
+  --motion-photo:1360ms;
+}
+/* Spatial elements may begin outside their reading column. Clip only
+   horizontal visual overflow so 768px/tablet scroll width never jumps. */
+.view{overflow-x:clip}
+/* Restore rich, non-jarring transitions from v2.7 rather than snapping
+   every control and scene to the shortest possible timing. */
+.nav-links button::after{transition:right 510ms var(--v282-ease)}
+.nav-links button{transition:color 360ms var(--v282-settle)}
+.nav-links.open{transition:transform 620ms var(--v282-ease)}
+.nav-links{transition:transform 620ms var(--v282-ease)}
+.motion-controls::after{
+  transition:transform 560ms var(--v282-ease),width 560ms var(--v282-ease)
+}
+.motion-controls button{
+  transition:background-color 420ms var(--v282-ease),
+    color 380ms var(--v282-settle),border-color 410ms var(--v282-ease)
+}
+.hero-button,.application-cta-button,.application-primary,.application-secondary{
+  transition:background-color 520ms var(--v282-ease),color 380ms ease,
+    border-color 460ms ease,transform 490ms var(--v282-ease)
+}
+.hero-button span,.application-cta-button span,.row-arr,.detail-related-arrow{
+  transition:transform 510ms var(--v282-ease)
+}
+/* Home — preserve the cinematic photographs. A lengthy, eased crossfade
+   and a separate, slightly shorter copy entrance form one composition. */
+#home .hero-photo{transition:opacity var(--v282-hero) var(--v282-settle)}
+#home .hero-photo img{transition:transform 10s linear}
+#home .featured-photo img{transition:transform 1100ms var(--v282-ease)}
+#home .featured-work:hover .featured-photo img{transform:scale(1.035)}
+#home .process-point>span{
+  transition:color 720ms var(--v282-ease),opacity 720ms var(--v282-ease)
+}
+#home .home-value-compact em{transition:color 850ms var(--v282-ease)}
+/* About — the selected step, SVG layer and adjacent explanation breathe together. */
+#about .experience-step{
+  transition:background-color 510ms var(--v282-ease),
+    color 480ms var(--v282-settle),border-color 500ms var(--v282-ease)
+}
+#about .experience-step.selected::before{
+  transition:background-color 540ms var(--v282-ease)
+}
+#about .experience-visual-stage{
+  transition:opacity 650ms var(--v282-ease),
+    transform 720ms var(--v282-ease),visibility 0s 720ms
+}
+#about .experience-visual-stage.active{
+  transition:opacity 650ms var(--v282-ease),
+    transform 720ms var(--v282-ease),visibility 0s
+}
+#about .experience-visual-stage.active path[stroke],
+#about .experience-visual-stage.active rect{
+  animation:none!important
+}
+#about #experienceNext{transition:color 480ms ease,border-color 500ms ease}
+/* Research — spatial continuity of the same report remains the primary animation. */
+#research .archive-report{
+  transition:background-color 450ms var(--v282-settle),
+    border-color 480ms var(--v282-settle)
+}
+#research .archive-results:not(.grid) .archive-report:hover,
+#research .archive-results:not(.grid) .archive-report:focus-visible{
+  padding-left:5px
+}
+#research .archive-report-arrow{
+  transition:transform 480ms var(--v282-ease)
+}
+#research .archive-sector,#research .archive-view-toggle button{
+  transition:color 380ms ease,background-color 420ms var(--v282-ease),
+    border-color 450ms var(--v282-ease)
+}
+/* ACTIVITIES VISUAL PROPORTION FIX.
+   v2.7 excluded #activities from the same page-head sizing rule applied
+   to all other tabs. Align its title, introduction and space scale first. */
+#activities .page-head{
+  padding-top:clamp(49px,5.1vw,64px);
+  padding-bottom:32px
+}
+#activities .page-head h1{
+  font-size:clamp(45px,5.5vw,76px);
+  line-height:1.04;
+  letter-spacing:-.045em
+}
+#activities .page-head p{
+  font-size:15px;
+  line-height:1.85;
+  max-width:690px;
+  color:#526675
+}
+#activities .schedule-header{
+  padding:clamp(26px,3.2vw,38px) 0 13px;
+  gap:20px
+}
+#activities .schedule-header strong{
+  font-size:12px;
+  line-height:1.7;
+  letter-spacing:.10em
+}
+#activities .schedule-header small{
+  font-size:11px;
+  letter-spacing:.055em
+}
+#activities .journey-context{
+  margin-top:19px;
+  padding:clamp(23px,3.2vw,37px) 2px 24px;
+  gap:clamp(16px,3vw,34px);
+  align-items:center
+}
+#activities .journey-context h2{
+  font-size:clamp(27px,3.05vw,39px);
+  line-height:1.27;
+  margin:11px 0 12px
+}
+#activities .journey-context p{
+  font-size:14px;
+  line-height:1.9;
+  max-width:780px
+}
+#activities .journey-week{
+  font-size:13px;
+  letter-spacing:.11em;
+  color:#426075
+}
+#activities #scheduleTabs.motion-controls{
+  padding-bottom:18px!important;
+  margin-bottom:13px
+}
+#activities #scheduleTabs.motion-controls button{
+  min-height:88px;
+  gap:13px;
+  font-size:13px!important;
+  padding:0 12px 16px!important;
+  transition:color 420ms var(--v282-ease),
+    background-color 420ms var(--v282-ease)
+}
+#activities #scheduleTabs.motion-controls button::before{
+  transition:background-color 470ms var(--v282-ease),
+    border-color 470ms var(--v282-ease),
+    transform 470ms var(--v282-ease)
+}
+#activities #scheduleList{
+  margin-top:8px;
+  margin-bottom:clamp(64px,6vw,92px)
+}
+#activities .session-button{
+  grid-template-columns:82px minmax(0,1.14fr) minmax(180px,.85fr) 27px;
+  gap:clamp(14px,2.5vw,29px);
+  padding:clamp(22px,2.7vw,29px) 6px;
+  transition:background-color 430ms var(--v282-settle),
+    padding 480ms var(--v282-ease)
+}
+#activities .session-button strong{
+  font-size:clamp(19px,2.15vw,26px);
+  line-height:1.35;
+  letter-spacing:-.025em
+}
+#activities .session-button .week{font-size:12px}
+#activities .session-button .summary{font-size:14px;line-height:1.75}
+#activities .session-button .plus{
+  font-size:22px;
+  transition:transform 580ms var(--v282-ease)
+}
+#activities .session-body{
+  transition:grid-template-rows 590ms var(--v282-ease),
+    opacity 570ms var(--v282-ease)
+}
+#activities .session-body p{
+  padding:0 40px 29px 102px;
+  font-size:14px;
+  line-height:1.9
+}
+/* People — editorial names/roles remain immediately readable. */
+#people .team-node{
+  transition:background-color 470ms var(--v282-ease),
+    border-color 470ms var(--v282-ease)
+}
+#people .team-node-index{
+  transition:color 540ms var(--v282-ease)
+}
+/* Recruitment — status changes are immediate, surface settles afterward. */
+#recruitment #recruitActionCard{
+  transition:background-color 650ms var(--v282-ease),
+    color 490ms ease,border-color 600ms var(--v282-ease)
+}
+#recruitment .recruit-fact{
+  transition:border-color 630ms var(--v282-ease)
+}
+#recruitment .faq-answer{
+  transition:grid-template-rows 540ms var(--v282-ease),
+    opacity 510ms var(--v282-ease)
+}
+/* Updates — a paced editorial appearance rather than brisk list flicker. */
+#updates .cms-card{
+  transition:background-color 420ms var(--v282-ease),
+    border-color 440ms var(--v282-ease),color 390ms ease
+}
+/* Modal: backdrop and panel settle as one layer. */
+.application-dialog::backdrop{animation:backdrop-in 530ms var(--v282-ease)}
+.application-close{transition:background-color 380ms ease,color 380ms ease}
+@media(max-width:760px){
+  .nav-links{transition:transform 650ms var(--v282-ease)}
+  #activities .page-head{padding-top:clamp(49px,5.1vw,64px)}
+  #activities .page-head h1{font-size:clamp(42px,8.7vw,60px)}
+  #activities .journey-context{
+    grid-template-columns:1fr;
+    gap:12px;
+    padding-top:23px
+  }
+  #activities .journey-context h2{font-size:clamp(25px,5.6vw,34px)}
+  #activities .journey-context p{font-size:13px;line-height:1.85}
+  #activities .journey-week{font-size:12px}
+  #activities #scheduleTabs.motion-controls button{
+    min-height:80px;
+    font-size:11px!important;
+    gap:11px;
+    padding:0 6px 13px!important
+  }
+  #activities .session-button{
+    grid-template-columns:67px minmax(0,1fr) 25px;
+    gap:9px 13px;
+    padding:22px 5px
+  }
+  #activities .session-button strong{font-size:19px}
+  #activities .session-button .summary{
+    grid-column:2;
+    grid-row:2;
+    font-size:13px;
+    line-height:1.65
+  }
+  #activities .session-button .plus{grid-column:3;grid-row:1/3}
+  #activities .session-body p{padding:0 12px 25px 80px;font-size:13px}
+}
+@media(max-width:480px){
+  #activities .page-head h1{font-size:43px}
+  #activities .page-head p{font-size:14px}
+  #activities .schedule-header{gap:10px;flex-wrap:wrap}
+  #activities .journey-context h2{font-size:27px}
+  #activities #scheduleTabs.motion-controls button{
+    min-height:77px;
+    font-size:10.5px!important;
+    padding:0 4px 12px!important
+  }
+  #activities .session-button{
+    grid-template-columns:59px minmax(0,1fr) 24px;
+    gap:9px 10px
+  }
+  #activities .session-button strong{font-size:18px}
+  #activities .session-button .summary{font-size:12.5px}
+  #activities .session-body p{padding:0 12px 24px 69px;font-size:12.5px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:0.01ms!important;
+    animation-delay:0ms!important;
+    transition-duration:0.01ms!important;
+    scroll-behavior:auto!important
+  }
+  #home .hero-photo img{transform:none!important}
+}

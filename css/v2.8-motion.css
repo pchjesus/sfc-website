@@ -1,0 +1,142 @@
+/* SFC v2.8 — purpose-driven motion. Loaded last.
+ * No content is hidden as a prerequisite for JavaScript or an animation.
+ * The interactive state is always committed before its decorative transition.
+ */
+:root{
+  --v28-smooth:cubic-bezier(.22,1,.36,1);
+  --v28-state:cubic-bezier(.25,.8,.25,1);
+  --v28-fast:185ms;
+  --v28-medium:290ms;
+  --v28-layout:355ms;
+  --motion-fast:185ms;
+  --motion-control:260ms;
+  --motion-layout:355ms;
+  --motion-reveal:350ms;
+  --motion-photo:800ms;
+}
+/* Navigation: focus is immediate and selected indicators follow the state. */
+.nav-links button::after{transition:right 240ms var(--v28-smooth)}
+.nav-links button{transition:color var(--v28-fast) ease}
+.motion-controls::after{
+  transition:transform 260ms var(--v28-smooth),width 260ms var(--v28-smooth)
+}
+.motion-controls button{transition:background-color 185ms ease,color 185ms ease}
+.motion-controls button:focus-visible{outline:2px solid #d56e4e;outline-offset:-3px}
+/* Common links react without moving their surrounding text. */
+.line-link,.home-value-link,.people-join-link,.cms-post-back,.cms-download{
+  transition:color 185ms ease,border-color 185ms ease,opacity 185ms ease
+}
+.hero-button,.application-cta-button,.application-primary,.application-secondary{
+  transition:background-color 250ms var(--v28-state),color 185ms ease,
+    border-color 185ms ease,transform 230ms var(--v28-smooth),filter 185ms ease
+}
+.hero-button span,.application-cta-button span,.row-arr,.detail-related-arrow{
+  transition:transform 260ms var(--v28-smooth)
+}
+/* Home: photography remains the dominant moving surface.
+ * Supporting sections emphasize hierarchy without another broad fade-up. */
+#home .hero-photo{transition:opacity 800ms var(--v28-state)}
+#home .hero-photo img{transition:transform 10s linear}
+#home .home-value-compact em{
+  transition:color 350ms var(--v28-smooth)
+}
+#home .featured-work{transition:border-color 270ms var(--v28-state)}
+#home .featured-work:hover,#home .featured-work:focus-visible{border-color:#c8d8e1}
+#home .process-point>span{
+  transition:color 270ms var(--v28-smooth),opacity 270ms ease
+}
+#home .join-layout a:focus-visible{outline-offset:5px}
+/* About: same 3-line text geometry, distinct SVG sketches per phase. */
+#about .about-photo-panel .about-approved-copy .about-line{display:block!important}
+#about .experience-step{
+  transition:background-color 240ms var(--v28-smooth),color 210ms ease,
+    border-color 240ms var(--v28-smooth)
+}
+#about .experience-step::before{
+  transition:background-color 240ms var(--v28-smooth)
+}
+#about .experience-visual-stage{
+  transition:opacity 330ms var(--v28-smooth),
+    transform 330ms var(--v28-smooth),visibility 0s 330ms
+}
+#about .experience-visual-stage.active{
+  transition:opacity 330ms var(--v28-smooth),
+    transform 330ms var(--v28-smooth),visibility 0s
+}
+/* Old generic shape animations compete with phase-specific artwork. */
+#about .experience-visual-stage.active path[stroke],
+#about .experience-visual-stage.active rect{
+  animation:none!important
+}
+/* Research: reflow itself conveys list <-> grid and sorting changes.
+ * Stop the hover padding shift which otherwise fights FLIP geometry. */
+#research .archive-report{
+  transition:background-color 220ms ease,border-color 230ms ease
+}
+#research .archive-results:not(.grid) .archive-report:hover,
+#research .archive-results:not(.grid) .archive-report:focus-visible{padding-left:5px}
+#research .archive-report-arrow{transition:transform 240ms var(--v28-smooth)}
+#research .archive-sector,.archive-view-toggle button{
+  transition:color 200ms ease,background-color 200ms ease,border-color 200ms ease
+}
+#research .archive-report-label{opacity:1}
+#research .archive-error,#research .archive-empty{animation:none}
+/* Activities: original information layout and session DOM remain untouched. */
+#activities .journey-context{transition:border-color 240ms var(--v28-state)}
+#activities .journey-progress>span{
+  transition:width 320ms var(--v28-smooth),transform 320ms var(--v28-smooth)
+}
+#activities .session-body,#activities .cms-session-detail{
+  transition:grid-template-rows 320ms var(--v28-smooth),
+    opacity 265ms var(--v28-smooth)
+}
+/* People: names and responsibilities stay visible; index line is the accent. */
+#people .team-node{
+  transition:border-color 200ms var(--v28-smooth),
+    background-color 200ms var(--v28-smooth)
+}
+#people .team-node-index{transition:color 210ms ease,opacity 210ms ease}
+#people .team-node:hover .team-node-index{color:#bc674b}
+/* Recruitment: planned/open/closed is data, not a progress animation.
+ * Copy and CTA change immediately; only their surface color settles. */
+#recruitment #recruitActionCard{
+  transition:background-color 190ms var(--v28-state),
+    color 190ms ease,border-color 190ms ease
+}
+#recruitment .recruit-fact{
+  transition:border-color 240ms var(--v28-state)
+}
+#recruitment .process-step{
+  transition:border-color 200ms var(--v28-state)
+}
+#recruitment .faq-answer{
+  transition:grid-template-rows 310ms var(--v28-smooth),
+    opacity 265ms var(--v28-smooth)
+}
+/* Updates: calm editorial row separation and immediate error states. */
+#updates .cms-card{
+  transition:background-color 180ms ease,border-color 200ms ease,color 180ms ease
+}
+#updates .cms-card:hover,#updates .cms-card:focus-within{
+  background-color:#f1f5f7
+}
+#updates .cms-empty-state{animation:none}
+/* Native dialogs retain focus/ESC semantics; small optical movement only. */
+.application-dialog::backdrop{animation:backdrop-in 280ms var(--v28-smooth)}
+.application-close{transition:background-color 170ms ease,color 170ms ease}
+/* Faster mobile menu, with no spring/bounce or ghost overlay. */
+@media(max-width:760px){
+  .nav-links{transition:transform 315ms var(--v28-smooth)}
+  #research .archive-results:not(.grid) .archive-report:hover,
+  #research .archive-results:not(.grid) .archive-report:focus-visible{padding-left:2px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    scroll-behavior:auto!important;
+    animation-duration:0.01ms!important;
+    animation-delay:0ms!important;
+    transition-duration:0.01ms!important
+  }
+  #home .hero-photo img{transform:none!important}
+  .motion-snapshot-layer{display:none!important}
+}

@@ -29,7 +29,8 @@ try:
    x.goto(base+'/#research')
    expect(x.locator('#researchWorkbench')).to_be_visible()
    expect(x.locator('#archiveResults .archive-report')).to_have_count(4)
-   expect(x.locator('#archiveMode')).to_contain_text('DEMONSTRATION')
+   expect(x.locator('#archiveMode')).to_contain_text('예시 자료 · 공식 발행 전')
+   assert x.locator('#archiveResults .archive-report-label').filter(has_text='DEMO / EQUITY RESEARCH').count()>=1
    x.locator('#archiveSectors button[data-value="케이스"]').click()
    expect(x.locator('#archiveResults .archive-report')).to_have_count(1)
    x.locator('#archiveSectors button[data-value="교육자료"]').click()

@@ -28,8 +28,10 @@
     progress.dataset.stage=next;
     const current=document.getElementById("journeyContext");
     current?.animate&&!motion.reduced()&&current.animate([
-      {opacity:.72,transform:"translateY(5px)"},{opacity:1,transform:"none"}
-    ],{duration:320,easing:"cubic-bezier(.4,0,.2,1)"});
+      {opacity:.20,offset:0},
+      {opacity:.72,offset:.65},
+      {opacity:1,offset:1}
+    ],{duration:560,easing:"cubic-bezier(.40,0,.20,1)",fill:"backwards"});
   }
   if(tabs){
     const observer=new MutationObserver(records=>{

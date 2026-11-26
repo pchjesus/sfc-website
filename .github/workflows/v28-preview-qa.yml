@@ -1,0 +1,53 @@
+name: SFC v2.8 Preview QA
+
+on:
+  push:
+    branches:
+      - preview/sfc-v2.8-motion
+      - preview/sfc-v2.8-cinematic-rebuild
+      - preview/sfc-v2.8.3-reveal-rebuild
+      - preview/sfc-v2.8.4-page-signatures
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    name: Static and source contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm test
+
+  browser:
+    name: Playwright browser regression (mock CMS)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Playwright and Chromium
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Check public UI, motion and Studio fixture
+        run: python tests/browser-check.py
+      - name: Record v2.8 visual motion review clips (mock CMS)
+        if: always()
+        run: python tests/v28-motion-capture.py
+      - name: Upload motion videos and viewport screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sfc-v28-motion-review
+          path: preview/v28-motion/
+          if-no-files-found: warn
+          retention-days: 14
