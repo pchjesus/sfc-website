@@ -57,11 +57,10 @@
     animation?.cancel();animation=null;
     if(!reduced.matches&&panel.animate){
       animation=panel.querySelector(".experience-description").animate(
-        [{opacity:0,transform:"translateX(26px)",offset:0},
-         {opacity:.20,transform:"translateX(18px)",offset:.38},
-         {opacity:.72,transform:"translateX(4px)",offset:.8},
-         {opacity:1,transform:"none",offset:1}],
-        {duration:1190,easing:"cubic-bezier(.42,0,.58,1)",fill:"backwards"}
+        [{opacity:0,clipPath:"inset(0 100% 0 0)",offset:0},
+         {opacity:.55,clipPath:"inset(0 30% 0 0)",offset:.60},
+         {opacity:1,clipPath:"inset(0 0 0 0)",offset:1}],
+        {duration:740,easing:"cubic-bezier(.40,0,.20,1)",fill:"backwards"}
       );
     }
     window.SFC_V28?.stage(index);
