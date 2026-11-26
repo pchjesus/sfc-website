@@ -155,3 +155,23 @@ textarea{resize:vertical;line-height:1.8}input[type=file]{font-size:12px;backgro
 .studio-backup p{font-size:13px;line-height:1.85;color:var(--muted);max-width:650px}
 .studio-backup small{display:block;font-size:11px;color:#7a8992;margin-top:13px}
 .studio-backup button{min-height:47px}
+
+/* v3.0 preparation: public header dimensions and authoring ergonomics. */
+.studio-header{height:76px;padding:0 clamp(20px,4vw,64px)}
+.studio-brand{display:flex;align-items:center;gap:17px;flex-shrink:0;letter-spacing:normal}
+.studio-brand .studio-brand-mark{font-size:36px;font-weight:700;letter-spacing:-.09em;line-height:1;color:var(--ink)}
+.studio-brand-mark i{color:#547f9e;font-style:normal}
+.studio-brand small{border-left:1px solid #c5cbd0;padding-left:17px;font-size:10px;line-height:1.6;letter-spacing:.16em;font-weight:700;margin:0;color:var(--ink)}
+.studio-auth .studio-back-link{display:block;width:max-content;margin-top:20px}
+.studio-post-search{margin-top:12px}.studio-post-search input{min-width:0}
+.studio-format-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.studio-format-bar button{border:1px solid var(--line);background:white;color:var(--ink);font-size:12px;padding:10px 12px}
+.studio-format-bar button[aria-pressed=true]{background:var(--ink);color:white}
+.studio-save-toolbar{position:sticky;bottom:0;background:#fff;padding:10px 0;z-index:3;border-top:1px solid var(--line)}
+.studio-editor.focused #postForm>label:not(:has(#postBody)):not(:has(#postTitle)),.studio-editor.focused #researchFields,.studio-editor.focused #postForm>.studio-field-grid{display:none}
+.studio-editor.focused #postBody{min-height:55vh}
+.preview-panel.mobile-preview{max-width:390px;margin-inline:auto;overflow-wrap:anywhere}
+#recoveryControls{padding:10px 0}#recoveryControls .editor-toolbar{justify-content:flex-start;margin-top:8px}
+#recoveryControls label{margin-bottom:6px}#recoveryControls .secondary{padding:8px 10px;min-height:40px}
+@media(max-width:760px){.studio-header{height:68px;padding:0 20px;gap:8px}.studio-brand .studio-brand-mark{font-size:34px}.studio-brand{gap:10px}.studio-brand small{font-size:9px;padding-left:10px}.studio-top-actions{gap:8px}.studio-top-actions #studioAccount{display:none!important}}
+@media(max-width:390px){.studio-header{gap:8px}.studio-brand small{font-size:8px;letter-spacing:.09em}.studio-top-actions{font-size:10px;gap:6px}}
