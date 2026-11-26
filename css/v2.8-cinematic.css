@@ -1,29 +1,29 @@
-/* SFC v2.8.2 — cinematic editorial motion / balanced Activities scale
+/* SFC v2.8.3 — transparent cinematic composition and Activity proportions / balanced Activities scale
  * Built on the v2.7 visual language, not a replacement design.
  */
 :root{
-  --v282-hero:1240ms;
-  --v282-scene:920ms;
-  --v282-enter:1050ms;
-  --v282-layout:620ms;
+  --v282-hero:1700ms;
+  --v282-scene:1420ms;
+  --v282-enter:1700ms;
+  --v282-layout:780ms;
   --v282-control:420ms;
-  --v282-ease:cubic-bezier(.16,1,.3,1);
-  --v282-settle:cubic-bezier(.22,.8,.25,1);
+  --v282-ease:cubic-bezier(.42,0,.58,1);
+  --v282-settle:cubic-bezier(.4,0,.2,1);
   --motion-fast:300ms;
   --motion-control:470ms;
-  --motion-layout:620ms;
-  --motion-reveal:820ms;
-  --motion-photo:1240ms;
+  --motion-layout:780ms;
+  --motion-reveal:1400ms;
+  --motion-photo:1700ms;
 }
 /* Spatial elements may begin outside their reading column. Clip only
    horizontal visual overflow so 768px/tablet scroll width never jumps. */
 .view{overflow-x:clip}
 /* Restore rich, non-jarring transitions from v2.7 rather than snapping
    every control and scene to the shortest possible timing. */
-.nav-links button::after{transition:right 480ms var(--v282-ease)}
+.nav-links button::after{transition:right 580ms var(--v282-ease)}
 .nav-links button{transition:color 360ms var(--v282-settle)}
-.nav-links.open{transition:transform 680ms var(--v282-ease)}
-.nav-links{transition:transform 680ms var(--v282-ease)}
+.nav-links.open{transition:transform 780ms var(--v282-ease)}
+.nav-links{transition:transform 780ms var(--v282-ease)}
 .motion-controls::after{
   transition:transform 560ms var(--v282-ease),width 560ms var(--v282-ease)
 }
