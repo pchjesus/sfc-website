@@ -125,7 +125,9 @@
     if(blockedRecovery){detail("복구본과 서버 버전이 다릅니다. 서버 최신본과 비교하기 전에는 저장할 수 없습니다. 내용을 복사하거나 복구 목록에서 다시 열 수 있습니다.");notify("저장 충돌: 복구본의 기준 버전이 다릅니다.",true);}
     else detail("이 기기의 복구본을 불러왔습니다. 확인 후 저장하세요.");
   }
+  function updateCounts(){ $("editorCounts").textContent="제목 "+$("postTitle").value.length+"/180 · 요약 "+$("postExcerpt").value.length+"/350 · 본문 "+$("postBody").value.length.toLocaleString()+"/50,000"; }
   function markChanged(schedule=true){
+    updateCounts();
     if(!user||!workId)return;
     dirty=true;$("editorSavedAt").textContent="저장되지 않은 변경사항";
     if(!blockedRecovery)detail("마지막 서버 저장: "+savedTime());
@@ -140,7 +142,7 @@
       if(!stash()&&!confirm("복구본을 저장하지 못했습니다. 그래도 이동할까요?"))return false;
     }
     clearTimeout(autosaveTimer);clearTimeout(stashTimer);clearPreviewFile();
-    current=item||null;workId=newId||item?.id||crypto.randomUUID();dirty=false;pendingFiles={};blockedRecovery=false;applyForm(item);pendingNotice();
+    current=item||null;workId=newId||item?.id||crypto.randomUUID();dirty=false;pendingFiles={};blockedRecovery=false;applyForm(item);pendingNotice();updateCounts();
     const trashed=Boolean(item?.deleted_at);
     $("editorMode").textContent=item?"EDIT / "+(trashed?"TRASHED":item.status.toUpperCase()):"NEW ARTICLE";
     $("editorSavedAt").textContent=item?"마지막 저장 "+cms.dateText(item.updated_at):"아직 저장되지 않음";detail("");
@@ -181,7 +183,8 @@
   function renderPosts(){
     const list=$("adminPostList");list.replaceChildren();
     $("postsCount").textContent=posts.filter(p=>!p.deleted_at).length+" POSTS";
-    const selected=posts.filter(included);
+    const query=$("postSearch").value.trim().toLocaleLowerCase("ko-KR");
+    const selected=posts.filter(p=>included(p)&&(!query||[p.title,p.research_author,p.research_company,p.research_sector,cms.kindNames[p.kind]].some(v=>String(v||"").toLocaleLowerCase("ko-KR").includes(query))));
     if(!selected.length){list.append(node("p","sidebar-empty","표시할 글이 없습니다."));return;}
     for(const post of selected){
       const b=node("button","admin-post-item"+(current?.id===post.id?" selected":""));
@@ -489,8 +492,19 @@
   $("discardRecovery").addEventListener("click",discardRecovery);
   window.addEventListener("keydown",event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="s"&&user&&!document.querySelector('[data-pane-view="posts"]').hidden){event.preventDefault();if(!busy)void savePost("draft");}});
   $("newPost").addEventListener("click",newPost);
+  $("postSearch").addEventListener("input",renderPosts);
+  document.querySelectorAll("[data-format]").forEach(button=>button.addEventListener("click",()=>{
+    if(busy||!user)return;const field=$("postBody"),start=field.selectionStart,end=field.selectionEnd;
+    const from=field.value.lastIndexOf("\n",start-1)+1;
+    const selection=field.value.slice(from,end);
+    const replacement=selection.split("\n").map(line=>button.dataset.format+line.replace(/^(?:#{1,3}|[-*])\s+/,"")).join("\n");
+    if(field.value.length-(end-from)+replacement.length>field.maxLength){notify("본문 글자 수 제한을 초과합니다.",true);return;}
+    field.setRangeText(replacement,from,end,"end");field.focus();markChanged();
+  }));
+  $("focusEditor").addEventListener("click",()=>{const on=$("focusEditor").getAttribute("aria-pressed")!=="true";$("focusEditor").setAttribute("aria-pressed",String(on));$("focusEditor").textContent=on?"집중 모드 종료":"집중 모드";document.querySelector(".studio-editor").classList.toggle("focused",on);});
+  $("previewWidth").addEventListener("click",()=>{const on=$("previewWidth").getAttribute("aria-pressed")!=="true";$("previewWidth").setAttribute("aria-pressed",String(on));$("previewWidth").textContent=on?"기본 폭 미리보기":"모바일 폭 미리보기";$("previewPanel").classList.toggle("mobile-preview",on);});
   $("saveDraft").addEventListener("click",()=>savePost("draft"));
-  $("publishPost").addEventListener("click",()=>savePost("published"));
+  $("publishPost").addEventListener("click",()=>{if(confirm("“"+($("postTitle").value.trim()||"제목 없는 글")+"” 글을 "+($("postSchedule").value?"예약 발행":"공개 게시")+"할까요? 공개 승인 여부를 확인해 주세요."))void savePost("published");});
   $("unpublishPost").addEventListener("click",()=>{if(confirm("공개 게시를 취소할까요? 기존 공개 파일 URL은 접근 가능할 수 있습니다."))void savePost("draft",false,true);});
   $("trashPost").addEventListener("click",()=>changeDeleted(false));
   $("restorePost").addEventListener("click",()=>changeDeleted(true));
