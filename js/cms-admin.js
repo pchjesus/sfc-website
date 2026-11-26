@@ -2,7 +2,7 @@
 (function(){
   const cms=window.SFC_CMS;
   const $=id=>document.getElementById(id);
-  let client=null,user=null,posts=[],current=null,busy=false,dirty=false,filter="all",checking=null,recovering=false;
+  let role=null,client=null,user=null,posts=[],current=null,busy=false,dirty=false,filter="all",checking=null,recovering=false;
   let autosaveTimer=null,stashTimer=null,toastTimer=null;
   const legacyKey="sfc-editor-draft-v2", recoveryPrefix="sfc-editor-draft-v3:";
   let workId=null,epoch=0,blockedRecovery=false,pendingFiles={},previewUrl=null;
@@ -20,6 +20,7 @@
     $("studioAccount").hidden=target!=="studioPanel";
   }
   function showPane(pane){
+    if(!user||(pane==="developer"&&role!=="developer"))return;
     document.querySelectorAll("[data-pane-view]").forEach(e=>e.hidden=e.dataset.paneView!==pane);
     document.querySelectorAll("[data-pane]").forEach(e=>{
       const active=e.dataset.pane===pane;e.classList.toggle("selected",active);e.setAttribute("aria-current",active?"page":"false");
@@ -394,6 +395,7 @@
   }
   function clearSession(preserve=true){
     if(preserve&&user&&(dirty||hasPending()))stash();
+    role=null;$("developerTab").hidden=true;$("studioRole").hidden=true;$("studioRole").textContent="";$("developerIdentity").hidden=true;$("developerEmail").textContent="";$("devConnection").textContent="확인 전";$("devAuth").textContent="권한 확인 전";$("devChecked").textContent="진단 기록 없음";$("devCounts").querySelectorAll("dd").forEach(e=>e.textContent="—");window.dispatchEvent(new Event("sfc:admin-cleared"));
     epoch++;clearTimeout(autosaveTimer);clearTimeout(stashTimer);clearPreviewFile();
     user=null;posts=[];current=null;workId=null;dirty=false;pendingFiles={};blockedRecovery=false;importManual=false;closeImport();clearImportReview();
     $("postForm").inert=false;busyMode(false);applyForm(null);pendingNotice();renderRecovery();$("adminPostList").replaceChildren();$("historyList").replaceChildren();$("previewBody").replaceChildren();$("previewTitle").textContent="";$("previewExcerpt").textContent="";$("previewResearchMeta").textContent="";$("previewResearchNotes").replaceChildren();$("studioAccount").textContent="";detail("");visible("studioLogin");
@@ -410,15 +412,24 @@
       const result=await client.from("cms_admins").select("user_id,email").eq("user_id",verified.id).maybeSingle();
       if(epoch!==started)return;
       if(result.error)throw result.error;
-      if(!result.data){
-        clearSession();await client.auth.signOut();visible("studioLogin");
-        notify("승인된 최고관리자 계정이 아닙니다.",true);return;
+      let nextRole=result.data?"admin":null;
+      if(!nextRole){
+        const owner=await client.from("cms_developers").select("user_id").eq("user_id",verified.id).maybeSingle();
+        if(epoch!==started)return;
+        if(owner.error&&!["42P01","PGRST205"].includes(owner.error.code))throw owner.error;
+        if(!owner.error&&owner.data?.user_id===verified.id)nextRole="developer";
       }
-      const changedUser=user?.id!==verified.id;
+      if(!nextRole){
+        clearSession();await client.auth.signOut();visible("studioLogin");
+        notify("승인된 운영 계정이 아닙니다.",true);return;
+      }
+      const changedUser=user?.id!==verified.id||role!==nextRole;
       if(changedUser)clearSession();
-      user=verified;const confirmedEpoch=epoch;
-      $("studioAccount").textContent=(verified.email||"최고관리자")+" · SUPERADMIN";
-      if(changedUser){migrateLegacy();await loadPosts();if(epoch!==confirmedEpoch||user?.id!==verified.id)return;selectPost(null,false);}
+      user=verified;role=nextRole;const confirmedEpoch=epoch;
+      $("studioRole").textContent=role==="developer"?"DEVELOPER":"ADMIN";$("studioRole").hidden=false;
+      $("studioAccount").textContent=verified.email||"운영 계정";
+      $("developerTab").hidden=role!=="developer";$("developerIdentity").hidden=role!=="developer";$("developerEmail").textContent=role==="developer"?(verified.email||"Developer"):"";
+      if(changedUser){migrateLegacy();await loadPosts();if(epoch!==confirmedEpoch||user?.id!==verified.id)return;selectPost(null,false);showPane("posts");}
       visible("studioPanel");
       window.dispatchEvent(new Event("sfc:admin-ready"));
     })().catch(e=>{clearSession();notify("권한 확인 실패: "+(e.message||e),true);})
@@ -475,7 +486,7 @@
     clearSession(false);notify("로그아웃했습니다.");
   });
   document.querySelectorAll("[data-pane]").forEach(button=>button.addEventListener("click",()=>{
-    if(busy)return;
+    if(busy||!user||(button.dataset.pane==="developer"&&role!=="developer"))return;
     if((dirty||hasPending())&&button.dataset.pane!=="posts"){
       if(!confirm("저장되지 않은 글이 있어요. 다른 메뉴로 이동할까요?"))return;
       if(!stash()&&!confirm("복구본을 저장하지 못했습니다. 그래도 이동할까요?"))return;
@@ -593,7 +604,7 @@
     if(dirty||hasPending()){stash();event.preventDefault();event.returnValue="";}
   });
   window.SFC_STUDIO=Object.freeze({
-    getClient:()=>client,getUser:()=>user,notify,upload,showPane
+    getClient:()=>client,getUser:()=>user,getRole:()=>role,notify,upload,showPane
   });
   start();
 })();
