@@ -122,7 +122,7 @@ assert.equal(last("fact01").frames[0].clipPath,"inset(45% 43% 45% 43%)");
 assert.equal(last("recruitment:#recruitActionCard").frames[0].clipPath,"inset(0 0 100% 0)");
 
 const news=node("news");
-news.closest=()=>({className:"view active",id:"updates"});
+news.closest=selector=>selector==="#research"?null:({className:"view active",id:"updates"});
 news.querySelectorAll=()=>[node("post1")];
 const updates=root("updates",{"#updatesList":news});
 api.enter(updates);
