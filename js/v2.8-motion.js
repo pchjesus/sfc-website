@@ -70,6 +70,16 @@
       {opacity:1,clipPath:"inset(0 0 0 0)",offset:1}
     ],d,delay);
   }
+  // A published article rises as a paper sheet: bottom-up instead of
+  // Research's top-down archive shelf or People's left-to-right typesetting.
+  function publication(el,d=1130,delay=0){
+    return animate(el,[
+      {opacity:0,clipPath:"inset(100% 0 0 0)",transform:"translateY(9px)",offset:0},
+      {opacity:.28,clipPath:"inset(58% 0 0 0)",transform:"translateY(5px)",offset:.37},
+      {opacity:.83,clipPath:"inset(8% 0 0 0)",transform:"translateY(1px)",offset:.83},
+      {opacity:1,clipPath:"inset(0 0 0 0)",transform:"none",offset:1}
+    ],d,delay);
+  }
   // Center-out expansion of factual groups; geometry and column widths stay fixed.
   function bloom(el,d=1240,delay=0){
     return animate(el,[
@@ -268,7 +278,7 @@
     enteredLists.add(root);
     rows.forEach((el,i)=>{
       if(root.closest("#research"))dropReveal(el,1090,i*110);
-      else ink(el,1070,i*125);
+      else publication(el,1130,i*125);
     });
   }
   function processSteps(root){
