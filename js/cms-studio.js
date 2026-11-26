@@ -75,6 +75,25 @@
     if(pane==="site")fillSite();
     else fillRecruitment();
   }
+  function previewRows(target,rows){
+    $(target).replaceChildren(...rows.map(([label,value])=>{const item=n("div","");item.append(n("small","",label),n("p","",value||"미입력 · 공개 기본값 또는 미표시"));return item;}));
+  }
+  function previewSite(){previewRows("sitePreview",[
+    ["HERO",textVal("siteHeroDescription")],["ABOUT 제목",textVal("siteAboutHeading")],["ABOUT 소개",textVal("siteAboutBody")],
+    ["운영 안내",textVal("siteProgramNote")],["공개 연락처",textVal("siteContactEmail")]
+  ]);}
+  function previewRecruitment(){
+    const start=$("recruitStart").value,end=$("recruitEnd").value;
+    const warning=start&&end&&start>=end?"모집 마감은 시작 시각보다 나중이어야 합니다.":"";
+    $("recruitDateWarning").hidden=!warning;$("recruitDateWarning").textContent=warning;
+    const fileState=(id,key)=>$(id).files[0]?"선택됨 (저장 전): "+$(id).files[0].name:safe(state.recruitment?.[key])?"등록됨":"미등록";
+    const status={planned:"모집 예정",open:"모집 중",closed:"모집 마감"}[$("recruitStatus").value];
+    previewRows("recruitPreview",[["모집 상태",status],["제목",textVal("recruitTitle")],["안내",textVal("recruitMessage")],
+      ["일정 (현지 시간)",(start||"미정")+" ~ "+(end||"미정")],["대상 / 인원 / 시간",[textVal("recruitAudience"),textVal("recruitCapacity"),textVal("recruitMeeting")].filter(Boolean).join(" · ")],["지원 방법 및 안내",[textVal("recruitMethod"),textVal("recruitInstructions")].filter(Boolean).join("\n")],["공통 양식", "PDF: "+fileState("recruitPdf","pdf_url")+" / DOCX: "+fileState("recruitDocx","docx_url")],["공개 준비",warning||($("recruitStatus").value==="open"&&!textVal("recruitMethod")?"모집 중: 지원 방법을 입력했는지 확인하세요.":"저장 전 문구와 파일 공개 승인 여부를 확인하세요.")]]);
+  }
+  for(const [id,fn] of [["siteForm",previewSite],["recruitForm",previewRecruitment]]){
+    $(id).addEventListener("input",fn);$(id).addEventListener("change",fn);
+  }
   function fillSite(){
     const v=state.site;
     for(const [id,key] of [
@@ -82,6 +101,7 @@
       ["siteAboutBody","about_body"],["siteProgramNote","program_note"],
       ["siteContactEmail","contact_email"]
     ])$(id).value=v?.[key]||"";
+    previewSite();
   }
   function fillRecruitment(){
     const v=state.recruitment;
@@ -99,6 +119,7 @@
       $(id).hidden=!url;
       if(url)$(id).href=url;else $(id).removeAttribute("href");
     }
+    previewRecruitment();
   }
   async function persistSetting(key,value){
     // Both records are seeded by SQL migration. Saving with an unknown
@@ -174,10 +195,16 @@
     $("personVisible").checked=item.visible;
     dirtyForms.people=false;
   }
+  function matchesText(query,values){return !query||values.some(v=>String(v||"").toLocaleLowerCase("ko-KR").includes(query));}
+  function matchesVisibility(value,record){return !value||(value==="public"&&record.visible)||(value==="private"&&!record.visible);}
+  function filterSummary(rows,filtered){const visible=rows.filter(v=>v.visible).length;return "전체 "+rows.length+" · 공개 "+visible+" · 비공개 "+(rows.length-visible)+" · 표시 "+filtered.length+(rows.length>=300?" (최근 조회 최대 300개)":"");}
   function renderPeople(){
     const list=$("peopleList");list.replaceChildren();
-    if(!state.people.length)list.append(n("p","sidebar-empty","등록된 인물이 없어요. 실제 운영진부터 추가해 주세요."));
-    for(const p of [...state.people].sort((a,b)=>a.sort_order-b.sort_order)){
+    const query=textVal("peopleSearch").toLocaleLowerCase("ko-KR"),visibility=$("peopleVisibility").value;
+    const filtered=state.people.filter(p=>matchesVisibility(visibility,p)&&matchesText(query,[p.name,p.position,p.term]));
+    $("peopleSummary").textContent=filterSummary(state.people,filtered);
+    if(!filtered.length)list.append(n("p","sidebar-empty",state.people.length?"검색 조건에 맞는 인물이 없습니다.":"등록된 인물이 없어요. 실제 운영진부터 추가해 주세요."));
+    for(const p of filtered.sort((a,b)=>a.sort_order-b.sort_order)){
       const row=n("div","studio-record");const info=n("div","");
       info.append(n("strong","",p.name+" · "+(p.position||"직책 미지정")),
         n("small","",(p.term||"")+" / "+(p.visible?"공개":"비공개")));
@@ -236,8 +263,11 @@
   }
   function renderSessions(){
     const list=$("sessionsList");list.replaceChildren();
-    if(!state.sessions.length)list.append(n("p","sidebar-empty","아직 등록된 교육과정이 없어요. 이전 기획안은 샘플로 남아 있어요."));
-    for(const s of [...state.sessions].sort((a,b)=>a.sort_order-b.sort_order)){
+    const query=textVal("sessionSearch").toLocaleLowerCase("ko-KR"),visibility=$("sessionVisibility").value,stage=$("sessionFilterStage").value;
+    const filtered=state.sessions.filter(s=>matchesVisibility(visibility,s)&&(!stage||s.stage===stage)&&matchesText(query,[s.week_label,s.title,s.summary]));
+    $("sessionSummaryCount").textContent=filterSummary(state.sessions,filtered);
+    if(!filtered.length)list.append(n("p","sidebar-empty",state.sessions.length?"검색 조건에 맞는 교육과정이 없습니다.":"아직 등록된 교육과정이 없어요. 이전 기획안은 샘플로 남아 있어요."));
+    for(const s of filtered.sort((a,b)=>a.sort_order-b.sort_order)){
       const row=n("div","studio-record"),info=n("div","");
       info.append(n("strong","",s.week_label+" · "+s.title),
         n("small","",s.stage+" / "+(s.visible?"공개":"비공개")));
@@ -278,6 +308,8 @@
     }catch(e){toast("저장 실패: "+e.message,true);}
     finally{lockForm("sessions",false);buttonBusy(save,false);}
   });
+  $("peopleSearch").addEventListener("input",renderPeople);$("peopleVisibility").addEventListener("change",renderPeople);
+  $("sessionSearch").addEventListener("input",renderSessions);["sessionVisibility","sessionFilterStage"].forEach(id=>$(id).addEventListener("change",renderSessions));
   async function loadAdmins(){
     const {data,error}=await client().from("cms_admins").select("user_id,email,created_at").order("created_at",{ascending:true});
     if(error)throw error;
@@ -287,6 +319,7 @@
     const list=$("memberList");list.replaceChildren();
     $("superadminCount").textContent=state.admins.length+" / 3";
     $("memberAddButton").disabled=state.admins.length>=3;
+    $("memberCapacityNote").textContent=state.admins.length>=3?"관리자 정원이 찼습니다. 기존 권한을 해제한 뒤 추가할 수 있습니다.":"남은 운영 관리자 자리: "+(3-state.admins.length)+"명 · 개발자는 별도";
     for(const a of state.admins){
       const isSelf=util().getUser()?.id===a.user_id;
       const row=n("div","studio-member-row"),info=n("div","studio-member-identity");
@@ -310,6 +343,9 @@
     event.preventDefault();
     if(state.admins.length>=3)return toast("최고관리자는 최대 3명입니다.",true);
     const email=textVal("memberEmail").toLowerCase();
+    if(!util().getUser())return;
+    if(state.admins.some(a=>String(a.email||"").toLowerCase()===email))return toast("이미 등록된 운영 관리자입니다.",true);
+    if(util().getRole()==="developer"&&email===String(util().getUser()?.email||"").toLowerCase())return toast("개발자는 운영 관리자 정원과 별도입니다.",true);
     const button=$("memberAddButton");buttonBusy(button,true);
     try{
       const {error}=await client().from("cms_admins").insert({email});
@@ -347,28 +383,34 @@
     }catch(e){toast("백업 실패: "+(e.message||e),true);}
     finally{buttonBusy(button,false);}
   });
-  let diagnosticSequence=0;
+  let diagnosticSequence=0,lastDiagnostic=null;
   async function developerDiagnostic(){
     if(util().getRole()!=="developer")return;
     const started=++diagnosticSequence,owner=util().getUser()?.id;
     const active=()=>started===diagnosticSequence&&util().getRole()==="developer"&&util().getUser()?.id===owner;
-    $("devConnection").textContent="조회 중";$("devRefresh").disabled=true;
+    lastDiagnostic=null;$("devExport").disabled=true;$("devConnection").textContent="조회 중";$("devRefresh").disabled=true;
     $("devCounts").querySelectorAll("dd").forEach(e=>e.textContent="—");
     try{
-      const queries=[client().from("cms_posts").select("id",{count:"exact",head:true}),client().from("cms_posts").select("id",{count:"exact",head:true}).eq("status","draft"),client().from("cms_admins").select("user_id",{count:"exact",head:true}),client().from("cms_people").select("id",{count:"exact",head:true}),client().from("cms_sessions").select("id",{count:"exact",head:true})];
+      const queries=[client().from("cms_posts").select("id",{count:"exact",head:true}),client().from("cms_posts").select("id",{count:"exact",head:true}).eq("status","draft"),client().from("cms_admins").select("user_id",{count:"exact",head:true}),client().from("cms_people").select("id",{count:"exact",head:true}),client().from("cms_sessions").select("id",{count:"exact",head:true}),client().from("cms_site_settings").select("key",{count:"exact",head:true})];
       const results=await Promise.all(queries);
       if(!active())return;
       if(results.some(v=>v.error||typeof v.count!=="number"))throw Error("일부 조회 요청이 실패했습니다.");
-      const values=[results[0].count,results[1].count,results[2].count+" / 3",results[3].count+" / "+results[4].count];
+      const values=[results[0].count,results[1].count,results[2].count+" / 3",results[3].count+" / "+results[4].count,results[5].count];
       $("devCounts").querySelectorAll("dd").forEach((e,i)=>e.textContent=String(values[i]));
       $("devConnection").textContent="조회 성공";
       $("devAuth").textContent="현재 세션: Developer · 서버 회원 조회 확인";
+      lastDiagnostic={format:"sfc-diagnostic-v1",checked_at:new Date().toISOString(),role:"developer",query_status:"success",counts:{all_posts:results[0].count,draft_status:results[1].count,operational_admins:results[2].count,people:results[3].count,activities:results[4].count,settings:results[5].count}};$("devExport").disabled=false;
     }catch(e){if(active()){$("devConnection").textContent="조회 실패";$("devAuth").textContent="조회 상태를 확인할 수 없습니다.";}}
     finally{if(active()){$("devRefresh").disabled=false;$("devChecked").textContent="최근 진단: "+new Date().toLocaleString("ko-KR");}}
   }
   $("devRefresh").addEventListener("click",developerDiagnostic);
+  $("devExport").addEventListener("click",()=>{
+    if(util().getRole()!=="developer"||!lastDiagnostic)return;
+    const url=URL.createObjectURL(new Blob([JSON.stringify(lastDiagnostic,null,2)],{type:"application/json"}));
+    const link=document.createElement("a");link.href=url;link.download="sfc-diagnostic-"+new Date().toISOString().slice(0,10)+".json";document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  });
   $("devGoAccounts").addEventListener("click",()=>{if(util().getRole()==="developer")util().showPane("access");});
-  window.addEventListener("sfc:admin-cleared",()=>{diagnosticSequence++;$("devRefresh").disabled=false;});
+  window.addEventListener("sfc:admin-cleared",()=>{diagnosticSequence++;lastDiagnostic=null;$("devRefresh").disabled=false;$("devExport").disabled=true;});
   async function openPane(pane){
     try{
       if(pane==="site"||pane==="recruitment")await fetchSettings(pane);
