@@ -107,7 +107,7 @@
   function savedTime(){return current?.updated_at?new Date(current.updated_at).toLocaleString("ko-KR"):"없음";}
   function stash(){
     if(!user||!workId||(!dirty&&!hasPending()&&!(current?.status==="draft"&&$("postSchedule").value)))return false;
-    try{sessionStorage.setItem(key(workId),JSON.stringify({id:current?.id||null,workId,userId:user.id,baseVersion:current?.updated_at||null,blockedRecovery,values:Object.fromEntries(editorFields.map(id=>[id,$(id).value])),pendingFiles:fileNames(),savedAt:Date.now()}));renderRecovery();return true;}
+    try{sessionStorage.setItem(key(workId),JSON.stringify({id:current?.id||null,workId,userId:user.id,baseVersion:current?.updated_at||null,blockedRecovery,importManual,values:Object.fromEntries(editorFields.map(id=>[id,$(id).value])),pendingFiles:fileNames(),savedAt:Date.now()}));renderRecovery();return true;}
     catch(_){detail("이 기기에 복구본을 저장하지 못했습니다. 서버 저장 또는 본문 복사를 권장합니다.");return false;}
   }
   function forget(id=workId,owner=user?.id){try{const k=key(id,owner);if(k)sessionStorage.removeItem(k);}catch(_){}renderRecovery();}
@@ -121,6 +121,7 @@
     if(Object.hasOwn(v.values,"postTitle"))for(const field of editorFields)$(field).value=typeof v.values[field]==="string"?v.values[field]:"";
     else applyForm(v.values);
     pendingFiles={};for(const field of ["postCoverFile","postPdfFile"])if(typeof v.pendingFiles?.[field]==="string")pendingFiles[field]=v.pendingFiles[field];
+    importManual=Boolean(v.importManual);
     blockedRecovery=Boolean(v.blockedRecovery||(current&&v.baseVersion!==current.updated_at));
     $("researchFields").hidden=$("postKind").value!=="research";$("publishPost").textContent=$("postSchedule").value?"예약·게시하기 ↗":"게시하기 ↗";markChanged(false);pendingNotice();
     if(blockedRecovery){detail("복구본과 서버 버전이 다릅니다. 서버 최신본과 비교하기 전에는 저장할 수 없습니다. 내용을 복사하거나 복구 목록에서 다시 열 수 있습니다.");notify("저장 충돌: 복구본의 기준 버전이 다릅니다.",true);}
@@ -249,6 +250,7 @@
     const imageFile=$("postCoverFile").files[0],pdfFile=$("postPdfFile").files[0],owner=user.id,started=epoch,id=workId;
     const names=fileNames();
     if(status==="published"){
+      if(importManual){notify("가져온 연구 초안을 먼저 임시저장하고 검수해 주세요.",true);return;}
       if((names.postCoverFile&&!imageFile)||(names.postPdfFile&&!pdfFile)){notify("복구된 파일을 재선택하거나 첨부 선택을 취소해 주세요.",true);return;}
       if(draft.scheduled_at&&Date.parse(draft.scheduled_at)>Date.now()&&(imageFile||pdfFile||draft.cover_url||draft.attachment_url)){notify("예약 발행에 공개 파일을 미리 연결할 수 없습니다. 파일 없이 예약하거나 공개 시점에 연결하세요.",true);return;}
       if((imageFile||pdfFile||draft.cover_url||draft.attachment_url)&&!confirm("첨부파일 공개 허가를 확인했나요? 공개 URL은 게시 취소 후에도 접근 가능할 수 있습니다."))return;
@@ -539,7 +541,7 @@
   });
   document.querySelectorAll("[data-format]").forEach(button=>button.addEventListener("click",()=>{
     if(busy||!user)return;const field=$("postBody"),start=field.selectionStart,end=field.selectionEnd;
-    const from=field.value.lastIndexOf("\n",start-1)+1;
+    const from=start===0?0:field.value.lastIndexOf("\n",start-1)+1;
     const selection=field.value.slice(from,end);
     const replacement=selection.split("\n").map(line=>button.dataset.format+line.replace(/^(?:#{1,3}|[-*])\s+/,"")).join("\n");
     if(field.value.length-(end-from)+replacement.length>field.maxLength){notify("본문 글자 수 제한을 초과합니다.",true);return;}
