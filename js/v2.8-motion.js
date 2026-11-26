@@ -139,7 +139,7 @@
     scene=[];
     if(reduced())return;
     // The same optical softness opens all pages, not the same stagger/slide.
-    track(animate(root,[{opacity:.43},{opacity:.82,offset:.72},{opacity:1}],760));
+    track(animate(root,[{opacity:.43},{opacity:.82,offset:.72},{opacity:1}],1100));
     root.dataset.motionSignature=PAGE_SHAPE[root.id]||"reader";
     signature(root);
     switch(root.id){
