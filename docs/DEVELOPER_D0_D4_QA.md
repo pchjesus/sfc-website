@@ -20,3 +20,14 @@ Status: D0 design, D1 migration candidate, D2 implementation candidate, D3 tests
 ## Known limitations
 - Developer diagnostic counts are current authorized queries, not uptime, server-wide diagnostics or proof of live RLS. Release label is candidate label; actual deployment commit linked via GitHub, not automatically inferred. The account role UI is not the security boundary.
 - SQL and real Auth/RLS/Storage have not been executed in staging. Existing production policy inspection only. Current login change adds developer membership lookup; no database writes.
+
+## D3.1 — Studio usability refinement (owner review)
+- Access: label in separate row, email and add CTA both 48px high with shared grid alignment; test exact bounding boxes at 360/390/768/1440px. Separate owner identity, remaining seats, duplicate and owner-email precheck. Database guard remains authoritative.
+- Posts: status + text + type filter, recent/oldest/title sort, loaded-result count, explicit 300-row cap. No implicit writes.
+- Homepage: collapsible live text-only preview of currently edited Hero, About, program and contact fields. Existing versioned save preserved; not a pixel-perfect public page.
+- People: search name/position/term, visibility filter, public/private and matching counts. Existing CRUD/order unchanged.
+- Activities: search week/title/summary, stage and visibility filters, counts. Existing CRUD/order unchanged.
+- Recruitment: live text and file-selection/registered state summary, date order warning, guidance if open without method. Existing file upload and save behavior unchanged; no auto publish.
+- Developer: exact authorized count for settings, clarify all posts/draft counts include trash, downloadable JSON of counts and query timestamp only, no emails or content; disables export until valid diagnostic and on logout.
+- Full preview is generated from revised actual markup/CSS/scripts and in-memory Supabase mock, with synthetic editable settings, profiles, sessions and posts. No live project configuration or SDK. CSP forbids external connections. For owner review, only the standalone synthetic demo may be independently published at a distinct preview URL; production code, role migration and real accounts remain gated.
+- Added four end-to-end standalone browser cases (includes all new controls, diagnostic download and exact CTA alignment). Full D3.1 CI and Codex review must be recorded separately. Earlier D3 candidate passed 78 browser scenarios; does not establish D3.1 pass or live RLS validity.
