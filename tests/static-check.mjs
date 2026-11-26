@@ -131,3 +131,20 @@ assert.match(read('js/v2.8-motion.js'),/\],1100\)/,'Common scene settle must las
 assert.match(read('js/motion.js'),/reveal:1150/,'Generic reveal must not snap back to short duration');
 assert.ok(publicHtml.includes('css/v2.8-cinematic.css?v=2.8.4'));
 console.log('PASS: v2.8.4 page-specific signatures and moderated pace');
+
+const developerMigration=read('sql/sfc-developer-access.sql');
+assert.match(developerMigration,/singleton boolean primary key default true check\(singleton\)/);
+assert.match(developerMigration,/enable row level security/);
+assert.match(developerMigration,/revoke all on public\.cms_developers from public,anon,authenticated/);
+assert.match(developerMigration,/grant select\(user_id\) on public\.cms_developers to authenticated/);
+assert.doesNotMatch(developerMigration,/grant\s+(?:insert|update|delete|all)\s+on public\.cms_developers\s+to authenticated/i);
+assert.match(developerMigration,/pg_advisory_xact_lock\(8820,3\)/);
+assert.match(developerMigration,/email_confirmed_at is not null/);
+assert.match(adminHtml,/id="developerTab" hidden/);
+const developerDemo=read('preview/developer-studio-demo.html');
+assert.match(developerDemo,/connect-src 'none'/);
+assert.match(developerDemo,/form-action 'none'/);
+assert.doesNotMatch(developerDemo,/<script[^>]+src=/i);
+assert.doesNotMatch(developerDemo,/nnoicikkennbihjdoivt|sb_secret_[A-Za-z0-9]+/);
+assert.match(developerDemo,/preview-only\.supabase\.co/);
+console.log('PASS D3 static role constraints and network-denied standalone demo');

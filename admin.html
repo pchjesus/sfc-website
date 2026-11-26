@@ -10,19 +10,19 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/cms.css?v=3.0-prep">
+<link rel="stylesheet" href="css/cms.css?v=3.0-developer-d3.1">
 <link rel="stylesheet" href="css/motion.css?v=2.3.3">
 <link rel="stylesheet" href="css/integrated.css?v=2.6-preview">
 <script defer src="js/cms-config.js?v=2.0"></script>
 <script defer src="js/cms-core.js?v=2.0"></script>
 <script defer src="js/research-importer.js?v=0.1"></script>
-<script defer src="js/cms-admin.js?v=3.0-prep-p3"></script>
-<script defer src="js/cms-studio.js?v=2.9.0-qa"></script>
+<script defer src="js/cms-admin.js?v=3.0-developer-d3.1"></script>
+<script defer src="js/cms-studio.js?v=3.0-developer-d3.1"></script>
 </head>
 <body>
 <header class="studio-header">
 <a class="studio-brand" href="index.html#home" aria-label="SFC 홈페이지"><span class="studio-brand-mark">SFC<i>.</i></span><small>SANGMYUNG<br>FINANCIAL CLUB</small></a>
-<div class="studio-top-actions"><a href="index.html#home">홈페이지 ↗</a><span id="studioAccount" hidden></span><button type="button" id="studioLogout" hidden>로그아웃</button></div>
+<div class="studio-top-actions"><a href="index.html#home">홈페이지 ↗</a><span id="studioRole" class="studio-role-label" hidden></span><span id="studioAccount" hidden></span><button type="button" id="studioLogout" hidden>로그아웃</button></div>
 </header>
 <main class="studio-main">
 <section class="studio-auth" id="studioSetup" hidden><span class="eyebrow">SFC / ADMINISTRATION</span><h1>Studio 준비 중.</h1><p>관리자 데이터베이스 연결 설정을 확인해 주세요.</p><a href="index.html#home">홈페이지로 돌아가기 ↗</a></section>
@@ -43,7 +43,7 @@
 <button type="button" data-pane="people">People</button>
 <button type="button" data-pane="sessions">Activities</button>
 <button type="button" data-pane="recruitment">Recruitment</button>
-<button type="button" data-pane="access">계정 관리</button>
+<button type="button" data-pane="access">계정 관리</button><button type="button" data-pane="developer" id="developerTab" hidden>Developer</button>
 </nav>
 <section data-pane-view="posts" class="studio-pane">
 <div class="studio-section-bar"><div><span class="eyebrow">PUBLICATIONS</span><h2>Editorial desk.</h2></div><div class="studio-post-actions"><button id="openImporter" type="button" class="secondary">문서로 글 작성</button><button id="newPost" type="button" class="primary">＋ 새 글 작성</button></div></div>
@@ -55,7 +55,7 @@
 <button type="button" data-status="published">게시됨</button>
 <button type="button" data-status="scheduled">예약</button>
 <button type="button" data-status="trash">휴지통</button></div>
-<label class="studio-post-search">게시글 검색<input id="postSearch" type="search" placeholder="제목 · 저자 · 유형"></label><div id="adminPostList" class="admin-post-list"></div><div id="recoveryControls" hidden><label>이 탭의 복구본<select id="recoverySelect"><option value="">복구본 선택</option></select></label><div class="editor-toolbar"><button type="button" id="recoverWork" class="secondary">열기</button><button type="button" id="discardRecovery" class="secondary">복구본 삭제</button></div></div></aside>
+<label class="studio-post-search">게시글 검색<input id="postSearch" type="search" placeholder="제목 · 저자 · 유형"></label><div class="studio-filter-pair"><label>글 유형<select id="postKindFilter"><option value="">전체</option><option value="research">Research</option><option value="notice">공지사항</option><option value="activity">활동 소식</option></select></label><label>정렬<select id="postSort"><option value="updated">최근 수정</option><option value="title">제목순</option><option value="oldest">오래된 수정</option></select></label></div><p id="postFilterSummary" class="studio-filter-summary" aria-live="polite"></p><div id="adminPostList" class="admin-post-list"></div><div id="recoveryControls" hidden><label>이 탭의 복구본<select id="recoverySelect"><option value="">복구본 선택</option></select></label><div class="editor-toolbar"><button type="button" id="recoverWork" class="secondary">열기</button><button type="button" id="discardRecovery" class="secondary">복구본 삭제</button></div></div></aside>
 <section class="studio-editor">
 <form id="postForm" novalidate>
 <div class="editor-topline"><span class="eyebrow" id="editorMode">NEW ARTICLE</span><span id="editorSavedAt" role="status">아직 저장되지 않음</span></div><p class="editor-hint" id="editorSaveDetail" role="status"></p>
@@ -98,7 +98,7 @@
 <label>About 소개<textarea id="siteAboutBody" rows="5" maxlength="1800"></textarea></label>
 <label>학회 운영 안내<textarea id="siteProgramNote" rows="3" maxlength="800"></textarea></label>
 <label>공식 연락 이메일<input id="siteContactEmail" type="email" maxlength="180" placeholder="공개할 이메일 (선택)"></label>
-<button type="submit" class="primary">공개 문구 저장 →</button></form></section>
+<details class="studio-inline-preview"><summary>작성 중인 공개 문구 확인</summary><div id="sitePreview" class="studio-preview-copy" aria-live="polite"></div></details><button type="submit" class="primary">공개 문구 저장 →</button></form></section>
 <section data-pane-view="people" class="studio-pane" hidden>
 <div class="studio-section-bar"><div><span class="eyebrow">PEOPLE / TEAM</span><h2>People.</h2></div><button type="button" class="secondary" id="newPerson">＋ 신규 인물</button></div>
 <div class="studio-two-columns"><form id="peopleForm">
@@ -109,7 +109,7 @@
 <label>표시 순서<input id="personOrder" type="number" value="0" min="0" max="9999"></label>
 <label class="studio-checkbox"><input id="personVisible" type="checkbox" checked> 홈페이지에 공개</label>
 <button type="submit" class="primary">인물 정보 저장 →</button></form>
-<div><span class="eyebrow">등록된 인물</span><div id="peopleList" class="studio-manage-list"></div></div></div>
+<div><span class="eyebrow">등록된 인물</span><p id="peopleSummary" class="studio-filter-summary" aria-live="polite">조회 전</p><div class="studio-list-filters"><label>이름 · 직책 · 기수 검색<input id="peopleSearch" type="search" placeholder="검색"></label><label>공개 상태<select id="peopleVisibility"><option value="">전체</option><option value="public">공개</option><option value="private">비공개</option></select></label></div><div id="peopleList" class="studio-manage-list"></div></div></div>
 </section>
 <section data-pane-view="sessions" class="studio-pane" hidden>
 <div class="studio-section-bar"><div><span class="eyebrow">ACTIVITIES / CURRICULUM</span><h2>Program.</h2></div><button type="button" id="newSession" class="secondary">＋ 주차 추가</button></div>
@@ -123,7 +123,7 @@
 <label>표시 순서<input id="sessionOrder" type="number" value="0" min="0" max="9999"></label>
 <label class="studio-checkbox"><input id="sessionVisible" type="checkbox" checked> 공개</label>
 <button type="submit" class="primary">교육과정 저장 →</button></form>
-<div><span class="eyebrow">등록된 교육과정</span><div id="sessionsList" class="studio-manage-list"></div></div></div>
+<div><span class="eyebrow">등록된 교육과정</span><p id="sessionSummaryCount" class="studio-filter-summary" aria-live="polite">조회 전</p><div class="studio-list-filters"><label>주차 · 제목 검색<input id="sessionSearch" type="search" placeholder="검색"></label><label>교육 단계<select id="sessionFilterStage"><option value="">전체</option><option value="foundation">기초교육</option><option value="application">기업분석 실습</option><option value="research">최종 연구</option></select></label><label>공개 상태<select id="sessionVisibility"><option value="">전체</option><option value="public">공개</option><option value="private">비공개</option></select></label></div><div id="sessionsList" class="studio-manage-list"></div></div></div>
 </section>
 <section data-pane-view="recruitment" class="studio-pane" hidden>
 <div class="studio-section-bar"><div><span class="eyebrow">RECRUITMENT / APPLICATION</span><h2>Recruitment.</h2></div></div>
@@ -138,17 +138,26 @@
 <label>편집 가능한 DOCX 지원서 (선택)<input type="file" id="recruitDocx" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label>
 <div class="studio-file-links"><a id="currentRecruitPdf" hidden target="_blank" rel="noopener noreferrer">현재 등록된 PDF ↗</a><a id="currentRecruitDocx" hidden target="_blank" rel="noopener noreferrer">현재 등록된 DOCX ↗</a></div>
 <p class="editor-hint">지원서에는 개인정보가 포함될 수 있지만, 여기 올리는 파일은 작성 전 공통 양식이야. 제출 완료된 지원서는 공개 Storage에 올리면 안 돼.</p>
-<button type="submit" class="primary">모집 설정 저장 →</button></form></section>
-<section data-pane-view="access" class="studio-pane" hidden><div class="studio-section-bar"><div><span class="eyebrow">SECURITY / MAX 3 ACCOUNTS</span><h2>Superadmins.</h2></div></div>
-<p class="studio-pane-intro">최고관리자만 존재합니다. 일반 방문자는 계정 없이 모든 공개 콘텐츠를 이용합니다. 새로운 계정은 Supabase Auth → Users에서 먼저 만들어야 합니다.</p>
-<div class="studio-role-stats"><div><small>최고관리자</small><strong id="superadminCount">0 / 3</strong></div><div><small>운영 권한</small><strong>Full access</strong></div></div>
-<form id="memberAddForm" class="studio-member-form"><div><label for="memberEmail">기존 계정 이메일</label><input id="memberEmail" type="email" autocomplete="off" required placeholder="manager@example.com"></div>
-<button type="submit" id="memberAddButton" class="primary">최고관리자 추가 →</button></form>
+<details class="studio-inline-preview"><summary>모집 문구 및 공개 준비 상태 확인</summary><div id="recruitPreview" class="studio-preview-copy" aria-live="polite"></div></details><p id="recruitDateWarning" class="studio-inline-warning" role="status" hidden></p><button type="submit" class="primary">모집 설정 저장 →</button></form></section>
+<section data-pane-view="access" class="studio-pane" hidden><div class="studio-section-bar"><div><span class="eyebrow">SECURITY / MAX 3 ADMIN ACCOUNTS</span><h2>Accounts.</h2></div></div>
+<p class="studio-pane-intro">운영 관리자는 최대 3명입니다. 새로운 계정은 Supabase Auth → Users에서 먼저 등록하고 이메일 인증을 완료해야 합니다. 개발자 권한은 이곳에서 변경할 수 없습니다.</p><div id="developerIdentity" class="developer-identity" hidden><span class="eyebrow">DEVELOPER / OWNER</span><strong id="developerEmail"></strong><small>운영 관리자 정원과 별도 · 권한 변경은 인프라 관리 절차에서만 가능합니다.</small></div>
+<div class="studio-role-stats"><div><small>운영 관리자</small><strong id="superadminCount">0 / 3</strong></div><div><small>운영 권한</small><strong>Full access</strong></div></div>
+<form id="memberAddForm" class="studio-member-form"><label for="memberEmail">기존 계정 이메일</label><div class="member-input-row"><input id="memberEmail" type="email" autocomplete="off" required placeholder="manager@example.com"><button type="submit" id="memberAddButton" class="primary">최고관리자 추가 →</button></div><p id="memberCapacityNote" class="studio-filter-summary" role="status"></p></form>
 <div id="memberList" class="studio-member-list" aria-live="polite"></div>
 <div class="studio-backup"><span class="eyebrow">DATA / EXPORT</span>
   <h3>Content archive.</h3><p>공개 및 비공개 게시글, 수정 이력, 설정과 운영 데이터를 JSON 파일로 내보냅니다. 관리자 이메일·임시글도 포함되니 안전하게 보관하세요.</p>
   <button type="button" class="secondary" id="exportData">데이터 백업(JSON) 내려받기 ↗</button>
   <small>첨부파일 자체와 Auth 계정은 백업에 포함되지 않습니다.</small>
+</div>
+</section>
+<section data-pane-view="developer" class="studio-pane" hidden>
+<div class="studio-section-bar"><div><span class="eyebrow">DEVELOPMENT / MAINTENANCE</span><h2>Developer desk.</h2></div><button type="button" id="devRefresh" class="secondary">진단 새로고침 ↻</button></div>
+<p class="studio-pane-intro">Studio의 모든 운영 기능을 그대로 사용하면서 배포 정보와 데이터 연결 상태를 확인합니다. 진단은 읽기 전용입니다.</p>
+<div class="developer-grid">
+<article class="developer-card"><span class="eyebrow">01 / RELEASE</span><h3>Release.</h3><strong id="devRelease">v3.0 · Developer D3.1 candidate</strong><p>실제 배포 커밋과 이력은 저장소에서 확인합니다.</p><a href="https://github.com/pchjesus/sfc-website" target="_blank" rel="noopener noreferrer">GitHub 저장소 ↗</a><a href="https://github.com/pchjesus/sfc-website/actions" target="_blank" rel="noopener noreferrer">배포 및 검증 기록 ↗</a></article>
+<article class="developer-card"><span class="eyebrow">02 / DATABASE</span><h3>Database.</h3><strong id="devConnection" role="status">확인 전</strong><dl id="devCounts"><dt>전체 게시글 (휴지통 포함)</dt><dd>—</dd><dt>임시 상태 (휴지통 포함)</dt><dd>—</dd><dt>운영 관리자</dt><dd>—</dd><dt>People / Activities</dt><dd>—</dd><dt>사이트 설정</dt><dd>—</dd></dl></article>
+<article class="developer-card"><span class="eyebrow">03 / DIAGNOSTICS</span><h3>Diagnostics.</h3><p id="devAuth">권한 확인 전</p><p id="devChecked">진단 기록 없음</p><button type="button" id="devExport" class="secondary" disabled>진단 결과 JSON ↗</button><p>현재 계정의 조회 요청 결과만 표시합니다. 서버 오류 로그 또는 전체 RLS 검증 결과는 아닙니다.</p></article>
+<article class="developer-card"><span class="eyebrow">04 / MAINTENANCE</span><h3>Maintenance.</h3><p>기존 계정 관리에서 운영 관리자 등록 및 권한 해제, JSON 백업을 이용할 수 있습니다.</p><button type="button" id="devGoAccounts" class="secondary">계정 관리 및 백업 →</button><small>운영 데이터의 백업과 진단은 별도입니다. 격리된 테스트 환경·감사 로그·복원 도구는 D5 예정.</small></article>
 </div>
 </section>
 </section>

@@ -54,6 +54,92 @@ with sync_playwright() as p:
    assert x.evaluate('document.documentElement.scrollWidth <= innerWidth'),(width,pane)
   x.screenshot(path=f'/tmp/sfc-studio-{width}.png',full_page=True)
   ok(f'Studio six panes {width}px (mock)');x.context.close()
+ # D3 developer UI and mock role boundary. NOT evidence of live RLS.
+ for width in [1440,768,390,360]:
+  x=page('developer',width);x.goto(base+'/admin.html');expect(x.locator('#studioPanel')).to_be_visible()
+  expect(x.locator('#developerTab')).to_be_visible()
+  for pane in ['posts','site','people','sessions','recruitment','access','developer']:
+   x.locator(f'[data-pane="{pane}"]').click();expect(x.locator(f'[data-pane-view="{pane}"]')).to_be_visible()
+   assert x.evaluate('document.documentElement.scrollWidth<=innerWidth+1'),(width,pane)
+  expect(x.locator('#devConnection')).to_have_text('조회 성공')
+  expect(x.locator('#devCounts')).to_contain_text('1 / 3')
+  assert x.evaluate('mock.calls.length')==0
+  x.locator('#devGoAccounts').click();expect(x.locator('#developerIdentity')).to_be_visible()
+  expect(x.locator('#superadminCount')).to_have_text('1 / 3')
+  ok(f'D3 developer seven panes, read-only diagnostics and separate membership {width}px');x.context.close()
+ x=page();x.goto(base+'/admin.html');expect(x.locator('#studioPanel')).to_be_visible()
+ expect(x.locator('#developerTab')).to_be_hidden()
+ x.evaluate("SFC_STUDIO.showPane('developer')");expect(x.locator('[data-pane-view="developer"]')).to_be_hidden()
+ x.locator('[data-pane="access"]').click();expect(x.locator('#developerIdentity')).to_be_hidden()
+ ok('D3 ordinary admin has no developer UI');x.context.close()
+ x=page('developer');x.goto(base+'/admin.html');expect(x.locator('#studioPanel')).to_be_visible()
+ x.locator('[data-pane="access"]').click();expect(x.locator('#superadminCount')).to_have_text('1 / 3')
+ for i in range(2):
+  x.locator('#memberEmail').fill(f'manager{i}@example.invalid');x.locator('#memberAddButton').click()
+  expect(x.locator('#superadminCount')).to_have_text(f'{i+2} / 3')
+ expect(x.locator('#memberAddButton')).to_be_disabled()
+ assert x.evaluate("mock.developers.length===1 && mock.admins.length===3")
+ x.locator('#memberList .studio-member-row').filter(has_text='manager0@example.invalid').get_by_role('button').click()
+ expect(x.locator('#superadminCount')).to_have_text('2 / 3')
+ x.locator('#developerTab').click();expect(x.locator('#devConnection')).to_have_text('조회 성공')
+ x.evaluate("mock.mode='nonadmin';mock.authEvent('TOKEN_REFRESHED')")
+ expect(x.locator('#studioLogin')).to_be_visible();expect(x.locator('#developerTab')).to_be_hidden()
+ ok('D3 mock admin rotation and revoked session denied');x.context.close()
+ # Standalone preview deliberately uses no production client, real network or login.
+ c=browser.new_context(viewport={'width':390,'height':900});x=c.new_page();reqs=[]
+ x.on('request',lambda req:reqs.append(req.url))
+ c.route('**/*',lambda route:route.continue_() if route.request.url.startswith(base) else route.abort())
+ x.goto(base+'/preview/developer-studio-demo.html');expect(x.locator('#studioPanel')).to_be_visible();expect(x.locator('#developerTab')).to_be_visible()
+ x.locator('#developerTab').click();expect(x.locator('#devConnection')).to_have_text('조회 성공')
+ assert all(url.startswith(base) for url in reqs),reqs
+ x.locator('#previewSwitch').click();expect(x.locator('#studioPanel')).to_be_visible();expect(x.locator('#developerTab')).to_be_hidden()
+ assert x.evaluate("SFC_STUDIO.getRole()")== 'admin'
+ ok('D3 self-contained preview starts without login, switches mock roles, zero external requests');c.close()
+ # D3.1 actual standalone candidate; verify every pane tool and no external requests.
+ for width in [360,390,768,1440]:
+  context=browser.new_context(viewport={'width':width,'height':900},accept_downloads=True)
+  x=context.new_page();x.on('dialog',lambda d:d.accept());requests=[];errors=[]
+  x.on('request',lambda req:requests.append(req.url));x.on('pageerror',lambda e:errors.append(str(e)))
+  context.route('**/*',lambda route:route.continue_() if route.request.url.startswith(base) else route.abort())
+  x.goto(base+'/preview/developer-studio-demo.html');expect(x.locator('#studioPanel')).to_be_visible()
+  x.locator('[data-pane="access"]').click();expect(x.locator('#superadminCount')).to_have_text('1 / 3')
+  field=x.locator('#memberEmail').bounding_box();button=x.locator('#memberAddButton').bounding_box()
+  assert abs(field['y']-button['y'])<=1 and abs(field['height']-button['height'])<=1,(width,field,button)
+  assert field['height']==48,(width,field)
+  assert x.evaluate('document.documentElement.scrollWidth<=innerWidth+1'),width
+  if width==390:
+   x.locator('#memberEmail').fill('test@example.invalid');x.locator('#memberAddButton').click()
+   expect(x.locator('#studioMessage')).to_contain_text('이미 등록')
+   assert x.evaluate('mock.calls.length')==0
+   x.locator('#memberEmail').fill('new-admin@example.invalid');x.locator('#memberAddButton').click();expect(x.locator('#superadminCount')).to_have_text('2 / 3')
+   x.locator('[data-pane="posts"]').click();x.locator('#postKindFilter').select_option('research')
+   expect(x.locator('#adminPostList .admin-post-item')).to_have_count(1);expect(x.locator('#postFilterSummary')).to_contain_text('1개 표시')
+   x.locator('#postKindFilter').select_option('');x.locator('#postSort').select_option('title')
+   expect(x.locator('#adminPostList .admin-post-item')).to_have_count(2)
+   x.locator('[data-pane="site"]').click();expect(x.locator('#siteHeroDescription')).to_have_value('기업의 숫자를 읽고, 가치의 근거를 찾다.')
+   x.locator('#siteHeroDescription').fill('미리보기 테스트');x.locator('#siteForm details summary').click();expect(x.locator('#sitePreview')).to_contain_text('미리보기 테스트')
+   x.locator('#siteForm button[type="submit"]').click();expect(x.locator('#studioMessage')).to_contain_text('홈페이지 문구를 저장')
+   x.locator('[data-pane="people"]').click();expect(x.locator('#peopleList .studio-record')).to_have_count(2)
+   x.locator('#peopleVisibility').select_option('private');expect(x.locator('#peopleList .studio-record')).to_have_count(1);expect(x.locator('#peopleSummary')).to_contain_text('표시 1')
+   x.locator('#peopleSearch').fill('없는 이름');expect(x.locator('#peopleList')).to_contain_text('검색 조건')
+   x.locator('[data-pane="sessions"]').click();expect(x.locator('#sessionsList .studio-record')).to_have_count(3)
+   x.locator('#sessionFilterStage').select_option('research');expect(x.locator('#sessionsList .studio-record')).to_have_count(1);expect(x.locator('#sessionSummaryCount')).to_contain_text('표시 1')
+   x.locator('[data-pane="recruitment"]').click();expect(x.locator('#recruitTitle')).to_have_value('2027 Spring Recruitment')
+   x.locator('#recruitStart').fill('2027-03-10T10:00');x.locator('#recruitEnd').fill('2027-03-09T10:00')
+   expect(x.locator('#recruitDateWarning')).to_be_visible()
+   x.locator('#recruitEnd').fill('2027-03-11T10:00');expect(x.locator('#recruitDateWarning')).to_be_hidden()
+   x.locator('#recruitForm details summary').click();expect(x.locator('#recruitPreview')).to_contain_text('PDF: 미등록')
+   x.locator('#recruitForm button[type="submit"]').click();expect(x.locator('#studioMessage')).to_contain_text('모집 설정')
+   x.locator('#developerTab').click();expect(x.locator('#devConnection')).to_have_text('조회 성공')
+   with x.expect_download() as d:
+    x.locator('#devExport').click()
+   import json
+   report=json.loads(d.value.path().read_text())
+   assert report['counts']['operational_admins']==2 and report['counts']['settings']==2 and 'email' not in str(report)
+  assert not errors,errors
+  assert all(url.startswith(base) for url in requests),requests
+  ok(f'D3.1 aligned member CTA and standalone responsive preview {width}px')
+  context.close()
  # Anonymous/public client never restores a privileged session.
  x=page();x.goto(base);x.wait_for_function('mock.clients.length===2')
  assert x.evaluate('mock.clients[1].auth.persistSession===false && mock.clients[1].auth.detectSessionInUrl===false')
