@@ -159,6 +159,18 @@ try:
   assert y.evaluate('mock.calls.length===0')
   ok('R5 import/edit/preview/publish/withdraw/schedule/trash/restore mock workflow')
   x.context.close();y.context.close()
+  # R6: real query pagination and grouped filters above the old 400-row cap.
+  x=page('anonymous');x.goto(base+'/#research')
+  x.evaluate("""async()=>{mock.rows=Array.from({length:405},(_,i)=>({id:'00000000-0000-4000-8000-'+String(i+1).padStart(12,'0'),kind:'research',status:'published',deleted_at:null,scheduled_at:null,title:i===404?'A&B 한국':'TEST research '+i,research_sector:i===404?'Late sector':i%2?'IT':' it ',published_at:'2026-11-01T00:00:00Z',excerpt:''}));await SFC_PUBLIC.load();}""")
+  expect(x.locator('#archiveSectors button').filter(has_text='Late sector')).to_be_visible()
+  x.locator('#archiveSectors button').filter(has_text='Late sector').click();expect(x.locator('#archiveResults .archive-report')).to_have_count(1)
+  x.locator('#archiveSearch').fill('A&B');expect(x.locator('#archiveResults .archive-report')).to_have_count(1)
+  x.locator('#archiveSearch').fill('%%%');expect(x.locator('#archiveResults .archive-report')).to_have_count(0)
+  x.locator('#archiveReset').click();expect(x.locator('#archiveResults .archive-report')).to_have_count(6)
+  x.locator('#archiveNext').click();expect(x.locator('#archivePage')).to_have_text('2 / 68')
+  x.go_back();expect(x.locator('#archivePage')).to_have_text('1 / 68')
+  assert x.evaluate('mock.calls.length===0')
+  ok('R6 405 public rows, late sector, punctuation and history navigation');x.context.close()
   browser.close()
 finally:
  server.shutdown()

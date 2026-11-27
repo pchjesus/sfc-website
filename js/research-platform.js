@@ -6,16 +6,15 @@
   if(!root)return;
   const limit=6;
   const $=id=>document.getElementById(id);
-  const state={search:"",sector:"all",sort:"new",view:"list",page:1};
-  const u=new URL(location.href).searchParams;
-  state.search=(u.get("sfcq")||"").slice(0,60);
-  state.sector=(u.get("sfcs")||"all").slice(0,100);
-  state.sort=["new","old","title"].includes(u.get("sfco"))?u.get("sfco"):"new";
-  state.view=u.get("sfcv")==="grid"?"grid":"list";
-  state.page=Math.max(1,Math.min(5000,Number.parseInt(u.get("sfcp")||"1",10)||1));
-  let client=null,mode="demo",demos=[],openDemo=null,sectors=[],requestVersion=0,total=0;
+  const logic=window.SFC_RESEARCH_LOGIC;
+  function readState(){
+    const u=new URL(location.href).searchParams;
+    return {search:(u.get("sfcq")||"").slice(0,60),sector:(u.get("sfcs")||"all").slice(0,100),sort:["new","old","title"].includes(u.get("sfco"))?u.get("sfco"):"new",view:u.get("sfcv")==="grid"?"grid":"list",page:Math.max(1,Math.min(5000,Number.parseInt(u.get("sfcp")||"1",10)||1))};
+  }
+  const state=readState();let pendingLiveState={...state};
+  let client=null,mode="demo",demos=[],openDemo=null,sectors=[],groups=[],sectorsComplete=true,requestVersion=0,connectVersion=0,total=0;
   let debounce=null;
-  const short=q=>String(q||"").normalize("NFKC").replace(/[^\p{L}\p{N}\s_-]/gu,"").trim().slice(0,60);
+  const short=logic.safeSearch;
   const node=(tag,cls,text)=>{
     const el=document.createElement(tag);
     if(cls)el.className=cls;
@@ -57,7 +56,7 @@
     <p id="archiveDisclosure" class="archive-disclosure">DEMO / 모든 제목과 날짜는 시연을 위한 예시이며 실제 SFC 연구 성과가 아닙니다.</p>`;
   const search=$("archiveSearch"), results=$("archiveResults"), pager=$("archivePager");
   search.value=state.search;$("archiveSort").value=state.sort;
-  function persist(){
+  function persist(push=false){
     const url=new URL(location.href);
     for(const key of ["sfcq","sfcs","sfco","sfcv","sfcp"])url.searchParams.delete(key);
     if(state.search)url.searchParams.set("sfcq",state.search);
@@ -65,11 +64,13 @@
     if(state.sort!=="new")url.searchParams.set("sfco",state.sort);
     if(state.view!=="list")url.searchParams.set("sfcv",state.view);
     if(state.page!==1)url.searchParams.set("sfcp",String(state.page));
-    history.replaceState(history.state,"",url.pathname+url.search+url.hash);
+    if(url.href===location.href)return;
+    history[push?"pushState":"replaceState"](history.state,"",url.pathname+url.search+url.hash);
   }
   function controls(){
     const values=["all",...sectors];
-    if(!values.includes(state.sector))state.sector="all";
+    if(mode==="live"&&state.sector!=="all"){const group=groups.find(g=>logic.normalized(g.label)===logic.normalized(state.sector)||g.values.includes(state.sector));if(group)state.sector=group.label;else if(!values.includes(state.sector))values.push(state.sector);}
+    else if(!values.includes(state.sector))state.sector="all";
     const host=$("archiveSectors");
     host.replaceChildren(...values.map(value=>{
       const button=node("button","archive-sector",value==="all"?"전체":value);
@@ -78,7 +79,7 @@
       button.classList.toggle("selected",state.sector===value);
       button.addEventListener("click",()=>{
         if(value===state.sector)return;
-        state.sector=value;state.page=1;refresh();
+        state.sector=value;state.page=1;refresh(true);
       });
       return button;
     }));
@@ -140,11 +141,11 @@
   function demoResults(){
     let rows=demos.filter(p=>{
       if(state.sector!=="all"&&p.category!==state.sector)return false;
-      return [p.title,p.category,p.type,p.desc].join(" ").toLocaleLowerCase("ko").includes(state.search.toLocaleLowerCase("ko"));
+      return logic.normalized([p.title,p.category,p.type,p.desc].join(" ")).includes(logic.normalized(state.search));
     });
-    if(state.sort==="new")rows.sort((a,b)=>b.date.localeCompare(a.date));
-    if(state.sort==="old")rows.sort((a,b)=>a.date.localeCompare(b.date));
-    if(state.sort==="title")rows.sort((a,b)=>a.title.localeCompare(b.title,"ko"));
+    if(state.sort==="new")rows.sort((a,b)=>b.date.localeCompare(a.date)||a.index-b.index);
+    if(state.sort==="old")rows.sort((a,b)=>a.date.localeCompare(b.date)||a.index-b.index);
+    if(state.sort==="title")rows.sort((a,b)=>a.title.localeCompare(b.title,"ko")||a.index-b.index);
     paint(rows.slice((state.page-1)*limit,state.page*limit),rows.length);
   }
   async function liveResults(){
@@ -160,8 +161,9 @@
         {count:"exact"}
       ).eq("kind","research").eq("status","published").is("deleted_at",null)
         .or("scheduled_at.is.null,scheduled_at.lte."+now);
-      if(state.sector!=="all")query=query.eq("research_sector",state.sector);
+      if(state.sector!=="all"){const group=groups.find(g=>g.label===state.sector);query=group&&group.values.length>1?query.in("research_sector",group.values):query.eq("research_sector",group?.values[0]||state.sector);}
       const term=short(state.search);
+      if(state.search.trim()&&!term){paint([],0);return;}
       if(term)query=query.or(["title","excerpt","research_company","research_sector","research_author"]
         .map(key=>key+".ilike.*"+term.replace(/\s+/g,"*")+"*").join(","));
       if(state.sort==="title")query=query.order("title",{ascending:true}).order("id",{ascending:true});
@@ -176,14 +178,15 @@
       results.replaceChildren();
       const alert=node("div","archive-error");
       alert.append(node("p","","리서치 조회에 실패했습니다. 인터넷 연결을 확인하고 다시 시도해 주세요."));
-      const retry=node("button","","다시 시도");retry.type="button";retry.addEventListener("click",refresh);
+      const retry=node("button","","다시 시도");retry.type="button";retry.addEventListener("click",()=>refresh());
       alert.append(retry);results.append(alert);
       $("archiveCount").textContent="RESEARCH / UNAVAILABLE";
       pager.hidden=true;results.setAttribute("aria-busy","false");
     }
   }
-  function refresh(){
-    controls();persist();
+  function refresh(push=false){
+    if(push)pendingLiveState=null;
+    controls();persist(push);
     const grid=state.view==="grid";
     if(results.classList.contains("grid")!==grid){
       window.SFC_MOTION.transition(results,()=>results.classList.toggle("grid",grid),{exit:false});
@@ -192,30 +195,31 @@
   }
   function clear(){
     state.search="";state.sector="all";state.sort="new";state.page=1;
-    search.value="";refresh();search.focus({preventScroll:true});
+    search.value="";refresh(true);search.focus({preventScroll:true});
   }
   search.addEventListener("input",()=>{
-    clearTimeout(debounce);
-    debounce=setTimeout(()=>{state.search=search.value.trim().slice(0,60);state.page=1;refresh();},220);
+    clearTimeout(debounce);requestVersion++;pendingLiveState=null;
+    debounce=setTimeout(()=>{state.search=search.value.trim().slice(0,60);state.page=1;refresh(true);},220);
   });
   $("archiveReset").addEventListener("click",clear);
   $("archiveSort").addEventListener("change",()=>{
-    state.sort=$("archiveSort").value;state.page=1;refresh();
+    state.sort=$("archiveSort").value;state.page=1;refresh(true);
   });
   for(const [view,id] of [["list","archiveListButton"],["grid","archiveGridButton"]])
     $(id).addEventListener("click",()=>{
       if(state.view===view)return;
-      state.view=view;controls();persist();
+      state.view=view;pendingLiveState=null;controls();persist(true);
       // View mode changes only geometry; rebuilding results on the same tick
       // would cancel the FLIP animation before it can be seen.
       window.SFC_MOTION.transition(results,()=>results.classList.toggle("grid",view==="grid"),{exit:false});
     });
   $("archivePrev").addEventListener("click",()=>{
-    if(state.page>1){state.page--;refresh();}
+    if(state.page>1){state.page--;refresh(true);}
   });
   $("archiveNext").addEventListener("click",()=>{
-    if(state.page*limit<total){state.page++;refresh();}
+    if(state.page*limit<total){state.page++;refresh(true);}
   });
+  window.addEventListener("popstate",()=>{clearTimeout(debounce);const next=readState();if(JSON.stringify(next)===JSON.stringify(state))return;pendingLiveState=null;Object.assign(state,next);search.value=state.search;refresh();});
   function activate(isLive){
     mode=isLive?"live":"demo";
     root.hidden=false;
@@ -236,23 +240,34 @@
   }
   async function connect(db){
     if(!db)return;
-    client=db;
+    client=db;const version=++connectVersion;requestVersion++;
+    const now=new Date().toISOString(),active=()=>version===connectVersion;
     try{
       const probe=await db.from("cms_posts").select("id",{count:"exact"})
         .eq("kind","research").eq("status","published").is("deleted_at",null)
-        .or("scheduled_at.is.null,scheduled_at.lte."+new Date().toISOString()).limit(1);
+        .or("scheduled_at.is.null,scheduled_at.lte."+now).limit(1);
+      if(!active())return;
       if(probe.error)throw probe.error;
-      if(!(probe.data?.length||probe.count>0)){if(mode==="live"){sectors=[];state.page=1;activate(true);refresh();}return;} // Initial empty state retains explicitly labelled samples.
-      const response=await db.from("cms_posts").select("research_sector")
-        .eq("kind","research").eq("status","published").is("deleted_at",null)
-        .or("scheduled_at.is.null,scheduled_at.lte."+new Date().toISOString()).limit(400);
-      if(response.error)throw response.error;
-      sectors=[...new Set((response.data||[]).map(x=>x.research_sector).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ko"));
-      state.page=1;
-      activate(true);refresh();
+      if(!(probe.data?.length||probe.count>0)){pendingLiveState=null;if(mode==="live"){sectors=[];groups=[];sectorsComplete=true;state.page=1;activate(true);refresh();}return;}
+      const values=[];const batch=400,cap=10000;let scanned=0;
+      for(let from=0;from<cap;from+=batch){
+        const response=await db.from("cms_posts").select("id,research_sector")
+          .eq("kind","research").eq("status","published").is("deleted_at",null)
+          .or("scheduled_at.is.null,scheduled_at.lte."+now).order("id",{ascending:true}).range(from,from+batch-1);
+        if(!active())return;if(response.error)throw response.error;
+        const rows=response.data||[];scanned+=rows.length;values.push(...rows.map(x=>x.research_sector));
+        if(rows.length<batch||scanned>=probe.count)break;
+      }
+      sectorsComplete=Number.isFinite(probe.count)&&scanned>=probe.count;
+      groups=logic.sectorGroups(values);sectors=groups.map(g=>g.label);
+      if(mode!=="live"&&pendingLiveState){Object.assign(state,pendingLiveState);search.value=state.search;}
+      pendingLiveState=null;activate(true);
+      if(!sectorsComplete)$("archiveDisclosure").textContent+=" 산업 필터는 조회 범위 내 자료만 표시합니다.";
+      refresh();
     }catch(error){
-      // Keep an honest sample fallback; do not misrepresent a failed live query.
-      $("archiveDisclosure").textContent="DEMO / 공개 연구 연결 확인에 실패했습니다. 아래 내용은 시연 자료입니다.";
+      if(!active())return;
+      if(mode==="live"){results.replaceChildren(node("p","archive-error","공개 연구 조회에 실패했습니다. 다시 시도해 주세요."));$("archiveCount").textContent="RESEARCH / UNAVAILABLE";pager.hidden=true;results.setAttribute("aria-busy","false");const retry=node("button","","다시 시도");retry.type="button";retry.addEventListener("click",()=>connect(db));results.append(retry);}
+      else $("archiveDisclosure").textContent="DEMO / 공개 연구 연결 확인에 실패했습니다. 아래 내용은 시연 자료입니다.";
     }
   }
   window.SFC_PLATFORM=Object.freeze({startDemo,connect,refresh,get mode(){return mode;},get state(){return {...state};}});
