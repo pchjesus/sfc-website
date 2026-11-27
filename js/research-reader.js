@@ -20,36 +20,9 @@
   function render(article,cms){
     clear();
     const body=$("cmsPostBody"),assets=$("cmsPostAssets");
-    const research=article.kind==="research";
+    const research=cms.renderArticle(article,{title:$("cmsPostTitle"),meta:$("cmsPostMeta"),body,overview:$("readerOverview"),overviewText:$("readerOverviewText"),toc,scroll:scrollToSection});
     $("post").classList.toggle("reader-active",research);
-    $("cmsPostTitle").textContent=article.title;
-    $("cmsPostMeta").textContent=[cms.kindNames[article.kind]||article.kind,
-      article.research_sector,article.research_company,article.research_author,
-      cms.dateText(article.published_at)].filter(Boolean).join(" / ");
-    cms.renderBody(body,article.body||"");
-    if(research){
-      $("readerOverview").hidden=false;
-      $("readerOverviewText").textContent=article.excerpt||"연구 개요가 별도로 제공되지 않았습니다. 본문을 확인해 주세요.";
-      const method=String(article.research_method||"").trim();
-      const limits=String(article.research_limitations||"").trim();
-      if(method){const section=node("section","cms-research-notes");section.append(node("h2","","분석 방법"),node("p","",method));body.append(section);}
-      if(limits){const section=node("section","cms-research-notes");section.append(node("h2","","가정과 한계"),node("p","",limits));body.append(section);}
-      if(!body.children.length)body.append(node("p","","연구 본문은 아직 등록되지 않았습니다. 원문 파일을 확인해 주세요."));
-      const heading=node("span","","CONTENTS / RESEARCH");toc.append(heading);
-      const overview=node("button","","01 / 연구 개요");
-      overview.type="button";overview.addEventListener("click",()=>scrollToSection($("readerOverview")));
-      toc.append(overview);
-      [...body.querySelectorAll("h2,h3")].forEach((h,i)=>{
-        h.id="reader-heading-"+i;
-        const button=node("button","",String(i+2).padStart(2,"0")+" / "+h.textContent);
-        button.type="button";button.dataset.level=h.tagName.slice(1);
-        button.addEventListener("click",()=>scrollToSection(h));
-        toc.append(button);
-      });
-      toc.hidden=false;$("readerActions").hidden=false;
-    }else if(article.excerpt){
-      body.prepend(node("p","cms-post-deck",article.excerpt));
-    }
+    $("readerActions").hidden=!research;
     const cover=cms.safeUrl(article.cover_url),pdf=cms.safeUrl(article.attachment_url);
     if(cover){
       const image=node("img","cms-post-cover");
