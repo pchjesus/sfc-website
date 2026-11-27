@@ -80,5 +80,29 @@
     const dt=new Date(iso);
     return Number.isNaN(dt.valueOf())?"":new Intl.DateTimeFormat("ko-KR",{year:"numeric",month:"2-digit",day:"2-digit"}).format(dt);
   }
-  window.SFC_CMS=Object.freeze({configured,getClient,getPublicClient,safeUrl,renderBody,kindNames,dateText});
+  // Both public Reader and private unsaved preview use the same semantic DOM.
+  // This renderer never creates an image, iframe, external link or network request.
+  function renderArticle(article,{title,meta,body,overview,overviewText,toc,idPrefix="reader",scroll}){
+    const n=(tag,cls,value)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(value!==undefined)e.textContent=value;return e;};
+    const research=article.kind==="research";
+    title.textContent=article.title||"제목 없음";
+    meta.textContent=[kindNames[article.kind]||article.kind,article.research_sector,article.research_company,article.research_author,dateText(article.published_at)].filter(Boolean).join(" / ");
+    renderBody(body,article.body||"");
+    overview.hidden=!research;overviewText.textContent="";
+    toc.replaceChildren();toc.hidden=!research;
+    if(research){
+      overviewText.textContent=article.excerpt||"연구 개요가 별도로 제공되지 않았습니다. 본문을 확인해 주세요.";
+      for(const [label,value] of [["분석 방법",article.research_method],["가정과 한계",article.research_limitations]]){
+        const valueText=String(value||"").trim();
+        if(valueText){const section=n("section","cms-research-notes");section.append(n("h2","",label),n("p","",valueText));body.append(section);}
+      }
+      if(!body.children.length)body.append(n("p","","연구 본문은 아직 등록되지 않았습니다. 원문 파일을 확인해 주세요."));
+      toc.append(n("span","","CONTENTS / RESEARCH"));
+      const add=(label,target,level)=>{const button=n("button","",label);button.type="button";if(level)button.dataset.level=level;button.addEventListener("click",()=>scroll(target));toc.append(button);};
+      add("01 / 연구 개요",overview);
+      [...body.querySelectorAll("h2,h3")].forEach((h,i)=>{h.id=idPrefix+"-heading-"+i;add(String(i+2).padStart(2,"0")+" / "+h.textContent,h,h.tagName.slice(1));});
+    }else if(article.excerpt){body.prepend(n("p","cms-post-deck",article.excerpt));}
+    return research;
+  }
+  window.SFC_CMS=Object.freeze({configured,getClient,getPublicClient,safeUrl,renderBody,renderArticle,kindNames,dateText});
 })();

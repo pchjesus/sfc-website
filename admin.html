@@ -10,14 +10,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/cms.css?v=3.0-developer-d3.1">
+<link rel="stylesheet" href="css/cms.css?v=3.0-readiness-a">
 <link rel="stylesheet" href="css/motion.css?v=2.3.3">
 <link rel="stylesheet" href="css/integrated.css?v=2.6-preview">
 <script defer src="js/cms-config.js?v=2.0"></script>
-<script defer src="js/cms-core.js?v=2.0"></script>
+<script defer src="js/cms-core.js?v=3.0-readiness-a"></script>
 <script defer src="js/research-importer.js?v=0.1"></script>
-<script defer src="js/cms-admin.js?v=3.0-developer-d3.1"></script>
-<script defer src="js/cms-studio.js?v=3.0-developer-d3.1"></script>
+<script defer src="js/cms-admin.js?v=3.0-readiness-a"></script>
+<script defer src="js/cms-studio.js?v=3.0-readiness-a"></script>
 </head>
 <body>
 <header class="studio-header">
@@ -73,7 +73,7 @@
   <button type="button" id="insertResearchOutline">빈 본문에 연구 구성 템플릿 넣기</button>
 </div>
 </div>
-<div class="studio-format-bar" aria-label="본문 편집 도구"><button type="button" data-format="# ">제목</button><button type="button" data-format="## ">소제목</button><button type="button" data-format="- ">목록</button><button type="button" id="focusEditor" aria-pressed="false">집중 모드</button></div><label>본문<textarea id="postBody" rows="15" maxlength="50000" placeholder="# 제목&#10;&#10;본문을 입력해 주세요.&#10;&#10;## 소제목&#10;- 핵심 항목"></textarea></label>
+<div class="studio-format-bar" aria-label="본문 편집 도구"><button type="button" id="insertGeneralOutline">공지·활동 기본 틀</button><button type="button" data-format="# ">제목</button><button type="button" data-format="## ">소제목</button><button type="button" data-format="- ">목록</button><button type="button" id="undoFormat" disabled>서식 취소</button><button type="button" id="redoFormat" disabled>서식 다시 적용</button><button type="button" id="focusEditor" aria-pressed="false">집중 모드</button></div><label>본문<textarea id="postBody" rows="15" maxlength="50000" placeholder="# 제목&#10;&#10;본문을 입력해 주세요.&#10;&#10;## 소제목&#10;- 핵심 항목"></textarea></label>
 <p class="editor-hint"># 제목 · ## 소제목 · - 목록 · 빈 줄 지원. HTML은 실행되지 않습니다.</p><p id="editorCounts" class="editor-hint"></p><section id="importReview" class="studio-import-review" hidden><h3>원문 검토 정보</h3><p class="editor-hint">AI 추출 결과이며 검증 완료를 의미하지 않습니다. 원문과 비교하세요. 아래 정보는 현재 작업에서만 표시되며 서버 게시물에 자동 저장되지 않습니다.</p><div id="importReviewContent" class="cms-richtext"></div></section>
 <div class="studio-field-grid">
 <label>대표 이미지 URL<input id="postCoverUrl" type="url" placeholder="https://..."></label>
@@ -84,11 +84,11 @@
 <label>예약 발행 (선택, 현지 시간)<input type="datetime-local" id="postSchedule"><span class="form-help">미래 시각을 지정한 뒤 '게시'하면 해당 시각부터 공개돼요. 빈칸이면 즉시 게시합니다.</span></label>
 <div class="editor-toolbar studio-save-toolbar"><button type="button" id="previewButton" class="secondary">미리보기</button><button type="button" id="saveDraft" class="secondary">임시저장</button><button type="button" id="publishPost" class="primary">게시하기 ↗</button></div>
 </form>
-<div id="previewPanel" class="preview-panel" hidden><button type="button" id="previewWidth" class="secondary" aria-pressed="false">모바일 폭 미리보기</button><span class="eyebrow">ARTICLE PREVIEW</span><h2 id="previewTitle"></h2><p id="previewExcerpt"></p><p id="previewResearchMeta" class="editor-hint"></p>
-<div class="cms-richtext" id="previewBody"></div>
-<div id="previewResearchNotes" class="cms-richtext"></div><a id="previewLocalPdf" class="secondary" target="_blank" rel="noopener noreferrer" hidden>선택한 PDF 열기 (이 기기)</a><button type="button" id="closePreview" class="secondary">편집으로 돌아가기</button></div>
-<div class="editor-danger"><button type="button" id="unpublishPost" hidden>게시 취소</button><button type="button" id="trashPost" hidden>휴지통으로</button><button type="button" id="restorePost" hidden>복구하기</button><button type="button" id="deletePost" hidden>영구 삭제</button><button type="button" id="historyButton" hidden>수정 이력</button></div>
-<div id="historyPanel" class="studio-history" hidden><div class="studio-history-head"><h3>수정 이력</h3><button type="button" id="historyClose">닫기</button></div><p class="editor-hint">이전을 선택하면 편집기에 불러와져요. 실제 복원은 다시 저장한 후 적용됩니다.</p><div id="historyList"></div></div>
+<div id="previewPanel" class="preview-panel" hidden><button type="button" id="previewWidth" class="secondary" aria-pressed="false">모바일 폭 미리보기</button><span class="eyebrow">ARTICLE PREVIEW</span><h2 id="previewTitle"></h2><p id="previewResearchMeta" class="editor-hint"></p><div id="previewOverview" class="reader-overview" hidden><span class="eyebrow">RESEARCH / INTRODUCTION</span><p id="previewExcerpt"></p></div><nav id="previewToc" class="reader-toc studio-reader-toc" aria-label="미리보기 목차" hidden></nav>
+<div class="cms-richtext studio-reader-body" id="previewBody"></div>
+<p class="editor-hint" id="previewAssetNote"></p><a id="previewLocalPdf" class="secondary" target="_blank" rel="noopener noreferrer" hidden>선택한 PDF 열기 (이 기기)</a><button type="button" id="closePreview" class="secondary">편집으로 돌아가기</button></div>
+<div class="editor-danger"><button type="button" id="unpublishPost" hidden>게시 취소</button><button type="button" id="trashPost" hidden>휴지통으로</button><button type="button" id="restorePost" hidden>복구하기</button><button type="button" id="deletePost" hidden>영구 삭제</button><button type="button" id="historyButton" hidden>수정 이력</button><button type="button" id="duplicatePost" hidden>새 임시글로 복제</button><button type="button" id="compareServer" hidden>서버 최신본 비교</button></div>
+<div id="historyPanel" class="studio-history" hidden><div class="studio-history-head"><h3>수정 이력</h3><button type="button" id="historyClose">닫기</button></div><p class="editor-hint">이전을 선택하면 편집기에 불러와져요. 실제 복원은 다시 저장한 후 적용됩니다.</p><div id="historyList"></div></div><section id="comparisonPanel" class="studio-history" hidden><div class="studio-history-head"><h3 id="comparisonTitle">내용 비교</h3><button type="button" id="closeComparison">닫기</button></div><p class="editor-hint">읽기 전용 비교입니다. 저장하거나 서버 버전을 변경하지 않습니다. 필요한 부분을 직접 복사하세요.</p><div class="comparison-grid" id="comparisonRows"></div></section>
 </section></div></section>
 <section data-pane-view="site" class="studio-pane" hidden><div class="studio-section-bar"><div><span class="eyebrow">SITE CONTENT</span><h2>Homepage & About.</h2></div></div>
 <p class="studio-pane-intro">홈페이지와 소개 문구를 수정할 수 있어요. 배치·색상·레이아웃 변경은 GitHub에서 진행합니다.</p>

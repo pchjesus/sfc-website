@@ -4,6 +4,8 @@
   const util=()=>window.SFC_STUDIO;
   const cms=window.SFC_CMS;
   const state={site:{},recruitment:{},people:[],sessions:[],admins:[]};
+  let generation=0;
+  const session=()=>{const g=generation,owner=util().getUser()?.id;return ()=>Boolean(owner)&&g===generation&&util().getUser()?.id===owner;};
   // Never overwrite unsubmitted structured CMS input with asynchronous reads.
   const dirtyForms={site:false,recruitment:false,people:false,sessions:false};
   const busyForms={site:false,recruitment:false,people:false,sessions:false};
@@ -61,6 +63,7 @@
   const settingReadTickets={site:0,recruitment:0};
   async function fetchSettings(pane){
     if(!(pane in settingReadTickets))return;
+    const active=session();if(!active())return;
     const ticket=++settingReadTickets[pane];
     // Read only the pane being displayed. A Recruitment read must never
     // advance Site's version while its old inputs are still on screen.
@@ -68,7 +71,7 @@
       .select("key,value,updated_at").eq("key",pane).maybeSingle();
     if(error)throw error;
     if(!data)throw new Error("설정 데이터를 찾을 수 없습니다. 관리자에게 문의해 주세요.");
-    if(ticket!==settingReadTickets[pane]||dirtyForms[pane]||busyForms[pane])return;
+    if(!active()||ticket!==settingReadTickets[pane]||dirtyForms[pane]||busyForms[pane])return;
     // The form and the optimistic-concurrency token are updated as one snapshot.
     state[pane]=data.value||{};
     settingVersions[pane]=data.updated_at||null;
@@ -121,7 +124,8 @@
     }
     previewRecruitment();
   }
-  async function persistSetting(key,value){
+  async function persistSetting(key,value,active){
+    if(!active())return false;
     // Both records are seeded by SQL migration. Saving with an unknown
     // version would bypass conflict checking and silently replace an unseen
     // record after a failed initial read.
@@ -131,16 +135,17 @@
       .eq("key",key).eq("updated_at",settingVersions[key])
       .select("key,value,updated_at").maybeSingle();
     const {data,error}=await request;
+    if(!active())return false;
     if(error)throw error;
     if(!data)throw new Error("다른 관리자가 먼저 수정한 설정입니다. 입력 내용은 유지됩니다. 복사한 뒤 페이지를 새로고침해 최신 상태를 확인하세요.");
     state[key]=data.value||{};
     settingVersions[key]=data.updated_at||updated_at;
-    dirtyForms[key]=false;
+    dirtyForms[key]=false;return true;
   }
   $("siteForm").addEventListener("submit",async event=>{
     event.preventDefault();
     const button=event.currentTarget.querySelector('button[type="submit"]');
-    if(!client())return;
+    const active=session();if(!active()||busyForms.site)return;
     const data={
       hero_description:textVal("siteHeroDescription"),
       about_heading:textVal("siteAboutHeading"),
@@ -151,13 +156,13 @@
     if(data.contact_email&&(!$("siteContactEmail").checkValidity()))
       return toast("이메일 주소를 확인해 주세요.",true);
     buttonBusy(button,true);lockForm("site",true);
-    try{await persistSetting("site",data);toast("홈페이지 문구를 저장했습니다. 공개 페이지에서 반영됩니다.");}
-    catch(e){toast("저장 실패: "+e.message,true);}
-    finally{lockForm("site",false);buttonBusy(button,false);}
+    try{if(!await persistSetting("site",data,active)||!active())return;toast("홈페이지 문구를 저장했습니다. 공개 페이지에서 반영됩니다.");}
+    catch(e){if(active())toast("저장 실패: "+e.message,true);}
+    finally{if(active()){lockForm("site",false);buttonBusy(button,false);}}
   });
   $("recruitForm").addEventListener("submit",async event=>{
     event.preventDefault();
-    if(!client())return;
+    const active=session();if(!active()||busyForms.recruitment)return;
     const button=event.currentTarget.querySelector('button[type="submit"]');
     buttonBusy(button,true);lockForm("recruitment",true);
     try{
@@ -170,16 +175,17 @@
         method:textVal("recruitMethod"),instructions:textVal("recruitInstructions"),
         start_at,end_at,pdf_url:safe(state.recruitment?.pdf_url),docx_url:safe(state.recruitment?.docx_url)
       };
-      const pdf=await util().upload($("recruitPdf").files[0],"pdf");
-      const docx=await util().upload($("recruitDocx").files[0],"docx");
+      const pdfFile=$("recruitPdf").files[0],docxFile=$("recruitDocx").files[0];
+      const pdf=await util().upload(pdfFile,"pdf");if(!active())return;
+      const docx=await util().upload(docxFile,"docx");if(!active())return;
       if(pdf)data.pdf_url=pdf;
       if(docx)data.docx_url=docx;
-      await persistSetting("recruitment",data);
+      if(!await persistSetting("recruitment",data,active)||!active())return;
       $("recruitPdf").value="";$("recruitDocx").value="";
       fillRecruitment();
       toast("모집 설정과 지원서 파일을 저장했습니다.");
-    }catch(e){toast("모집 설정 저장 실패: "+(e.message||e),true);}
-    finally{lockForm("recruitment",false);buttonBusy(button,false);}
+    }catch(e){if(active())toast("모집 설정 저장 실패: "+(e.message||e),true);}
+    finally{if(active()){lockForm("recruitment",false);buttonBusy(button,false);}}
   });
   function clearPerson(force=false){
     if(!force&&!allowDiscard("people"))return;
@@ -211,25 +217,25 @@
       const controls=n("div","studio-record-actions");
       const edit=n("button","","편집");edit.type="button";edit.addEventListener("click",()=>editPerson(p));
       const del=n("button","","삭제");del.type="button";del.addEventListener("click",async()=>{
-        if(!allowDiscard("people")||!confirm(p.name+" 님의 프로필을 삭제할까요?"))return;
+        const active=session();if(!active()||!allowDiscard("people")||!confirm(p.name+" 님의 프로필을 삭제할까요?"))return;
         del.disabled=true;lockForm("people",true);
         try{
           const {error}=await client().from("cms_people").delete().eq("id",p.id);
-          if(error)throw error;
-          await loadPeople();clearPerson(true);
+          if(!active())return;if(error)throw error;
+          await loadPeople();if(!active())return;clearPerson(true);
           toast("인물 정보를 삭제했습니다.");
-        }catch(error){toast("삭제 실패: "+(error.message||error),true);}
-        finally{lockForm("people",false);del.disabled=false;}
+        }catch(error){if(active())toast("삭제 실패: "+(error.message||error),true);}
+        finally{if(active()){lockForm("people",false);del.disabled=false;}}
       });
       controls.append(edit,del);row.append(info,controls);list.append(row);
     }
   }
   async function loadPeople(){
-    state.people=await queryAll("cms_people");renderPeople();
+    const active=session();if(!active())return;const rows=await queryAll("cms_people");if(!active())return;state.people=rows;renderPeople();
   }
   $("newPerson").addEventListener("click",()=>clearPerson());
   $("peopleForm").addEventListener("submit",async event=>{
-    event.preventDefault();
+    event.preventDefault();const active=session();if(!active()||busyForms.people)return;
     const save=event.currentTarget.querySelector('button[type="submit"]');
     const id=textVal("personId");
     const payload={name:textVal("personName"),position:textVal("personPosition"),
@@ -241,10 +247,10 @@
       let result;
       if(id)result=await client().from("cms_people").update(payload).eq("id",id);
       else result=await client().from("cms_people").insert(payload);
-      if(result.error)throw result.error;
-      await loadPeople();clearPerson(true);toast("People 정보가 저장되었습니다.");
-    }catch(e){toast("저장 실패: "+e.message,true);}
-    finally{lockForm("people",false);buttonBusy(save,false);}
+      if(!active())return;if(result.error)throw result.error;
+      await loadPeople();if(!active())return;clearPerson(true);toast("People 정보가 저장되었습니다.");
+    }catch(e){if(active())toast("저장 실패: "+e.message,true);}
+    finally{if(active()){lockForm("people",false);buttonBusy(save,false);}}
   });
   function clearSession(force=false){
     if(!force&&!allowDiscard("sessions"))return;
@@ -274,23 +280,23 @@
       const controls=n("div","studio-record-actions");
       const edit=n("button","","편집");edit.type="button";edit.addEventListener("click",()=>editSession(s));
       const del=n("button","","삭제");del.type="button";del.addEventListener("click",async()=>{
-        if(!allowDiscard("sessions")||!confirm(s.title+" 과정을 삭제할까요?"))return;
+        const active=session();if(!active()||!allowDiscard("sessions")||!confirm(s.title+" 과정을 삭제할까요?"))return;
         del.disabled=true;lockForm("sessions",true);
         try{
           const {error}=await client().from("cms_sessions").delete().eq("id",s.id);
-          if(error)throw error;
-          await loadSessions();clearSession(true);
+          if(!active())return;if(error)throw error;
+          await loadSessions();if(!active())return;clearSession(true);
           toast("교육과정을 삭제했습니다.");
-        }catch(error){toast("삭제 실패: "+(error.message||error),true);}
-        finally{lockForm("sessions",false);del.disabled=false;}
+        }catch(error){if(active())toast("삭제 실패: "+(error.message||error),true);}
+        finally{if(active()){lockForm("sessions",false);del.disabled=false;}}
       });
       controls.append(edit,del);row.append(info,controls);list.append(row);
     }
   }
-  async function loadSessions(){state.sessions=await queryAll("cms_sessions");renderSessions();}
+  async function loadSessions(){const active=session();if(!active())return;const rows=await queryAll("cms_sessions");if(!active())return;state.sessions=rows;renderSessions();}
   $("newSession").addEventListener("click",()=>clearSession());
   $("sessionForm").addEventListener("submit",async event=>{
-    event.preventDefault();
+    event.preventDefault();const active=session();if(!active()||busyForms.sessions)return;
     const save=event.currentTarget.querySelector('button[type="submit"]');
     const id=textVal("sessionId");
     const payload={week_label:textVal("sessionWeek"),title:textVal("sessionTitle"),
@@ -303,16 +309,17 @@
       const result=id
         ? await client().from("cms_sessions").update(payload).eq("id",id)
         : await client().from("cms_sessions").insert(payload);
-      if(result.error)throw result.error;
-      await loadSessions();clearSession(true);toast("Activities 프로그램이 저장되었습니다.");
-    }catch(e){toast("저장 실패: "+e.message,true);}
-    finally{lockForm("sessions",false);buttonBusy(save,false);}
+      if(!active())return;if(result.error)throw result.error;
+      await loadSessions();if(!active())return;clearSession(true);toast("Activities 프로그램이 저장되었습니다.");
+    }catch(e){if(active())toast("저장 실패: "+e.message,true);}
+    finally{if(active()){lockForm("sessions",false);buttonBusy(save,false);}}
   });
   $("peopleSearch").addEventListener("input",renderPeople);$("peopleVisibility").addEventListener("change",renderPeople);
   $("sessionSearch").addEventListener("input",renderSessions);["sessionVisibility","sessionFilterStage"].forEach(id=>$(id).addEventListener("change",renderSessions));
   async function loadAdmins(){
+    const active=session();if(!active())return;
     const {data,error}=await client().from("cms_admins").select("user_id,email,created_at").order("created_at",{ascending:true});
-    if(error)throw error;
+    if(!active())return;if(error)throw error;
     state.admins=data||[];renderAdmins();
   }
   function renderAdmins(){
@@ -328,11 +335,11 @@
       const btn=n("button","","권한 해제");btn.type="button";btn.className="secondary";
       btn.disabled=isSelf||state.admins.length<=1;
       btn.addEventListener("click",async()=>{
-        if(!confirm(a.email+" 계정의 SFC 운영 권한을 해제할까요?"))return;
+        const active=session();if(!active()||!confirm(a.email+" 계정의 SFC 운영 권한을 해제할까요?"))return;
         btn.disabled=true;
         const {error}=await client().from("cms_admins").delete().eq("user_id",a.user_id);
-        if(error)toast("권한 해제 실패: "+error.message,true);
-        else{await loadAdmins();toast("최고관리자 권한을 해제했습니다. 기존 Supabase Auth 계정은 유지됩니다.");}
+        if(!active())return;if(error)toast("권한 해제 실패: "+error.message,true);
+        else{await loadAdmins();if(!active())return;toast("최고관리자 권한을 해제했습니다. 기존 Supabase Auth 계정은 유지됩니다.");}
         btn.disabled=false;
       });
       row.append(info,btn);list.append(row);
@@ -340,7 +347,7 @@
     if(!state.admins.length)list.append(n("p","sidebar-empty","최초 최고관리자 계정 등록이 필요합니다."));
   }
   $("memberAddForm").addEventListener("submit",async event=>{
-    event.preventDefault();
+    event.preventDefault();const active=session();if(!active()||$("memberAddButton").disabled)return;
     if(state.admins.length>=3)return toast("최고관리자는 최대 3명입니다.",true);
     const email=textVal("memberEmail").toLowerCase();
     if(!util().getUser())return;
@@ -349,29 +356,31 @@
     const button=$("memberAddButton");buttonBusy(button,true);
     try{
       const {error}=await client().from("cms_admins").insert({email});
-      if(error)throw error;
-      $("memberEmail").value="";await loadAdmins();
+      if(!active())return;if(error)throw error;
+      $("memberEmail").value="";await loadAdmins();if(!active())return;
       toast("최고관리자가 추가되었습니다. 해당 계정은 다음 로그인부터 관리할 수 있습니다.");
-    }catch(e){toast("추가 실패: "+e.message+". Auth에 등록된 이메일인지 확인해 주세요.",true);}
-    finally{buttonBusy(button,state.admins.length>=3);}
+    }catch(e){if(active())toast("추가 실패: "+e.message+". Auth에 등록된 이메일인지 확인해 주세요.",true);}
+    finally{if(active())buttonBusy(button,state.admins.length>=3);}
   });
-  async function readBackupTable(table){
+  async function readBackupTable(table,active){
     const rows=[];
     for(let start=0;start<10000;start+=1000){
+      if(!active())throw Error("세션 변경");
       const {data,error}=await client().from(table).select("*").order(table==="cms_site_settings"?"key":table==="cms_admins"?"user_id":"id").range(start,start+999);
-      if(error)throw error;
+      if(!active())throw Error("세션 변경");if(error)throw error;
       rows.push(...(data||[]));
       if((data||[]).length<1000)return rows;
     }
     throw Error(table+" 데이터가 10,000행을 초과합니다. 불완전한 백업 방지를 위해 중단했어요.");
   }
   $("exportData").addEventListener("click",async()=>{
-    if(!util().getUser())return;
+    const active=session();if(!active())return;
     const button=$("exportData");buttonBusy(button,true);
     try{
       const tables=["cms_posts","cms_post_revisions","cms_site_settings","cms_people","cms_sessions","cms_admins"];
       const data={format:"sfc-cms-export-v1",exported_at:new Date().toISOString(),project:"sfc-website",tables:{}};
-      for(const table of tables)data.tables[table]=await readBackupTable(table);
+      for(const table of tables)data.tables[table]=await readBackupTable(table,active);
+      if(!active())return;
       const json=JSON.stringify(data,null,2);
       const blob=new Blob([json],{type:"application/json;charset=utf-8"});
       const url=URL.createObjectURL(blob);
@@ -380,8 +389,8 @@
       document.body.append(link);link.click();link.remove();
       setTimeout(()=>URL.revokeObjectURL(url),10_000);
       toast("데이터 백업 파일이 준비됐습니다. 관리자 전용 안전한 위치에 보관하세요.");
-    }catch(e){toast("백업 실패: "+(e.message||e),true);}
-    finally{buttonBusy(button,false);}
+    }catch(e){if(active())toast("백업 실패: "+(e.message||e),true);}
+    finally{if(active())buttonBusy(button,false);}
   });
   let diagnosticSequence=0,lastDiagnostic=null;
   async function developerDiagnostic(){
@@ -410,15 +419,31 @@
     const link=document.createElement("a");link.href=url;link.download="sfc-diagnostic-"+new Date().toISOString().slice(0,10)+".json";document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
   });
   $("devGoAccounts").addEventListener("click",()=>{if(util().getRole()==="developer")util().showPane("access");});
-  window.addEventListener("sfc:admin-cleared",()=>{diagnosticSequence++;lastDiagnostic=null;$("devRefresh").disabled=false;$("devExport").disabled=true;});
+  window.addEventListener("sfc:admin-cleared",()=>{
+    generation++;diagnosticSequence++;lastDiagnostic=null;
+    state.site={};state.recruitment={};state.people=[];state.sessions=[];state.admins=[];
+    for(const [key,id] of Object.entries(formIds)){
+      settingVersions[key]=null;dirtyForms[key]=false;lockForm(key,false);$(id).reset();
+      $(id).querySelectorAll("button[type=submit]").forEach(b=>b.disabled=false);
+    }
+    settingReadTickets.site++;settingReadTickets.recruitment++;
+    fillSite();fillRecruitment();clearPerson(true);clearSession(true);
+    for(const id of ["peopleList","sessionsList","memberList"])$(id).replaceChildren();
+    for(const id of ["peopleSearch","peopleVisibility","sessionSearch","sessionVisibility","sessionFilterStage","memberEmail"])$(id).value="";
+    for(const id of ["peopleSummary","sessionSummaryCount","memberCapacityNote"])$(id).textContent="조회 전";
+    $("superadminCount").textContent="— / 3";$("memberAddButton").disabled=false;$("exportData").disabled=false;
+    $("devRefresh").disabled=false;$("devExport").disabled=true;
+  });
   async function openPane(pane){
+    const active=session();if(!active())return;
     try{
       if(pane==="site"||pane==="recruitment")await fetchSettings(pane);
       if(pane==="people")await loadPeople();
       if(pane==="sessions")await loadSessions();
       if(pane==="access")await loadAdmins();
       if(pane==="developer")await developerDiagnostic();
-    }catch(e){toast("데이터를 불러오지 못했습니다: "+(e.message||e),true);}
+    }catch(e){if(active())toast("데이터를 불러오지 못했습니다: "+(e.message||e),true);}
   }
+  window.SFC_STUDIO_FORMS=Object.freeze({hasUnsaved:()=>Object.values(dirtyForms).some(Boolean),hasPendingWrite:()=>Object.values(busyForms).some(Boolean)});
   window.addEventListener("sfc:pane",e=>openPane(e.detail.pane));
 })();
