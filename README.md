@@ -1,5 +1,9 @@
 # SFC Official Website
 
+## Current release — D3.1 (2026-11-27)
+
+[Current baseline](docs/CURRENT_BASELINE.md) · [Readiness R0–R8](docs/V3_READINESS_PLAN.md) · [v3.x roadmap](docs/V3_ROADMAP.md). Main code a50a0f38; 82 mock browser cases passed; live Auth/RLS/Storage and actual latest Pages response not independently verified. Studio now includes per-work recovery, Research Importer 0.1 (external AI/JSON only), filters, previews, developer-only diagnostics UI and aligned account CTA. Independent owner SQL candidate is merged but NOT applied; no real account activation. Current backend still uses max-three operational allowlist. Account creation is deferred by owner. The following 2.0 notes are historical; current baseline and preflight govern subsequent work.
+
 **Sangmyung Financial Club (SFC)** — public research and recruitment website + private editorial Studio.
 
 - Public website: https://pchjesus.github.io/sfc-website/
@@ -21,7 +25,7 @@ Studio includes:
 - **Site content:** home hero intro, About intro, program description, official contact email
 - **People / Activities:** managed structured lists replace illustrative placeholders when populated
 - **Recruitment:** status, start/end date, audience, meeting details, application instructions; admin upload of blank PDF and optional editable DOCX application forms; public preview modal and download
-- **Access:** superadmin allowlist management via existing verified Supabase Auth email; maximum three enforced in serialized DB trigger
+- **Access:** superadmin allowlist management via existing Supabase Auth email (verify ownership first; current DB guard is legacy; D1 candidate explicitly enforces verified email); maximum three enforced in serialized DB trigger
 - **Content export:** download JSON with posts, revisions, settings, people, sessions and superadmin list; does not include original media files or Auth credentials
 
 The published Research/Updates feed uses database RLS to expose **only published, nontrashed, released posts**. Existing demo reports stay labeled as SAMPLE and are hidden once actual public research is present. No real SFC report, official member bio, application form or dates have been fabricated.
@@ -37,7 +41,7 @@ Read [docs/CODEX_QA.md](docs/CODEX_QA.md) for browser and Supabase security inte
 
 ## Supabase activation (first account)
 
-The dedicated project and migrations are already set up. **The project currently has no pre-created Auth users.** To activate the editor:
+The dedicated project and migrations are already set up. **The last read-only inspection found zero Auth users. Account creation is currently deferred. Developer activation requires a separate reviewed migration and staging gate; the following is the legacy first operational admin procedure, not a developer bootstrap.** To activate the editor:
 
 1. Create or invite the real initial user in [Supabase Authentication → Users](https://supabase.com/dashboard/project/nnoicikkennbihjdoivt/auth/users). Confirm the email and set a strong private password.
 2. Disable open public signups in Supabase Auth settings. Set `https://pchjesus.github.io/sfc-website/admin.html` as a password recovery redirect URL.
@@ -45,7 +49,8 @@ The dedicated project and migrations are already set up. **The project currently
    ```sql
    insert into public.cms_admins(user_id)
    select id from auth.users
-   where lower(email) = lower('YOU@EXAMPLE.COM');
+   where lower(email) = lower('YOU@EXAMPLE.COM')
+     and email_confirmed_at is not null;
    ```
 4. Sign in to Studio. Additional superadmins can then be approved through the **계정 관리** tab after their Auth accounts exist.
 

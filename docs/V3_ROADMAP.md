@@ -1,7 +1,10 @@
 # SFC v3.x — 개발 로드맵
 
+**실행 순서:** R0~R8 선행 개발 → 실제 보고서·계정·공개 승인 게이트 → v3.0 정식 발행 → v3.1~v3.4 자료 의존 기능. 아래 정식 버전 목표는 유지하며 중복 구현하지 않는다.
+
 - 합의일: 2026-11-26 (KST)
-- 기준: v2.9, main `9be1e6caef29ee9490527e3b39782ee859d98f8f`
+- 최신화: 2026-11-27 · 코드 기준 D3.1 main `a50a0f380a270a5a2200f7273f16a5f6ac4cbf37`
+- [현재 구현/QA 기준선](CURRENT_BASELINE.md) · [통합 선행 개발 R0–R8](V3_READINESS_PLAN.md)
 - [PR #8](https://github.com/pchjesus/sfc-website/pull/8) · [v2.9 QA](V2.9_QA_REPORT.md)
 - 상태: 소유자와 개발 방향 합의. 개별 구현·DB 변경·main 병합·콘텐츠 발행은 별도 승인.
 - 관련: [Studio 편의성 명세](STUDIO_UX_ROADMAP.md) · [v3.0 준비/검증 체크리스트](V3.0_PREFLIGHT.md)
@@ -9,7 +12,7 @@
 ## 1. 목표와 불변 원칙
 
 v1.x는 기반, v2.x는 시각 디자인과 안정화, v3.x는 실제 연구 성과와 운영 체계 완성.
-기존 framework-free GitHub Pages + Supabase Auth/PostgreSQL/Storage를 재사용한다. 기존 v2.8.4의 7개 탭별 고유 모션, 사진, 상명대학교 로고, 정보 계층, People/Recruitment의 즉시 읽을 수 있는 구조를 보존한다. 승인되지 않은 카피·인물·수치·날짜·보고서를 만들지 않는다. 초기 연구가 적을 때 불필요한 필터/통계/UI를 늘리지 않는다. 일반 방문자는 로그인 없이 공개 자료를 읽으며, 기존 최대 3인 superadmin 체제를 유지한다. 복잡한 역할·커뮤니티·실시간 주가·AI 투자추천은 범위 밖.
+기존 framework-free GitHub Pages + Supabase Auth/PostgreSQL/Storage를 재사용한다. 기존 v2.8.4의 7개 탭별 고유 모션, 사진, 상명대학교 로고, 정보 계층, People/Recruitment의 즉시 읽을 수 있는 구조를 보존한다. 승인되지 않은 카피·인물·수치·날짜·보고서를 만들지 않는다. 초기 연구가 적을 때 불필요한 필터/통계/UI를 늘리지 않는다. 일반 방문자는 로그인 없이 공개 자료를 읽으며, 현재 운영 DB는 최대 3인 superadmin 체제. 개발자 1명 별도 역할의 프런트엔드/SQL 후보는 병합했으나 실제 권한 migration과 계정은 보류한다. 복잡한 역할·커뮤니티·실시간 주가·AI 투자추천은 범위 밖.
 
 모든 코드 변경은 별도 브랜치 → 검증 → 소유자 검수 → 명시적 병합 승인 → Pages 검증. 콘텐츠 발행은 코드 배포와 별개로 원본/공개 허가 확인 → 비공개 검수 → 명시적 발행 승인 → 익명 브라우저 확인. 공개 저장소의 브랜치/Actions artifact도 비밀 자료 저장에 사용하지 않는다. 운영 Supabase에 승인 없는 계정 생성, 쓰기, 삭제, DDL, 권한 변경을 금지한다. 기존 마이그레이션을 재실행하지 않는다.
 
@@ -19,7 +22,7 @@ v1.x는 기반, v2.x는 시각 디자인과 안정화, v3.x는 실제 연구 성
 - Studio (`admin.html`, `js/cms-admin.js`, `js/cms-studio.js`): 자동저장/수동 임시저장, sessionStorage 복구, 예약 발행, 수정 이력, 휴지통, 구조화 사이트/인물/교육과정/모집/계정 편집, JSON 내보내기. 상세 개선은 별도 명세.
 - DB: cms_posts, cms_post_revisions, cms_site_settings, cms_people, cms_sessions, cms_admins. 공개 콘텐츠 조회는 RLS; 파일은 공개 sfc-media 버킷.
 - v2.9 QA 기록: mock 브라우저 33+8+11+12 시나리오 통과, Codex 1차 P1 2건 수정 후 2차 신규 P0/P1 없음. 당시 RLS/DB grants/Storage 읽기 전용 검사 완료. 실제 인증·CRUD·비인가 토큰·PDF 바이트·계정 복구는 NOT RUN. 당시 Auth 및 CMS 게시물 0건(현재 실측 아님).
-- 기존 위험: People/Activities 동시 수정용 version 부재, 고아 파일, JSON만 내보내고 복원/미디어 백업 미비, 해시 주소 공유/검색 제한. 추가 확인: draft 저장시에도 공개 버킷 업로드, 비공개 처리 후 직접 파일 URL 접근 가능. 따라서 파일 공개 승인과 게시물 공개는 다른 개념이다.
+- 기존 위험: People/Activities 동시 수정용 version 부재, 고아 파일, JSON만 내보내고 복원/미디어 백업 미비, 해시 주소 공유/검색 제한. P1에서 게시글 draft 저장의 공개 버킷 업로드를 차단했으나 공개 발행 후 기존 직접 파일 URL 접근 및 실패 시 고아 파일 위험은 남는다. 따라서 파일 공개 승인과 게시물 공개는 다른 개념이다.
 
 ## 3. 버전별 범위·순서·완료 기준
 
@@ -87,3 +90,7 @@ Studio S2/S3 중심: 검수 체크리스트/검수 상태(초안→검수→승�
 ## 7. 개발자 계정 및 운영 인수인계 추가 (2026-11-26)
 
 [Developer access, login design and Studio guide](DEVELOPER_ACCESS_AND_STUDIO_GUIDE.md): 제작자 전용 명시적 개발자/소유자 역할(운영 관리자 최대 3명과 분리, 실제 권한 변경 별도 승인), 공개 홈페이지 규격과 로그인 상단 통일 및 비로그인 공개 열람 안내, P4 이후 기능 검증된 Studio 한국어 설명서와 개발자 유지보수 부록. 기존 권한 정책을 우회하지 않으며 역할 도입은 staging 및 실제 권한 검증 후 진행한다.
+
+## 8. 보고서 수령 전 통합 선행 개발 (2026-11-27)
+
+[상세 R0–R8 명세](V3_READINESS_PLAN.md): R0 기준선, R1 편집·Reader, R2 검수·파일, R3 Importer, R4 운영·Developer, R5 도움말·E2E, R6 Library(검색/링크/관련 연구 로직), R7 Society Identity(편집/공개/상태 검증), R8 Public Reach(SEO 후보/접근성/성능/RC). v3.1~v3.4에서 데이터 독립적 기능만 앞당긴다. 실제 분류·차트·공식 인물/일정·보고서별 검색 노출 및 모든 운영 권한/DB 변경은 별도 게이트. R0 기술 실행부터 순차 개발; 계정 생성은 보류.

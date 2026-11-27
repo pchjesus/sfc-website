@@ -1,5 +1,7 @@
 # SFC 관리자 계정 생명주기 및 인수인계 계획
 
+2026-11-27 최신 상태: [현재 구현/QA 기준선](CURRENT_BASELINE.md) · [통합 R0–R8 실행 계획](V3_READINESS_PLAN.md). P4/D3.1 UI 반영 완료. 개발자 별도 계정 SQL 후보는 병합됐지만 운영 DB 미적용. 현재 운영 guard는 기존 방식, D1 후보는 verified email 조건/중복 역할 제한 추가. A0/D4 실제 계정 등록은 사용자 요청으로 보류. R4에서 초대·회수 인터페이스/검증 후보만 준비하며 실제 생성/메일/권한 변경은 별도 승인.
+
 2026-11-26 · 사용자 요청 반영 · 후속 구현 명세 (운영 변경 미실행).
 관련: [v3 준비](V3.0_PREPARATION_PLAN.md), [Studio UX](STUDIO_UX_ROADMAP.md), [기존 QA](V2.9_QA_REPORT.md).
 

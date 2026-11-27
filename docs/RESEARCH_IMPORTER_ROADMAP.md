@@ -1,6 +1,8 @@
 # SFC Research Importer — AI 문서 분석·게시 초안 하네스
 
-2026-11-26 · 소유자 개발 방향 승인 · 구현 전 명세.
+2026-11-27 최신 상태: [현재 구현/QA 기준선](CURRENT_BASELINE.md) · [통합 R0–R8 실행 계획](V3_READINESS_PLAN.md). 실제 코드 js/research-importer.js: schema 0.1; source는 filename/type/written_date/data_date만, 해시는 아직 미지원. evidence/references/issues를 검사하고 표시하나 서버 영구 저장하지 않음. JSON 파일/붙여넣기, prompt 복사, 신규 draft 적용, 첫 수동저장 게이트 구현. Reader parity, 필드 선택/검토 export 및 원문 검증은 잔여 R1/R3. 기존 parser 단위 및 통합 mock 테스트 통과; I-08/I-09 NOT RUN.
+
+2026-11-27 · RI 0.1~0.3 기반 병합 / 후속 명세.
 [전체 로드맵](V3_ROADMAP.md) · [Studio UX](STUDIO_UX_ROADMAP.md) · [v3.0 사전 검증](V3.0_PREFLIGHT.md)
 
 ## 1. 목표
@@ -26,7 +28,7 @@
 
 RI 0.1~0.3은 v3.0 준비와 병행할 수 있다. 원본 없이는 실제 연구 분석 성능을 통과로 표시하지 않는다. RI 0.4 이후는 v3.2의 private storage·운영 안정성에 의존하며 버전 일정은 자료와 승인에 따라 조정한다.
 
-## 3. 공통 데이터 계약 (v0.1 초안, 구현 시 확정)
+## 3. 공통 데이터 계약 (v0.1 구현과 후속 후보)
 
 - schema_version: 지원 버전 고정, kind: research 고정.
 - source: 원본 파일명(안전한 표시용), 유형, 작성/제출일 및 데이터 기준일(원문에서 확인된 경우), 해시(로컬에서 실제 계산할 경우만). 파일명/해시 자체는 공개 승인 근거가 아님.
@@ -50,7 +52,7 @@ RI 0.1~0.3은 v3.0 준비와 병행할 수 있다. 원본 없이는 실제 연�
 
 PDF/DOCX 우선, HWP는 PDF 변환 대안, HWPX는 별도 파서, 이미지·차트·스캔·스프레드시트 등 한계 명시. 파일 확장자/MIME/실제 형식, 크기/페이지/압축 폭탄·악성 문서 방어. 현재 공개 sfc-media에 미승인 연구 파일 업로드 금지. 공개 GitHub/PR/artifacts에도 원본 금지. 비공개 staging, 짧은 보존/삭제 정책 및 원문 전송 동의, 공급자 데이터 보존·처리 정책 검토. 서버에서 실제 superadmin 확인(클라이언트 UI만 신뢰 금지), 비밀 키 서버에만, 요청별/월별 비용 상한과 rate limit, 중복 요청 방지, timeout/취소/실패/부분 결과 처리, 로그에서 민감정보 배제. 긴 문서 처리/런타임 제한 시 분리된 작업 실행 환경 검토. 모델·요금·API 기능은 구현 시 공식 문서 재확인. ChatGPT 구독과 API 비용은 별개. 무단 유료 설정/계정/스키마/스토리지/운영 DB 변경 금지.
 
-## 7. 수용 테스트 (계획, 아직 미실행)
+## 7. 수용 테스트 (부분 mock 실행, 실자료/API 미실행)
 
 - I-01 정상 synthetic JSON → 검증 → 적용 후 정확한 필드 매핑.
 - I-02 잘못된 JSON/스키마 버전/타입/필수값/길이/크기 → 이해 가능한 오류, 편집 내용 불변.
