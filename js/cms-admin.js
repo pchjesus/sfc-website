@@ -24,6 +24,7 @@
     $("studioAccount").hidden=target!=="studioPanel";
   }
   function showPane(pane){
+    if(reviewTicket)closePublication();
     if(!user||(pane==="developer"&&role!=="developer"))return;
     document.querySelectorAll("[data-pane-view]").forEach(e=>e.hidden=e.dataset.paneView!==pane);
     document.querySelectorAll("[data-pane]").forEach(e=>{
@@ -59,6 +60,7 @@
     };
   }
   function applyForm(item){
+    if(reviewTicket)closePublication();
     $("postKind").value=item?.kind||"notice";
     $("postTitle").value=item?.title||"";
     $("postExcerpt").value=item?.excerpt||"";
@@ -135,6 +137,7 @@
   }
   function updateCounts(){ $("editorCounts").textContent="제목 "+$("postTitle").value.length+"/180 · 요약 "+$("postExcerpt").value.length+"/350 · 본문 "+$("postBody").value.length.toLocaleString()+"/50,000"; }
   function markChanged(schedule=true){
+    if(reviewTicket)closePublication();
     updateCounts();
     if(!user||!workId)return;
     dirty=true;$("editorSavedAt").textContent="저장되지 않은 변경사항";
@@ -218,7 +221,7 @@
   function busyMode(state){
     busy=state;["saveDraft","publishPost","trashPost","restorePost","deletePost","newPost","unpublishPost","previewButton","historyButton","recoverWork","discardRecovery","discardPendingFiles","duplicatePost","compareServer"].forEach(id=>$(id).disabled=state);updateFormatButtons();
   }
-  async function upload(file,type="image"){
+  async function upload(file,type="image",onAttempt=null){
     if(!file)return null;
     const allowed={
       image:["image/jpeg","image/png","image/webp"],
@@ -232,6 +235,7 @@
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document":"docx"}[file.type];
     const owner=user?.id,started=epoch;if(!owner)throw Error("로그인이 필요합니다.");
     const path=owner+"/"+crypto.randomUUID()+"."+ext;
+    if(onAttempt)onAttempt(path);
     const {error}=await client.storage.from("sfc-media").upload(path,file,{upsert:false,contentType:file.type,cacheControl:"3600"});
     if(epoch!==started||user?.id!==owner)throw Error("세션이 변경되었습니다.");
     if(error)throw error;
@@ -240,7 +244,75 @@
     if(!url)throw Error("업로드 주소를 확인할 수 없습니다.");
     return url;
   }
-  async function savePost(status,automatic=false,unpublish=false){
+
+  let reviewTicket=null;
+  const orphanCandidates=[];
+  function closePublication(focus=true){
+    reviewTicket=null;
+    const d=$("publicationReview");if(d.open)d.close();
+    $("publicationChecks").replaceChildren();$("publicationSummary").textContent="";$("publicationTime").textContent="";$("publicationAssets").textContent="";$("confirmPublication").disabled=true;
+    if(focus&&user)$(current?.deleted_at?"restorePost":"publishPost").focus();
+  }
+  function publicationSnapshot(restore=false){
+    if(restore&&(!current?.deleted_at||current.status!=="published"||dirty||hasPending()))throw Error("복구할 공개 글을 다시 확인하세요.");
+    const draft=readPost(), image=$("postCoverFile").files[0],pdf=$("postPdfFile").files[0],names=fileNames();
+    if(draft.title.length<3||!draft.body)throw Error("제목은 최소 3자, 본문은 1자 이상 입력해야 합니다.");
+    if(!validUrl($("postCoverUrl").value.trim())||!validUrl($("postAttachmentUrl").value.trim()))throw Error("이미지와 첨부파일 주소는 https:// URL만 허용돼요.");
+    if(importManual)throw Error("가져온 연구 초안을 먼저 임시저장하고 검수해 주세요.");
+    if(blockedRecovery||conflictHold)throw Error("저장 충돌을 먼저 확인해 주세요.");
+    if((names.postCoverFile&&!image)||(names.postPdfFile&&!pdf))throw Error("복구된 파일을 재선택하거나 첨부 선택을 취소해 주세요.");
+    if(image&&(!["image/jpeg","image/png","image/webp"].includes(image.type)||!image.size||image.size>20*1024*1024))throw Error("대표 이미지 형식과 20MiB 제한을 확인하세요.");
+    if(pdf&&(pdf.type!=="application/pdf"||!pdf.size||pdf.size>20*1024*1024))throw Error("PDF 형식과 20MiB 제한을 확인하세요.");
+    const assets=Boolean(image||pdf||draft.cover_url||draft.attachment_url);
+    const input=$("postSchedule").value;
+    if($("postSchedule").validity.badInput||(input&&toLocal(draft.scheduled_at)!==input))throw Error("유효한 현지 예약 시각을 입력하세요.");
+    // A previously released article may retain its historical schedule.
+    if(draft.scheduled_at&&Date.parse(draft.scheduled_at)<=Date.now()){
+      if(!(current?.status==="published"&&current.scheduled_at&&toLocal(current.scheduled_at)===input&&Date.parse(current.scheduled_at)<=Date.now()))throw Error("예약 발행은 미래 시각이어야 합니다.");
+    }
+    const scheduled=Boolean(draft.scheduled_at&&Date.parse(draft.scheduled_at)>Date.now());
+    if(scheduled&&assets)throw Error("예약 발행에 공개 파일을 미리 연결할 수 없습니다. 파일 없이 예약하거나 공개 시점에 연결하세요.");
+    return {restore,owner:user?.id,epoch,workId,version:current?.updated_at||null,raw:JSON.stringify(editorFields.map(id=>$(id).value)),image,pdf,draft,assets,scheduled};
+  }
+  function matchesReview(t,s){
+    return t&&s&&["restore","owner","epoch","workId","version","raw","image","pdf","scheduled"].every(k=>t[k]===s[k]);
+  }
+  function openPublication(restore=false){
+    if(busy||!user||!workId||Boolean(current?.deleted_at)!==restore||reviewTicket)return;
+    let s;try{s=publicationSnapshot(restore);}catch(e){notify(e.message,true);return;}
+    clearTimeout(autosaveTimer);
+    const d=$("publicationReview");reviewTicket=s;
+    $("publicationSummary").textContent=(restore?"기존 공개 상태 복구 · ":"")+s.draft.title+" · "+(s.draft.kind==="research"?"Research":s.draft.kind==="activity"?"Activity":"Notice")+" · "+(s.draft.excerpt||"요약 미입력")+(s.draft.kind==="research"?" · 저자: "+(s.draft.research_author||"미입력"):"");
+    const dt=s.scheduled?new Date(s.draft.scheduled_at):null;
+    $("publicationTime").textContent=dt?"현지 "+$("postSchedule").value+" ("+Intl.DateTimeFormat().resolvedOptions().timeZone+") · KST "+new Intl.DateTimeFormat("ko-KR",{timeZone:"Asia/Seoul",dateStyle:"medium",timeStyle:"short"}).format(dt)+" · UTC "+dt.toISOString():"즉시 공개 / 기존 발행 수정";
+    $("confirmPublication").textContent=restore?"공개 상태 복구":s.scheduled?"예약 확정":"발행 확정";
+    $("publicationAssets").textContent=s.assets?"공개 파일: "+[s.image?.name,s.pdf?.name,s.draft.cover_url,s.draft.attachment_url].filter(Boolean).join(" · ")+" / 게시 취소 후에도 직접 URL 접근 가능.":"공개 첨부 없음";
+    const items=["제목·요약·본문 및 공개 대상 확인",s.draft.kind==="research"?"저자·원문·수치·단위·출처 대조":s.draft.kind==="activity"?"실제 활동·일정·참여자 공개 범위 확인":"안내 일정·대상·문의 정보 확인","콘텐츠 공개 허가 확인","PC·모바일 미리보기 확인"];
+    if(s.assets)items.push("첨부·이미지는 공개 허가된 최종본이며 공개 URL 잔존 가능성을 이해했습니다.");
+    if(s.scheduled)items.push("예약 시각 및 시간대 확인");
+    for(const item of items){const label=node("label"),check=node("input");check.type="checkbox";label.append(check,document.createTextNode(item));$("publicationChecks").append(label);check.addEventListener("change",()=>{$("confirmPublication").disabled=![...$("publicationChecks").querySelectorAll("input")].every(c=>c.checked);});}
+    d.showModal();$("cancelPublication").focus();
+  }
+  $("cancelPublication").addEventListener("click",()=>closePublication());
+  $("publicationReview").addEventListener("cancel",e=>{e.preventDefault();closePublication();});
+  $("confirmPublication").addEventListener("click",()=>{
+    const t=reviewTicket;if(!t||$("confirmPublication").disabled||![...$("publicationChecks").querySelectorAll("input")].every(c=>c.checked))return;
+    try{if(!matchesReview(t,publicationSnapshot(t.restore)))throw Error("내용 또는 예약 상태가 변경되었습니다. 다시 검수하세요.");}
+    catch(e){closePublication();notify(e.message,true);return;}
+    closePublication();if(t.restore)void changeDeleted(true,t);else void savePost("published",false,false,t);
+  });
+
+  async function validatePublicationBytes(file,type){
+    if(!file)return;
+    const bytes=new Uint8Array(await file.slice(0,12).arrayBuffer());
+    const starts=(...sig)=>sig.every((v,i)=>bytes[i]===v);
+    const ascii=(i,n)=>String.fromCharCode(...bytes.slice(i,i+n));
+    const valid=type==="pdf"?ascii(0,5)==="%PDF-":file.type==="image/jpeg"?starts(255,216,255):file.type==="image/png"?starts(137,80,78,71,13,10,26,10):file.type==="image/webp"&&ascii(0,4)==="RIFF"&&ascii(8,4)==="WEBP";
+    if(!valid)throw Error("파일 헤더와 형식이 일치하지 않습니다: "+file.name);
+  }
+  async function savePost(status,automatic=false,unpublish=false,ticket=null){
+    if(reviewTicket)return;
+    if(status==="published"){try{if(!matchesReview(ticket,publicationSnapshot()))throw Error("발행 검수를 다시 완료해 주세요.");}catch(e){notify(e.message,true);return;}}
     if(busy||!user||!workId||current?.deleted_at)return;
     if(status==="draft"&&current?.status==="published"&&!unpublish){if(stash())detail("공개본은 유지됩니다. 수정 내용은 이 기기에만 보관됩니다.");return;}
     if(blockedRecovery){if(!automatic)notify("복구본과 서버 버전이 다릅니다. 비교 후 새로 편집해 주세요.",true);return;}
@@ -265,15 +337,18 @@
       if(importManual){notify("가져온 연구 초안을 먼저 임시저장하고 검수해 주세요.",true);return;}
       if((names.postCoverFile&&!imageFile)||(names.postPdfFile&&!pdfFile)){notify("복구된 파일을 재선택하거나 첨부 선택을 취소해 주세요.",true);return;}
       if(draft.scheduled_at&&Date.parse(draft.scheduled_at)>Date.now()&&(imageFile||pdfFile||draft.cover_url||draft.attachment_url)){notify("예약 발행에 공개 파일을 미리 연결할 수 없습니다. 파일 없이 예약하거나 공개 시점에 연결하세요.",true);return;}
-      if((imageFile||pdfFile||draft.cover_url||draft.attachment_url)&&!confirm("첨부파일 공개 허가를 확인했나요? 공개 URL은 게시 취소 후에도 접근 가능할 수 있습니다."))return;
+      // Verified review ticket is required above; no separate native confirmation.
     }
     const active=()=>user?.id===owner&&epoch===started&&workId===id;
-    let saved=false;
+    let saved=false,stage="게시물 저장", uploaded=[],attempted=[];
     busyMode(true);stash();if(status==="published")$("postForm").inert=true;$("editorSavedAt").textContent="저장 중";detail("서버 저장 요청 중");
     try{
       if(status==="published"){
-        const img=await upload(imageFile,"image");if(!active())return;
-        const pdf=await upload(pdfFile,"pdf");if(!active())return;
+        stage="파일 형식 검사";await validatePublicationBytes(imageFile,"image");if(!active())return;await validatePublicationBytes(pdfFile,"pdf");if(!active())return;
+        if(!matchesReview(ticket,publicationSnapshot()))throw Error("발행 내용 또는 시각이 변경되었습니다. 다시 검수하세요.");
+        stage="대표 이미지 업로드";const img=await upload(imageFile,"image",path=>attempted.push(path));if(img)uploaded.push(img);if(!active())return;
+        stage="PDF 업로드";const pdf=await upload(pdfFile,"pdf",path=>attempted.push(path));if(pdf)uploaded.push(pdf);if(!active())return;
+        stage="게시물 저장";
         if(img)draft.cover_url=img;
         if(pdf)draft.attachment_url=pdf;
       }
@@ -308,7 +383,7 @@
       $("publishPost").textContent=status==="published"?"변경사항 게시 ↗":"게시하기 ↗";
       try{await loadPosts();}catch(e){if(active())notify("글은 저장됐지만 목록 갱신 실패: "+e.message,true);}
       if(active()&&!automatic)notify(status==="published"?(current.scheduled_at&&new Date(current.scheduled_at)>new Date()?"예약 발행이 저장되었습니다.":"공개 게시되었습니다."):"임시저장이 완료되었습니다.");
-    }catch(e){if(active()){clearTimeout(autosaveTimer);if(e.isConflict)conflictHold=true;$("editorSavedAt").textContent="저장 실패";detail((e.isConflict?"저장 충돌":navigator.onLine?"서버 저장 실패":"오프라인")+" · 입력 유지 · 마지막 서버 저장: "+savedTime());stash();notify((automatic?"자동저장":"저장")+" 실패: "+(e.message||e),true);}}
+    }catch(e){if(active()){if(status==="published"){for(const path of attempted)orphanCandidates.push({workId:id,path,stage,certainty:"unknown-reference"});if(orphanCandidates.length>100)orphanCandidates.splice(0,orphanCandidates.length-100);}clearTimeout(autosaveTimer);if(e.isConflict)conflictHold=true;$("editorSavedAt").textContent="저장 실패";detail((e.isConflict?"저장 충돌":navigator.onLine?"서버 저장 실패":"오프라인")+" · 입력 유지 · 마지막 서버 저장: "+savedTime()+(status==="published"&&attempted.length?" · 파일 공개 또는 고아 후보 "+attempted.length+"개, 재시도 전 서버 확인":""));stash();notify((status==="published"?stage:automatic?"자동저장":"저장")+" 실패: "+(e.message||e)+(attempted.length?" · 업로드 확인 "+uploaded.length+"개 / 시도 "+attempted.length+"개. URL 잔존 가능. 재시도 전 서버 상태 확인.":""),true);}}
     finally{
       if(active()){$("postForm").inert=false;busyMode(false);}
       if(active()&&saved&&dirty&&current?.status==="draft"){
@@ -316,9 +391,10 @@
       }
     }
   }
-  async function changeDeleted(restore=false){
+  async function changeDeleted(restore=false,ticket=null){
     if(!current||busy)return;
-    if(!restore&&!confirm("글을 휴지통으로 이동할까요? 공개 화면에서는 즉시 사라져요."))return;
+    if(!restore&&!confirm("글을 휴지통으로 이동할까요? 공개 화면에서는 즉시 사라지지만 기존 공개 파일 URL은 남을 수 있어요."))return;
+    if(restore&&current.status==="published"){try{if(!matchesReview(ticket,publicationSnapshot(true)))throw Error("공개 상태 복구에는 발행 검수가 필요합니다.");}catch(e){notify(e.message,true);return;}}
     if(dirty||hasPending()){notify("미저장 변경사항을 먼저 저장하거나 다른 글로 이동해 주세요.",true);return;}
     const started=epoch,owner=user?.id,id=current.id;
     const active=()=>epoch===started&&user?.id===owner&&current?.id===id;
@@ -430,6 +506,7 @@
     markChanged(false);stash();$("postTitle").focus();notify("새 임시글로 복제했습니다. 파일 및 예약은 별도로 설정하세요.");
   }
   function clearSession(preserve=true){
+    closePublication(false);orphanCandidates.length=0;
     if(preserve&&user&&(dirty||hasPending()))stash();
     role=null;$("developerTab").hidden=true;$("studioRole").hidden=true;$("studioRole").textContent="";$("developerIdentity").hidden=true;$("developerEmail").textContent="";$("devConnection").textContent="확인 전";$("devAuth").textContent="권한 확인 전";$("devChecked").textContent="진단 기록 없음";$("devCounts").querySelectorAll("dd").forEach(e=>e.textContent="—");window.dispatchEvent(new Event("sfc:admin-cleared"));
     epoch++;clearTimeout(autosaveTimer);clearTimeout(stashTimer);clearTimeout(toastTimer);$("studioMessage").hidden=true;$("studioMessage").textContent="";clearPreviewFile();
@@ -552,24 +629,26 @@
   $("postSearch").addEventListener("input",renderPosts);
   ["postKindFilter","postSort"].forEach(id=>$(id).addEventListener("change",renderPosts));
   const importer=window.SFC_RESEARCH_IMPORTER;
-  function resetImportResult(){importCandidate=null;importRevision++;$("applyImport").disabled=true;$("importResult").replaceChildren();}
-  function closeImport(){resetImportResult();$("importText").value="";$("importFile").value="";$("importPanel").hidden=true;}
+  function resetImportResult(){importCandidate=null;importRevision++;$("applyImport").disabled=true;$("exportImport").disabled=true;$("importFields").replaceChildren();$("importResult").replaceChildren();}
+  function closeImport(){resetImportResult();$("importType").value="general";$("importPrompt").value="";$("importText").value="";$("importFile").value="";$("importPanel").hidden=true;}
   function clearImportReview(){$("importReviewContent").replaceChildren();$("importReview").hidden=true;}
   function reviewLines(container,result){
     container.replaceChildren();
     function line(text){container.append(node("p","",text));}
-    for(const warning of result.warnings)line("검토 필요: "+warning);
+    for(const warning of result.warnings)line("경고 / 검토 필요: "+warning);
+    for(const info of result.info||[])line("안내: "+info);
     if(result.source?.filename)line("원본: "+result.source.filename);
     for(const v of result.evidence||[])line("근거(미검증): "+[v.claim,v.locator,v.value,v.unit,v.period,v.short_excerpt].filter(Boolean).join(" · "));
     for(const v of result.references||[])line("참고자료: "+[v.citation,v.locator].filter(Boolean).join(" · "));
     for(const v of result.issues||[])line("검토 항목: "+[v.category,v.message,v.locator].filter(Boolean).join(" · "));
   }
-  $("openImporter").addEventListener("click",()=>{if(!user||busy)return;closeImport();$("importPrompt").value=importer.prompt;$("importPanel").hidden=false;$("closeImporter").focus();});
+  $("openImporter").addEventListener("click",()=>{if(!user||busy)return;closeImport();$("importPrompt").value=importer.promptFor($("importType").value);$("importPanel").hidden=false;$("closeImporter").focus();});
   $("closeImporter").addEventListener("click",()=>{closeImport();$("openImporter").focus();});
-  $("copyImportPrompt").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(importer.prompt);notify("분석 지침을 복사했습니다.");}catch(_){$("importPrompt").focus();$("importPrompt").select();notify("선택된 지침을 직접 복사하세요.");}});
+  $("importType").addEventListener("change",()=>{$("importPrompt").value=importer.promptFor($("importType").value);});
+  $("copyImportPrompt").addEventListener("click",async()=>{if(!user)return;const owner=user.id,started=epoch;try{await navigator.clipboard.writeText($("importPrompt").value);if(epoch!==started||user?.id!==owner)return;notify("분석 지침을 복사했습니다.");}catch(_){if(epoch!==started||user?.id!==owner)return;$("importPrompt").focus();$("importPrompt").select();notify("선택된 지침을 직접 복사하세요.");}});
   $("importText").addEventListener("input",resetImportResult);
   $("importFile").addEventListener("change",async()=>{
-    resetImportResult();const revision=importRevision,started=epoch,file=$("importFile").files[0];
+    resetImportResult();$("importText").value="";const revision=importRevision,started=epoch,file=$("importFile").files[0];
     if(!file)return;
     if(file.size>1000000||!/\.json$/i.test(file.name)){notify("1MB 이하 JSON 파일을 선택하세요.",true);return;}
     try{const value=await file.text();if(epoch!==started||revision!==importRevision||!user)return;
@@ -582,13 +661,16 @@
     if(!result.ok){for(const message of result.errors)$("importResult").append(node("p","",message));return;}
     importCandidate=result;reviewLines($("importResult"),result);
     $("importResult").prepend(node("p","","형식 검사 완료 · 제목: "+result.article.title+" · 본문 "+result.article.body.length+"자. 원문 검수는 필요합니다."));
-    $("applyImport").disabled=false;
+    for(const [key,value] of Object.entries(result.article)){const label=node("label"),check=node("input");check.type="checkbox";check.dataset.field=key;check.checked=true;check.disabled=key==="title"||key==="body";label.append(check,document.createTextNode(key+" · "+(value||"미입력")));$("importFields").append(label);}
+    $("exportImport").disabled=false;$("applyImport").disabled=false;
   });
+  $("exportImport").addEventListener("click",()=>{if(!user||busy||!importCandidate)return;if(!confirm("미공개 연구 정보가 포함된 JSON을 이 기기에 저장할까요?"))return;const url=URL.createObjectURL(new Blob([JSON.stringify(importer.reviewExport(importCandidate),null,2)],{type:"application/json"}));const link=node("a");link.href=url;link.download="sfc-research-review.json";document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);});
   $("applyImport").addEventListener("click",()=>{
     if(!user||busy||!importCandidate)return;const result=importCandidate;
     if(!confirm("현재 게시물은 변경하지 않고 새 연구 임시글에 적용할까요?"))return;
+    const chosen=[...$("importFields").querySelectorAll("input:checked")].map(c=>c.dataset.field);
     if(!selectPost(null))return;
-    applyForm({...result.article,kind:"research"});
+    applyForm({...importer.selectFields(result,chosen),kind:"research"});
     importManual=true;markChanged(false);stash();reviewLines($("importReviewContent"),result);$("importReview").hidden=false;
     detail("가져온 초안 · 확인 후 임시저장하세요. 자동저장은 첫 수동 저장 이후 시작됩니다.");
     closeImport();$("postTitle").focus();
@@ -608,10 +690,10 @@
   $("focusEditor").addEventListener("click",()=>{const on=$("focusEditor").getAttribute("aria-pressed")!=="true";$("focusEditor").setAttribute("aria-pressed",String(on));$("focusEditor").textContent=on?"집중 모드 종료":"집중 모드";document.querySelector(".studio-editor").classList.toggle("focused",on);});
   $("previewWidth").addEventListener("click",()=>{const on=$("previewWidth").getAttribute("aria-pressed")!=="true";$("previewWidth").setAttribute("aria-pressed",String(on));$("previewWidth").textContent=on?"기본 폭 미리보기":"모바일 폭 미리보기";$("previewPanel").classList.toggle("mobile-preview",on);});
   $("saveDraft").addEventListener("click",()=>savePost("draft"));
-  $("publishPost").addEventListener("click",()=>{if(confirm("“"+($("postTitle").value.trim()||"제목 없는 글")+"” 글을 "+($("postSchedule").value?"예약 발행":"공개 게시")+"할까요? 공개 승인 여부를 확인해 주세요."))void savePost("published");});
+  $("publishPost").addEventListener("click",()=>openPublication());
   $("unpublishPost").addEventListener("click",()=>{if(confirm("공개 게시를 취소할까요? 기존 공개 파일 URL은 접근 가능할 수 있습니다."))void savePost("draft",false,true);});
   $("trashPost").addEventListener("click",()=>changeDeleted(false));
-  $("restorePost").addEventListener("click",()=>changeDeleted(true));
+  $("restorePost").addEventListener("click",()=>{if(current?.status==="published")openPublication(true);else void changeDeleted(true);});
   $("deletePost").addEventListener("click",purgePost);
   $("historyButton").addEventListener("click",loadHistory);
   $("compareServer").addEventListener("click",compareServer);$("closeComparison").addEventListener("click",clearComparison);$("duplicatePost").addEventListener("click",duplicatePost);
