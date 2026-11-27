@@ -1013,6 +1013,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     const evidence=records(raw.evidence,evidenceKeys,"evidence");
     for(const [i,v] of evidence.entries()){if(!v.claim||!v.locator)warnings.push("근거 "+(i+1)+": 주장 또는 원문 위치 확인 필요");if(v.review_status&&!["unverified","needs_review"].includes(v.review_status))errors.push("evidence["+i+"]: AI 결과는 검증 완료로 표시할 수 없습니다.");}
     for(const [i,v] of evidence.entries()){if(v.value&&(!v.unit||!v.period))warnings.push("근거 "+(i+1)+": 수치 단위 또는 기간 확인 필요");if(v.value&&/%$/.test(v.value.trim())&&v.unit&&!/^(%|퍼센트|percent)$/i.test(v.unit.trim()))warnings.push("근거 "+(i+1)+": 값과 단위 불일치 가능성");}
+    const seen=new Map();for(const [i,v] of evidence.entries()){if(!v.claim||!v.locator||!v.period||!v.unit||!v.value)continue;const key=JSON.stringify([v.claim,v.locator,v.period,v.unit].map(x=>x.trim()));if(seen.has(key)&&seen.get(key)!==v.value.trim())warnings.push("근거 "+(i+1)+": 동일 주장·위치·기간·단위의 값이 서로 다릅니다.");else seen.set(key,v.value.trim());}
     const references=records(raw.references,referenceKeys,"references");
     for(const [i,v] of references.entries())if(!v.citation||!v.locator)warnings.push("참고자료 "+(i+1)+": 출처 또는 원문 위치 확인 필요");
     const issues=records(raw.issues,issueKeys,"issues");
@@ -1249,7 +1250,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
   function busyMode(state){
     busy=state;["saveDraft","publishPost","trashPost","restorePost","deletePost","newPost","unpublishPost","previewButton","historyButton","recoverWork","discardRecovery","discardPendingFiles","duplicatePost","compareServer"].forEach(id=>$(id).disabled=state);updateFormatButtons();
   }
-  async function upload(file,type="image"){
+  async function upload(file,type="image",onAttempt=null){
     if(!file)return null;
     const allowed={
       image:["image/jpeg","image/png","image/webp"],
@@ -1263,6 +1264,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document":"docx"}[file.type];
     const owner=user?.id,started=epoch;if(!owner)throw Error("로그인이 필요합니다.");
     const path=owner+"/"+crypto.randomUUID()+"."+ext;
+    if(onAttempt)onAttempt(path);
     const {error}=await client.storage.from("sfc-media").upload(path,file,{upsert:false,contentType:file.type,cacheControl:"3600"});
     if(epoch!==started||user?.id!==owner)throw Error("세션이 변경되었습니다.");
     if(error)throw error;
@@ -1278,9 +1280,10 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     reviewTicket=null;
     const d=$("publicationReview");if(d.open)d.close();
     $("publicationChecks").replaceChildren();$("publicationSummary").textContent="";$("publicationTime").textContent="";$("publicationAssets").textContent="";$("confirmPublication").disabled=true;
-    if(focus&&user)$("publishPost").focus();
+    if(focus&&user)$(current?.deleted_at?"restorePost":"publishPost").focus();
   }
-  function publicationSnapshot(){
+  function publicationSnapshot(restore=false){
+    if(restore&&(!current?.deleted_at||current.status!=="published"||dirty||hasPending()))throw Error("복구할 공개 글을 다시 확인하세요.");
     const draft=readPost(), image=$("postCoverFile").files[0],pdf=$("postPdfFile").files[0],names=fileNames();
     if(draft.title.length<3||!draft.body)throw Error("제목은 최소 3자, 본문은 1자 이상 입력해야 합니다.");
     if(!validUrl($("postCoverUrl").value.trim())||!validUrl($("postAttachmentUrl").value.trim()))throw Error("이미지와 첨부파일 주소는 https:// URL만 허용돼요.");
@@ -1298,19 +1301,20 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     }
     const scheduled=Boolean(draft.scheduled_at&&Date.parse(draft.scheduled_at)>Date.now());
     if(scheduled&&assets)throw Error("예약 발행에 공개 파일을 미리 연결할 수 없습니다. 파일 없이 예약하거나 공개 시점에 연결하세요.");
-    return {owner:user?.id,epoch,workId,version:current?.updated_at||null,raw:JSON.stringify(editorFields.map(id=>$(id).value)),image,pdf,draft,assets,scheduled};
+    return {restore,owner:user?.id,epoch,workId,version:current?.updated_at||null,raw:JSON.stringify(editorFields.map(id=>$(id).value)),image,pdf,draft,assets,scheduled};
   }
   function matchesReview(t,s){
-    return t&&s&&["owner","epoch","workId","version","raw","image","pdf","scheduled"].every(k=>t[k]===s[k]);
+    return t&&s&&["restore","owner","epoch","workId","version","raw","image","pdf","scheduled"].every(k=>t[k]===s[k]);
   }
-  function openPublication(){
-    if(busy||!user||!workId||current?.deleted_at||reviewTicket)return;
-    let s;try{s=publicationSnapshot();}catch(e){notify(e.message,true);return;}
+  function openPublication(restore=false){
+    if(busy||!user||!workId||Boolean(current?.deleted_at)!==restore||reviewTicket)return;
+    let s;try{s=publicationSnapshot(restore);}catch(e){notify(e.message,true);return;}
     clearTimeout(autosaveTimer);
     const d=$("publicationReview");reviewTicket=s;
-    $("publicationSummary").textContent=s.draft.title+" · "+(s.draft.kind==="research"?"Research":s.draft.kind==="activity"?"Activity":"Notice")+" · "+(s.draft.excerpt||"요약 미입력")+(s.draft.kind==="research"?" · 저자: "+(s.draft.research_author||"미입력"):"");
+    $("publicationSummary").textContent=(restore?"기존 공개 상태 복구 · ":"")+s.draft.title+" · "+(s.draft.kind==="research"?"Research":s.draft.kind==="activity"?"Activity":"Notice")+" · "+(s.draft.excerpt||"요약 미입력")+(s.draft.kind==="research"?" · 저자: "+(s.draft.research_author||"미입력"):"");
     const dt=s.scheduled?new Date(s.draft.scheduled_at):null;
     $("publicationTime").textContent=dt?"현지 "+$("postSchedule").value+" ("+Intl.DateTimeFormat().resolvedOptions().timeZone+") · KST "+new Intl.DateTimeFormat("ko-KR",{timeZone:"Asia/Seoul",dateStyle:"medium",timeStyle:"short"}).format(dt)+" · UTC "+dt.toISOString():"즉시 공개 / 기존 발행 수정";
+    $("confirmPublication").textContent=restore?"공개 상태 복구":s.scheduled?"예약 확정":"발행 확정";
     $("publicationAssets").textContent=s.assets?"공개 파일: "+[s.image?.name,s.pdf?.name,s.draft.cover_url,s.draft.attachment_url].filter(Boolean).join(" · ")+" / 게시 취소 후에도 직접 URL 접근 가능.":"공개 첨부 없음";
     const items=["제목·요약·본문 및 공개 대상 확인",s.draft.kind==="research"?"저자·원문·수치·단위·출처 대조":s.draft.kind==="activity"?"실제 활동·일정·참여자 공개 범위 확인":"안내 일정·대상·문의 정보 확인","콘텐츠 공개 허가 확인","PC·모바일 미리보기 확인"];
     if(s.assets)items.push("첨부·이미지는 공개 허가된 최종본이며 공개 URL 잔존 가능성을 이해했습니다.");
@@ -1322,11 +1326,19 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
   $("publicationReview").addEventListener("cancel",e=>{e.preventDefault();closePublication();});
   $("confirmPublication").addEventListener("click",()=>{
     const t=reviewTicket;if(!t||$("confirmPublication").disabled||![...$("publicationChecks").querySelectorAll("input")].every(c=>c.checked))return;
-    try{if(!matchesReview(t,publicationSnapshot()))throw Error("내용 또는 예약 상태가 변경되었습니다. 다시 검수하세요.");}
+    try{if(!matchesReview(t,publicationSnapshot(t.restore)))throw Error("내용 또는 예약 상태가 변경되었습니다. 다시 검수하세요.");}
     catch(e){closePublication();notify(e.message,true);return;}
-    closePublication();void savePost("published",false,false,t);
+    closePublication();if(t.restore)void changeDeleted(true,t);else void savePost("published",false,false,t);
   });
 
+  async function validatePublicationBytes(file,type){
+    if(!file)return;
+    const bytes=new Uint8Array(await file.slice(0,12).arrayBuffer());
+    const starts=(...sig)=>sig.every((v,i)=>bytes[i]===v);
+    const ascii=(i,n)=>String.fromCharCode(...bytes.slice(i,i+n));
+    const valid=type==="pdf"?ascii(0,5)==="%PDF-":file.type==="image/jpeg"?starts(255,216,255):file.type==="image/png"?starts(137,80,78,71,13,10,26,10):file.type==="image/webp"&&ascii(0,4)==="RIFF"&&ascii(8,4)==="WEBP";
+    if(!valid)throw Error("파일 헤더와 형식이 일치하지 않습니다: "+file.name);
+  }
   async function savePost(status,automatic=false,unpublish=false,ticket=null){
     if(reviewTicket)return;
     if(status==="published"){try{if(!matchesReview(ticket,publicationSnapshot()))throw Error("발행 검수를 다시 완료해 주세요.");}catch(e){notify(e.message,true);return;}}
@@ -1357,12 +1369,14 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
       // Verified review ticket is required above; no separate native confirmation.
     }
     const active=()=>user?.id===owner&&epoch===started&&workId===id;
-    let saved=false,stage="게시물 저장", uploaded=[];
+    let saved=false,stage="게시물 저장", uploaded=[],attempted=[];
     busyMode(true);stash();if(status==="published")$("postForm").inert=true;$("editorSavedAt").textContent="저장 중";detail("서버 저장 요청 중");
     try{
       if(status==="published"){
-        stage="대표 이미지 업로드";const img=await upload(imageFile,"image");if(img)uploaded.push(img);if(!active())return;
-        stage="PDF 업로드";const pdf=await upload(pdfFile,"pdf");if(pdf)uploaded.push(pdf);if(!active())return;
+        stage="파일 형식 검사";await validatePublicationBytes(imageFile,"image");if(!active())return;await validatePublicationBytes(pdfFile,"pdf");if(!active())return;
+        if(!matchesReview(ticket,publicationSnapshot()))throw Error("발행 내용 또는 시각이 변경되었습니다. 다시 검수하세요.");
+        stage="대표 이미지 업로드";const img=await upload(imageFile,"image",path=>attempted.push(path));if(img)uploaded.push(img);if(!active())return;
+        stage="PDF 업로드";const pdf=await upload(pdfFile,"pdf",path=>attempted.push(path));if(pdf)uploaded.push(pdf);if(!active())return;
         stage="게시물 저장";
         if(img)draft.cover_url=img;
         if(pdf)draft.attachment_url=pdf;
@@ -1398,7 +1412,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
       $("publishPost").textContent=status==="published"?"변경사항 게시 ↗":"게시하기 ↗";
       try{await loadPosts();}catch(e){if(active())notify("글은 저장됐지만 목록 갱신 실패: "+e.message,true);}
       if(active()&&!automatic)notify(status==="published"?(current.scheduled_at&&new Date(current.scheduled_at)>new Date()?"예약 발행이 저장되었습니다.":"공개 게시되었습니다."):"임시저장이 완료되었습니다.");
-    }catch(e){if(active()){if(status==="published"){for(const url of uploaded)orphanCandidates.push({workId:id,url,stage});if(orphanCandidates.length>100)orphanCandidates.splice(0,orphanCandidates.length-100);}clearTimeout(autosaveTimer);if(e.isConflict)conflictHold=true;$("editorSavedAt").textContent="저장 실패";detail((e.isConflict?"저장 충돌":navigator.onLine?"서버 저장 실패":"오프라인")+" · 입력 유지 · 마지막 서버 저장: "+savedTime());stash();notify((status==="published"?stage:automatic?"자동저장":"저장")+" 실패: "+(e.message||e)+(uploaded.length?" · 공개 파일 "+uploaded.length+"개 업로드됨: URL 잔존 가능. 재시도 전 서버 상태 확인.":""),true);}}
+    }catch(e){if(active()){if(status==="published"){for(const path of attempted)orphanCandidates.push({workId:id,path,stage,certainty:"unknown-reference"});if(orphanCandidates.length>100)orphanCandidates.splice(0,orphanCandidates.length-100);}clearTimeout(autosaveTimer);if(e.isConflict)conflictHold=true;$("editorSavedAt").textContent="저장 실패";detail((e.isConflict?"저장 충돌":navigator.onLine?"서버 저장 실패":"오프라인")+" · 입력 유지 · 마지막 서버 저장: "+savedTime()+(status==="published"&&attempted.length?" · 파일 공개 또는 고아 후보 "+attempted.length+"개, 재시도 전 서버 확인":""));stash();notify((status==="published"?stage:automatic?"자동저장":"저장")+" 실패: "+(e.message||e)+(attempted.length?" · 업로드 확인 "+uploaded.length+"개 / 시도 "+attempted.length+"개. URL 잔존 가능. 재시도 전 서버 상태 확인.":""),true);}}
     finally{
       if(active()){$("postForm").inert=false;busyMode(false);}
       if(active()&&saved&&dirty&&current?.status==="draft"){
@@ -1406,10 +1420,10 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
       }
     }
   }
-  async function changeDeleted(restore=false){
+  async function changeDeleted(restore=false,ticket=null){
     if(!current||busy)return;
     if(!restore&&!confirm("글을 휴지통으로 이동할까요? 공개 화면에서는 즉시 사라지지만 기존 공개 파일 URL은 남을 수 있어요."))return;
-    if(restore&&current.status==="published"&&!confirm("복구하면 기존 공개 또는 예약 상태가 복원됩니다. 공개 허가가 유지되는지 확인했나요?"))return;
+    if(restore&&current.status==="published"){try{if(!matchesReview(ticket,publicationSnapshot(true)))throw Error("공개 상태 복구에는 발행 검수가 필요합니다.");}catch(e){notify(e.message,true);return;}}
     if(dirty||hasPending()){notify("미저장 변경사항을 먼저 저장하거나 다른 글로 이동해 주세요.",true);return;}
     const started=epoch,owner=user?.id,id=current.id;
     const active=()=>epoch===started&&user?.id===owner&&current?.id===id;
@@ -1645,7 +1659,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
   ["postKindFilter","postSort"].forEach(id=>$(id).addEventListener("change",renderPosts));
   const importer=window.SFC_RESEARCH_IMPORTER;
   function resetImportResult(){importCandidate=null;importRevision++;$("applyImport").disabled=true;$("exportImport").disabled=true;$("importFields").replaceChildren();$("importResult").replaceChildren();}
-  function closeImport(){resetImportResult();$("importText").value="";$("importFile").value="";$("importPanel").hidden=true;}
+  function closeImport(){resetImportResult();$("importType").value="general";$("importPrompt").value="";$("importText").value="";$("importFile").value="";$("importPanel").hidden=true;}
   function clearImportReview(){$("importReviewContent").replaceChildren();$("importReview").hidden=true;}
   function reviewLines(container,result){
     container.replaceChildren();
@@ -1660,10 +1674,10 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
   $("openImporter").addEventListener("click",()=>{if(!user||busy)return;closeImport();$("importPrompt").value=importer.promptFor($("importType").value);$("importPanel").hidden=false;$("closeImporter").focus();});
   $("closeImporter").addEventListener("click",()=>{closeImport();$("openImporter").focus();});
   $("importType").addEventListener("change",()=>{$("importPrompt").value=importer.promptFor($("importType").value);});
-  $("copyImportPrompt").addEventListener("click",async()=>{try{await navigator.clipboard.writeText($("importPrompt").value);notify("분석 지침을 복사했습니다.");}catch(_){$("importPrompt").focus();$("importPrompt").select();notify("선택된 지침을 직접 복사하세요.");}});
+  $("copyImportPrompt").addEventListener("click",async()=>{if(!user)return;const owner=user.id,started=epoch;try{await navigator.clipboard.writeText($("importPrompt").value);if(epoch!==started||user?.id!==owner)return;notify("분석 지침을 복사했습니다.");}catch(_){if(epoch!==started||user?.id!==owner)return;$("importPrompt").focus();$("importPrompt").select();notify("선택된 지침을 직접 복사하세요.");}});
   $("importText").addEventListener("input",resetImportResult);
   $("importFile").addEventListener("change",async()=>{
-    resetImportResult();const revision=importRevision,started=epoch,file=$("importFile").files[0];
+    resetImportResult();$("importText").value="";const revision=importRevision,started=epoch,file=$("importFile").files[0];
     if(!file)return;
     if(file.size>1000000||!/\.json$/i.test(file.name)){notify("1MB 이하 JSON 파일을 선택하세요.",true);return;}
     try{const value=await file.text();if(epoch!==started||revision!==importRevision||!user)return;
@@ -1705,10 +1719,10 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
   $("focusEditor").addEventListener("click",()=>{const on=$("focusEditor").getAttribute("aria-pressed")!=="true";$("focusEditor").setAttribute("aria-pressed",String(on));$("focusEditor").textContent=on?"집중 모드 종료":"집중 모드";document.querySelector(".studio-editor").classList.toggle("focused",on);});
   $("previewWidth").addEventListener("click",()=>{const on=$("previewWidth").getAttribute("aria-pressed")!=="true";$("previewWidth").setAttribute("aria-pressed",String(on));$("previewWidth").textContent=on?"기본 폭 미리보기":"모바일 폭 미리보기";$("previewPanel").classList.toggle("mobile-preview",on);});
   $("saveDraft").addEventListener("click",()=>savePost("draft"));
-  $("publishPost").addEventListener("click",openPublication);
+  $("publishPost").addEventListener("click",()=>openPublication());
   $("unpublishPost").addEventListener("click",()=>{if(confirm("공개 게시를 취소할까요? 기존 공개 파일 URL은 접근 가능할 수 있습니다."))void savePost("draft",false,true);});
   $("trashPost").addEventListener("click",()=>changeDeleted(false));
-  $("restorePost").addEventListener("click",()=>changeDeleted(true));
+  $("restorePost").addEventListener("click",()=>{if(current?.status==="published")openPublication(true);else void changeDeleted(true);});
   $("deletePost").addEventListener("click",purgePost);
   $("historyButton").addEventListener("click",loadHistory);
   $("compareServer").addEventListener("click",compareServer);$("closeComparison").addEventListener("click",clearComparison);$("duplicatePost").addEventListener("click",duplicatePost);

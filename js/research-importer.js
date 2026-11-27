@@ -41,6 +41,7 @@
     const evidence=records(raw.evidence,evidenceKeys,"evidence");
     for(const [i,v] of evidence.entries()){if(!v.claim||!v.locator)warnings.push("근거 "+(i+1)+": 주장 또는 원문 위치 확인 필요");if(v.review_status&&!["unverified","needs_review"].includes(v.review_status))errors.push("evidence["+i+"]: AI 결과는 검증 완료로 표시할 수 없습니다.");}
     for(const [i,v] of evidence.entries()){if(v.value&&(!v.unit||!v.period))warnings.push("근거 "+(i+1)+": 수치 단위 또는 기간 확인 필요");if(v.value&&/%$/.test(v.value.trim())&&v.unit&&!/^(%|퍼센트|percent)$/i.test(v.unit.trim()))warnings.push("근거 "+(i+1)+": 값과 단위 불일치 가능성");}
+    const seen=new Map();for(const [i,v] of evidence.entries()){if(!v.claim||!v.locator||!v.period||!v.unit||!v.value)continue;const key=JSON.stringify([v.claim,v.locator,v.period,v.unit].map(x=>x.trim()));if(seen.has(key)&&seen.get(key)!==v.value.trim())warnings.push("근거 "+(i+1)+": 동일 주장·위치·기간·단위의 값이 서로 다릅니다.");else seen.set(key,v.value.trim());}
     const references=records(raw.references,referenceKeys,"references");
     for(const [i,v] of references.entries())if(!v.citation||!v.locator)warnings.push("참고자료 "+(i+1)+": 출처 또는 원문 위치 확인 필요");
     const issues=records(raw.issues,issueKeys,"issues");

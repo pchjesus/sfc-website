@@ -30,3 +30,6 @@ assert.equal(ri.selectFields(reviewed,[]).title,valid.article.title);
 assert.equal(ri.selectFields(reviewed,[]).research_author,'');
 assert.equal(parse(JSON.stringify(ri.reviewExport(reviewed))).ok,true);
 console.log('PASS R3 prompt types, dates, units, field selection and review reimport');
+
+const inconsistent=parse(JSON.stringify({...valid,evidence:[{claim:'ratio',locator:'p.1',period:'2026',unit:'%',value:'20'},{claim:'ratio',locator:'p.1',period:'2026',unit:'%',value:'30'}]}));
+assert.ok(inconsistent.warnings.some(x=>x.includes('서로 다릅니다')));
