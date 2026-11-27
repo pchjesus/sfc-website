@@ -774,7 +774,7 @@ button:disabled{cursor:not-allowed;opacity:.55}
    q.or=expr=>{q.orFilters.push(expr);return q;};
    q.ilike=(key,pattern)=>{q.filters.push([key,{pattern}]);return q;};
    q.select=(columns='*',opt={})=>{q.columns=columns;q.withCount=opt.count==='exact';return q;};
-   q.eq=(k,v)=>{q.filters.push([k,v]);return q;};q.is=q.eq;
+   q.eq=(k,v)=>{q.filters.push([k,v]);return q;};q.is=q.eq;q.in=(k,values)=>{q.filters.push([k,{values}]);return q;};
    q.update=v=>{q.op='update';q.payload=v;return q;};q.insert=v=>{q.op='insert';q.payload=v;return q;};q.upsert=v=>{q.op='upsert';q.payload=v;return q;};q.delete=()=>{q.op='delete';return q;};
    q.single=q.maybeSingle=()=>{q.one=true;return q;};
    q.then=(resolve,reject)=>(async()=>{
@@ -823,6 +823,7 @@ button:disabled{cursor:not-allowed;opacity:.55}
     if(m.readFailTable===table)return {data:null,error:{message:'synthetic read failure'},count:null};
     let data=table==='cms_admins'?(['admin','developer'].includes(m.mode)?m.admins:[]):table==='cms_developers'?(m.mode==='developer'?m.developers:[]):table==='cms_posts'?m.rows:table==='cms_site_settings'?m.settings:table==='cms_post_revisions'?m.history:table==='cms_sessions'?m.sessions:table==='cms_people'?m.people:[];
     data=data.filter(r=>q.filters.every(([k,v])=>{
+      if(v&&typeof v==="object"&&Array.isArray(v.values))return v.values.includes(r[k]);
       if(v&&typeof v==='object'&&v.pattern)return String(r[k]||'').toLowerCase().includes(v.pattern.replace(/[%*]/g,'').toLowerCase());
       return r[k]===v;
     }));
@@ -834,7 +835,7 @@ button:disabled{cursor:not-allowed;opacity:.55}
       return expr.split(',').some(term=>{
         const match=/^([a-z_]+)\.ilike\.\*(.*)\*$/.exec(term);
         if(!match)return false;
-        return String(r[match[1]]||'').toLowerCase().includes(match[2].replace(/\*/g,' ').toLowerCase());
+        const parts=match[2].toLowerCase().split('*');let at=0;const value=String(r[match[1]]||'').toLowerCase();return parts.every(part=>{const found=value.indexOf(part,at);if(found<0)return false;at=found+part.length;return true;});
       });
     }));
     const count=data.length;

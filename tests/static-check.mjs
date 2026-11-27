@@ -83,7 +83,7 @@ assert.match(publicHtml,/id="researchWorkbench"/);
 assert.match(publicHtml,/id="readerToc"/);
 assert.match(publicHtml,/id="journeyContext"/);
 assert.match(publicHtml,/id="recruitmentStatusTrack"/);
-assert.match(publicHtml,/src="js\/research-platform\.js\?v=3\.0-readiness-d"/);
+assert.match(publicHtml,/src="js\/research-platform\.js\?v=3\.0-readiness-e"/);
 assert.match(publicHtml,/src="js\/research-reader\.js\?v=3\.0-readiness-a"/);
 assert.match(publicHtml,/src="js\/visual-story\.js\?v=2\.8\.4"/);
 assert.match(read('js/research-platform.js'),/\.range\(from,from\+limit-1\)/);

@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import '../js/research-logic.js';
+const l=globalThis.SFC_RESEARCH_LOGIC;
+assert.equal(l.normalized('  ＳＦＣ   연구 '),'sfc 연구');
+assert.equal(l.safeSearch('A&B_한글%'),'A B 한글');
+assert.equal(l.safeSearch('%%%'),'');
+assert.equal(l.sectorGroups([' IT ','it','반도체']).length,2);
+assert.deepEqual(l.sectorGroups(Array.from({length:405},(_,i)=>'Sector '+i)).length,405);
+const row=(id,extra={})=>({id,kind:'research',status:'published',deleted_at:null,scheduled_at:null,research_company:'Test Corp',research_sector:'IT',published_at:'2026-01-01T00:00:00Z',...extra});
+const current=row('current');
+const rows=[row('b'),row('a'),row('sector',{research_company:'other'}),row('private',{status:'draft'}),row('future',{scheduled_at:'2099-01-01'}),row('deleted',{deleted_at:'2026-01-02'}),row('bad',{scheduled_at:'not date'}),row('notice',{kind:'notice'}),current];
+assert.deepEqual(l.related(current,rows,5,Date.parse('2026-11-01')), [{id:'a',reason:'same-company'},{id:'b',reason:'same-company'},{id:'sector',reason:'same-sector'}]);
+assert.deepEqual(l.related(current,[]),[]);
+for(const n of [0,1,6,7,16,405])assert.equal(Array.from({length:n},(_,i)=>row(String(i))).filter(r=>l.visible(r)).length,n);
+console.log('PASS R6 normalization, safe search, sector grouping, public-only related candidates and boundary fixtures');

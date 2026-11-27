@@ -1,0 +1,3 @@
+# Readiness E candidate — R6
+
+Dependent on R5 f47cf1638e12f6868f90f6c9d038cc12af0daae2. Normalized search and safe term segmentation, stable tie-breakers, sector scan batches up to 10,000 with explicit incomplete notice, normalized sector groups with raw values, initial URL restoration and push/popstate handling, stale request/connect guards. Pure public-only related research ranking (no UI until actual data). Server ILIKE still depends on stored text; full Unicode normalization/index and higher-scale distinct-sector RPC require approved schema design. Tests cover 405 rows and synthetic related cases; actual reports and RLS NOT RUN. CI pending.
