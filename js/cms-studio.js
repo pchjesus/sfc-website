@@ -444,5 +444,6 @@
       if(pane==="developer")await developerDiagnostic();
     }catch(e){if(active())toast("데이터를 불러오지 못했습니다: "+(e.message||e),true);}
   }
+  window.SFC_STUDIO_FORMS=Object.freeze({hasUnsaved:()=>Object.values(dirtyForms).some(Boolean),hasPendingWrite:()=>Object.values(busyForms).some(Boolean)});
   window.addEventListener("sfc:pane",e=>openPane(e.detail.pane));
 })();
