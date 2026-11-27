@@ -21,3 +21,12 @@ assert.equal(parse('x'.repeat(600001)).ok,false);
 assert.equal(parse(JSON.stringify(valid)).article.title,valid.article.title);
 assert.equal(parse('{"schema_version":"0.1","__proto__":{},"kind":"research"}').ok,false);
 console.log('PASS importer malformed/oversized/prototype inputs and mapping');
+
+const ri=scope.SFC_RESEARCH_IMPORTER;
+assert.notEqual(ri.promptFor('company'),ri.promptFor('macro'));
+const reviewed=parse(JSON.stringify({...valid,source:{written_date:'2026-02-30'},evidence:[{claim:'ratio',locator:'p.1',value:'20%',unit:'KRW'}]}));
+assert.equal(reviewed.ok,true);assert.ok(reviewed.warnings.some(x=>x.includes('날짜')));assert.ok(reviewed.warnings.some(x=>x.includes('단위')));
+assert.equal(ri.selectFields(reviewed,[]).title,valid.article.title);
+assert.equal(ri.selectFields(reviewed,[]).research_author,'');
+assert.equal(parse(JSON.stringify(ri.reviewExport(reviewed))).ok,true);
+console.log('PASS R3 prompt types, dates, units, field selection and review reimport');

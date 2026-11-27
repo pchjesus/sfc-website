@@ -177,7 +177,7 @@ with sync_playwright() as p:
  # R1: semantic Reader equality, explicit read-only comparison and safe duplicate.
  x=page();x.goto(base+'/admin.html');expect(x.locator('#studioPanel')).to_be_visible()
  x.locator('#adminPostList button').filter(has_text='Article A').click()
- x.locator('#publishPost').click();expect(x.locator('#editorMode')).to_contain_text('게시됨')
+ x.locator('#publishPost').click();expect(x.locator('#confirmPublication')).to_be_disabled();[c.check() for c in x.locator('#publicationChecks input').all()];x.locator('#confirmPublication').click();expect(x.locator('#editorMode')).to_contain_text('게시됨')
  count=x.evaluate('mock.calls.length')
  x.locator('#postKind').select_option('research');x.locator('#postTitle').fill('TEST ONLY Reader parity')
  x.locator('#postBody').fill('First line')
@@ -226,6 +226,14 @@ with sync_playwright() as p:
  original=x.locator('#postBody').input_value();x.locator('#insertGeneralOutline').click()
  assert x.locator('#postBody').input_value()==original and x.evaluate('mock.calls.length')==0
  ok('R1 general template protects existing body');x.context.close()
+ # R2 review cancellation and required checks (no publication writes).
+ x=page();x.goto(base+'/admin.html');expect(x.locator('#studioPanel')).to_be_visible()
+ x.locator('#postTitle').fill('TEST ONLY review');x.locator('#postBody').fill('Synthetic body');x.locator('#publishPost').click()
+ expect(x.locator('#publicationReview')).to_be_visible();expect(x.locator('#confirmPublication')).to_be_disabled()
+ [c.check() for c in x.locator('#publicationChecks input').all()];x.keyboard.press('Escape')
+ expect(x.locator('#publicationReview')).not_to_be_visible();assert x.evaluate('mock.calls.length===0 && mock.uploads.length===0')
+ x.locator('#postSchedule').fill('2000-01-01T09:00');x.locator('#publishPost').click();expect(x.locator('#studioMessage')).to_contain_text('미래 시각')
+ assert x.evaluate('mock.calls.length===0');ok('R2 required checklist, Escape cancellation and past schedule');x.context.close()
  # Anonymous/public client never restores a privileged session.
  x=page();x.goto(base);x.wait_for_function('mock.clients.length===2')
  assert x.evaluate('mock.clients[1].auth.persistSession===false && mock.clients[1].auth.detectSessionInUrl===false')
@@ -260,7 +268,7 @@ with sync_playwright() as p:
  x.evaluate('mock.conflict=false;mock.fail=true');x.locator('#saveDraft').click();expect(x.locator('#studioMessage')).to_contain_text('simulated failure')
  ok('save error shown without data loss')
  x.evaluate('mock.fail=false');x.locator('#saveDraft').click();expect(x.locator('#editorSavedAt')).to_have_text('서버에 저장됨')
- x.locator('#publishPost').click();expect(x.locator('#editorMode')).to_contain_text('예약 발행')
+ x.locator('#publishPost').click();[c.check() for c in x.locator('#publicationChecks input').all()];x.locator('#confirmPublication').click();expect(x.locator('#editorMode')).to_contain_text('예약 발행')
  assert x.evaluate("mock.rows[0].scheduled_at!==null")
  x.locator('#trashPost').click();expect(x.locator('#restorePost')).to_be_visible()
  x.locator('#restorePost').click();expect(x.locator('#postForm')).to_be_visible()
@@ -346,6 +354,7 @@ with sync_playwright() as p:
  expect(x.locator('#studioMessage')).to_contain_text('예약 발행에 공개 파일')
  assert x.evaluate('mock.uploads.length===0')
  x.locator('#postSchedule').fill('');x.locator('#publishPost').click()
+ expect(x.locator('#confirmPublication')).to_be_disabled();[c.check() for c in x.locator('#publicationChecks input').all()];x.locator('#confirmPublication').click()
  expect(x.locator('#editorMode')).to_contain_text('게시됨')
  assert x.evaluate('mock.uploads.length===1 && mock.rows[0].status==="published"')
  x.locator('#postTitle').fill('TEST ONLY unpublished edit');x.keyboard.press('Control+s')
