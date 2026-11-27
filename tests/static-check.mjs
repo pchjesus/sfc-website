@@ -97,7 +97,7 @@ assert.match(publicHtml,/id="recruitActionCard"/);
 assert.match(publicHtml,/id="recruitmentProcess"/);
 assert.doesNotMatch(publicHtml,/id="processDetail"/);
 assert.match(publicHtml,/href="css\/people-recruitment\.css\?v=2\.6\.5-preview"/);
-assert.match(publicHtml,/src="js\/people-recruitment\.js\?v=2\.8\.1"/);
+assert.match(publicHtml,/src="js\/people-recruitment\.js\?v=3\.0-readiness-f"/);
 assert.match(read('js/cms-public.js'),/SFC_PEOPLE_RECRUITMENT\.setPeople/);
 assert.match(read('js/cms-public.js'),/SFC_PEOPLE_RECRUITMENT\?\.syncRecruitment/);
 assert.doesNotMatch(publicHtml,/data-process-step=/);
