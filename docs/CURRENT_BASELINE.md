@@ -14,7 +14,7 @@
 | D0/D1/D2/D3.1 | 개발자 1명/운영 관리자 3명 분리 SQL 후보, 역할 조회/전용 탭, 진단 JSON, 7개 Studio 탭 개선, 이메일 CTA 48px 정렬 | PR #13 병합, 82 mock 시나리오 통과. D1 SQL 미적용, D4 실제 개발자 활성화 미실행 |
 | 운영 관리 | 기존 Auth 계정 allowlist 추가/해제, 최대 3명, 본인/마지막 해제 제한, 사이트/모집 CAS, People/Activities 검색·필터, 모집 일정·파일 상태 preview, JSON 백업 | 초대/계정 생성·MFA/회수 실제 검증 없음, People/Activities CAS 없음, 백업 검증/미디어·복원 없음 |
 | 공개 Reach | root canonical/OG, robots, root sitemap, 기본 hash/query 탐색 | 개별 연구 SEO/slug, 전체 접근성/성능 검증 미완료 |
-| 계정 및 실제 데이터 | 마지막 2026-11-27 대화의 읽기 전용 조회에서 Auth 0, 승인 관리자 0, developer table 없음, 게시글 0, 세션 0 | 조회 시점 수치, 이후 상태 추정 금지. 계정 생성과 migration 적용 보류 |
+| 계정 및 실제 데이터 | 직전 계정 확인 단계의 읽기 전용 조회에서 Auth 0, 승인 관리자 0, developer table 없음, 게시글 0, 세션 0 | 조회 시점 수치, 이후 상태 추정 금지. 계정 생성과 migration 적용 보류 |
 
 ## 정확한 QA 증거
 
