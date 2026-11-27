@@ -398,7 +398,7 @@
   function compareSnapshot(remote,label){
     const local=readPost(),rows=$("comparisonRows");rows.replaceChildren();
     $("comparisonTitle").textContent=label;
-    const fields=[["title","제목"],["excerpt","요약"],["body","본문"],["research_sector","산업"],["research_company","기업"],["research_author","저자"],["research_method","방법"],["research_limitations","한계"],["cover_url","대표 이미지 주소"],["attachment_url","첨부 주소"],["scheduled_at","예약 시각"]];
+    const fields=[["kind","글 유형"],["title","제목"],["excerpt","요약"],["body","본문"],["research_sector","산업"],["research_company","기업"],["research_author","저자"],["research_method","방법"],["research_limitations","한계"],["cover_url","대표 이미지 주소"],["attachment_url","첨부 주소"],["scheduled_at","예약 시각"]];
     for(const [key,name] of fields){
       const a=String(local[key]||""),b=String(remote?.[key]||"");if(a===b)continue;
       const group=node("div","comparison-field");group.append(node("h4","",name));
@@ -518,7 +518,9 @@
   $("studioLogout").addEventListener("click",async()=>{
     if(busy)return;
     const owner=user?.id;if(!owner)return;
-    if((dirty||hasPending()||snapshots(owner).length)&&!confirm("로그아웃하면 이 계정의 이 기기 복구본과 미저장 편집 내용이 삭제됩니다. 서버 저장본은 유지됩니다. 계속할까요?"))return;
+    const structured=window.SFC_STUDIO_FORMS;
+    if(structured?.hasPendingWrite()&&!confirm("다른 Studio 설정의 저장 요청이 진행 중입니다. 이미 서버에 전달된 요청은 완료될 수 있습니다. 그래도 로그아웃할까요?"))return;
+    if((dirty||hasPending()||snapshots(owner).length||structured?.hasUnsaved())&&!confirm("로그아웃하면 이 계정의 이 기기 복구본과 미저장 편집 내용(홈페이지·모집·인물·교육과정 포함)이 삭제됩니다. 서버 저장본은 유지됩니다. 계속할까요?"))return;
     clearTimeout(autosaveTimer);clearTimeout(stashTimer);
     const started=epoch;const {error}=await client.auth.signOut();
     if(error){if(epoch===started)notify("로그아웃 실패: "+error.message,true);return;}
