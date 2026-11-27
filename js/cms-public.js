@@ -6,6 +6,9 @@
   const $=id=>document.getElementById(id);
   let posts=[],loaded=false,loadError="",allPeople=[],allSessions=[],researchSector="all",researchSearch="";
   let recruitConfig={status:"planned"},siteConfig={},refreshClock=null,publicDb=null;
+  let peopleError=false,sessionsError=false,settingsError=false;
+  const orderRows=(a,b)=>Number(a.sort_order||0)-Number(b.sort_order||0)||String(a.id).localeCompare(String(b.id));
+  const recruitmentDefaults=new Map(["recruitTitle","recruitMessage","recruitAudiencePublic","recruitCapacityPublic","recruitMeetingPublic","recruitMethodPublic"].map(id=>[id,$(id)?.innerHTML||""]));
   let showRevision=0,loadRevision=0;
   const element=(tag,cls,text)=>{
     const el=document.createElement(tag);
@@ -185,6 +188,7 @@
     }
     setText(".about-end p",v?.program_note);
     const email=String(v?.contact_email||"");
+    const contact=$("siteContactLink");if(contact){contact.hidden=true;contact.removeAttribute("href");contact.textContent="";}
     if(email&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
       const link=$("siteContactLink");
       if(link){link.hidden=false;link.href="mailto:"+encodeURIComponent(email);link.textContent="CONTACT / "+email;}
@@ -192,9 +196,10 @@
   }
   function publicPeople(){
     const root=$("roleList");if(!root)return;
-    const sorted=allPeople.filter(x=>x.visible).sort((a,b)=>a.sort_order-b.sort_order);
+    const sorted=allPeople.filter(x=>x.visible).sort(orderRows);
     if(window.SFC_PEOPLE_RECRUITMENT){
       window.SFC_PEOPLE_RECRUITMENT.setPeople(sorted);
+      if(peopleError)$("peopleDisclaimer").textContent="조회 실패 / 아래 역할 구조는 운영 기획안이며 실제 운영진 정보는 확인할 수 없습니다.";
       livePeopleMode=sorted.length>0;
       return;
     }
@@ -231,9 +236,10 @@
   }
   let liveStage="all",liveOpen=null,liveSessionMode=false,livePeopleMode=false;
   function publicSessions(){
-    const sessions=allSessions.filter(x=>x.visible).sort((a,b)=>a.sort_order-b.sort_order);
+    const sessions=allSessions.filter(x=>x.visible).sort(orderRows);
     if(!sessions.length){
       if(liveSessionMode){liveSessionMode=false;liveOpen=null;window.SFC_DEMO?.schedule(liveStage);}
+      const notice=document.querySelector("#activities .notice-inline");if(notice)notice.textContent=sessionsError?"조회 실패 / 아래 교육과정은 운영 기획안이며 실제 공개 자료는 확인할 수 없습니다.":"※ 위 과정은 운영 기획안 기준이며 학기 일정에 따라 조정될 수 있습니다. 주차를 눌러 세부 내용을 볼 수 있습니다.";
       return;
     }
     const tabs=$("scheduleTabs"),root=$("scheduleList");
@@ -305,7 +311,8 @@
     if(v.status==="closed")return "closed";
     const now=Date.now(),start=v.start_at?new Date(v.start_at).getTime():null,
       end=v.end_at?new Date(v.end_at).getTime():null;
-    if(end&&now>end)return "closed";
+    if((v.start_at&&!Number.isFinite(start))||(v.end_at&&!Number.isFinite(end))||(start!==null&&end!==null&&start>=end))return "planned";
+    if(end!==null&&now>=end)return "closed";
     if(start&&now<start)return "planned";
     if(start&&now>=start)return "open";
     return v.status==="open"?"open":"planned";
@@ -314,7 +321,8 @@
     const v=recruitConfig||{};
     const status=computedRecruitStatus();
     const names={planned:"모집 예정",open:"모집 중",closed:"모집 마감"};
-    setText("#recruitStatus",names[status]);
+    for(const [id,html] of recruitmentDefaults){const el=$(id);if(el)el.innerHTML=html;}
+    setText("#recruitStatus",settingsError?"모집 상태 미확인":names[status]);
     const statusEl=$("recruitStatus");
     if(statusEl)statusEl.dataset.status=status;
     setText("#recruitTitle",v.title);
@@ -343,6 +351,8 @@
       if(editable)doc.href=editable;else doc.removeAttribute("href");
     }
     window.SFC_PEOPLE_RECRUITMENT?.syncRecruitment();
+    if(settingsError){const message=$("recruitMessage");if(message)message.textContent="모집 설정을 불러오지 못했습니다. 공식 공고를 확인해 주세요.";}
+
   }
   let modalTransition=null;
   function openApplicationDialog(){
@@ -410,14 +420,16 @@
       if(results[0].status==="fulfilled"&&!results[0].value.error){posts=results[0].value.data||[];loadError="";}
       else{posts=[];loadError="게시글 조회 실패";}
       if(results[1].status==="fulfilled"&&!results[1].value.error){
+        settingsError=false;recruitConfig={status:"planned"};
         const settings=results[1].value.data||[];
         for(const row of settings){
           if(row.key==="site")applySiteSettings(row.value||{});
           if(row.key==="recruitment")recruitConfig=row.value||{};
         }
       }
-      if(results[2].status==="fulfilled"&&!results[2].value.error)allPeople=results[2].value.data||[];
-      if(results[3].status==="fulfilled"&&!results[3].value.error)allSessions=results[3].value.data||[];
+      else{settingsError=true;recruitConfig={status:"planned"};applySiteSettings({});}
+      peopleError=results[2].status!=="fulfilled"||Boolean(results[2].value?.error);allPeople=peopleError?[]:results[2].value.data||[];
+      sessionsError=results[3].status!=="fulfilled"||Boolean(results[3].value?.error);allSessions=sessionsError?[]:results[3].value.data||[];
     }catch(e){if(revision!==loadRevision)return;posts=[];loadError=String(e.message||e);}
     if(revision!==loadRevision)return;
     loaded=true;

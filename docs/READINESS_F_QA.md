@@ -1,0 +1,3 @@
+# Readiness F candidate — R7
+
+Dependent on R6 a102a03183f4f81c79b09317f70453dd46f33d42. People and curriculum previews, public consent confirmation, field/order validation and stable sorting, duplicate order warning, loading/error status and blank application approval/preflight. Public identity and recruitment stale information cleared on read failure. Existing visible-by-default layouts unchanged. File header checks are not content/privacy scans. Actual identity/photographs/consent/official schedule and DB schema not changed. Proposal only for new fields; see SOCIETY_IDENTITY_TEMPLATE.md. CI pending.

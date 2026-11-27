@@ -87,7 +87,8 @@
   ]);}
   function previewRecruitment(){
     const start=$("recruitStart").value,end=$("recruitEnd").value;
-    const warning=start&&end&&start>=end?"모집 마감은 시작 시각보다 나중이어야 합니다.":"";
+    const invalidLocal=id=>$(id).validity.badInput||($(id).value&&isoToForm(formToIso($(id).value))!==$(id).value);
+    const warning=invalidLocal("recruitStart")||invalidLocal("recruitEnd")?"유효한 현지 날짜와 시각을 확인하세요.":start&&end&&start>=end?"모집 마감은 시작 시각보다 나중이어야 합니다.":"";
     $("recruitDateWarning").hidden=!warning;$("recruitDateWarning").textContent=warning;
     const fileState=(id,key)=>$(id).files[0]?"선택됨 (저장 전): "+$(id).files[0].name:safe(state.recruitment?.[key])?"등록됨":"미등록";
     const status={planned:"모집 예정",open:"모집 중",closed:"모집 마감"}[$("recruitStatus").value];
@@ -167,6 +168,7 @@
     buttonBusy(button,true);lockForm("recruitment",true);
     try{
       const start_at=formToIso(textVal("recruitStart")),end_at=formToIso(textVal("recruitEnd"));
+      if($("recruitStart").validity.badInput||$("recruitEnd").validity.badInput||($("recruitStart").value&&isoToForm(start_at)!==$("recruitStart").value)||($("recruitEnd").value&&isoToForm(end_at)!==$("recruitEnd").value))throw Error("유효한 현지 시각을 입력하세요.");
       if(start_at&&end_at&&new Date(start_at)>=new Date(end_at))throw Error("모집 마감은 시작 시각보다 나중이어야 합니다.");
       const data={
         status:$("recruitStatus").value,title:textVal("recruitTitle"),
@@ -176,6 +178,8 @@
         start_at,end_at,pdf_url:safe(state.recruitment?.pdf_url),docx_url:safe(state.recruitment?.docx_url)
       };
       const pdfFile=$("recruitPdf").files[0],docxFile=$("recruitDocx").files[0];
+      if((pdfFile||docxFile)&&!confirm("작성 완료된 지원서나 개인정보가 아닌, 공개 허가된 빈 공통 양식임을 확인했나요?"))return;
+      await validateRecruitFile(pdfFile,"pdf");if(!active())return;await validateRecruitFile(docxFile,"docx");if(!active())return;
       const pdf=await util().upload(pdfFile,"pdf");if(!active())return;
       const docx=await util().upload(docxFile,"docx");if(!active())return;
       if(pdf)data.pdf_url=pdf;
@@ -187,11 +191,26 @@
     }catch(e){if(active())toast("모집 설정 저장 실패: "+(e.message||e),true);}
     finally{if(active()){lockForm("recruitment",false);buttonBusy(button,false);}}
   });
+  const stableOrder=(a,b)=>Number(a.sort_order||0)-Number(b.sort_order||0)||String(a.id).localeCompare(String(b.id));
+  function orderValue(id){const value=$(id).value;return value===""?0:Number(value);}
+  function orderWarning(rows,id,value){return rows.some(r=>r.id!==id&&Number(r.sort_order)===value)?"동일한 표시 순서가 있습니다. ID 기준으로 순서를 안정적으로 표시하지만 순서값을 구분하는 것을 권장합니다.":"";}
+  function validateOrder(value){return Number.isInteger(value)&&value>=0&&value<=9999;}
+  function previewPerson(){previewRows("personPreview",[["이름 / 직책",[textVal("personName"),textVal("personPosition")].filter(Boolean).join(" · ")],["임기",textVal("personTerm")],["소개",textVal("personBio")],["공개 여부",$("personVisible").checked?"공개 예정 · 동의 확인 필요":"비공개"],["표시 순서",String(orderValue("personOrder"))],["확인",orderWarning(state.people,textVal("personId"),orderValue("personOrder"))||"입력값을 검토하세요."]]);}
+  function previewSession(){previewRows("sessionPreview",[["주차 / 제목",[textVal("sessionWeek"),textVal("sessionTitle")].filter(Boolean).join(" · ")],["교육 단계",$("sessionStage").value],["소개",textVal("sessionSummary")],["세부",textVal("sessionDetail")],["구분","교육과정 계획 / 실제 활동 결과 아님"],["공개 여부",$("sessionVisible").checked?"공개 예정":"비공개"],["확인",orderWarning(state.sessions,textVal("sessionId"),orderValue("sessionOrder"))||"입력값을 검토하세요."]]);}
+  for(const [id,fn] of [["peopleForm",previewPerson],["sessionForm",previewSession]]){$(id).addEventListener("input",fn);$(id).addEventListener("change",fn);}
+  async function validateRecruitFile(file,type){
+    if(!file)return;
+    const mime=type==="pdf"?"application/pdf":"application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    if(file.type!==mime||!file.size||file.size>20*1024*1024)throw Error("지원서 파일 형식·20MiB 제한을 확인하세요.");
+    const b=new Uint8Array(await file.slice(0,5).arrayBuffer());
+    const valid=type==="pdf"?String.fromCharCode(...b)==="%PDF-":b[0]===80&&b[1]===75&&b[2]===3&&b[3]===4;
+    if(!valid)throw Error("지원서 파일 헤더를 확인하세요.");
+  }
   function clearPerson(force=false){
     if(!force&&!allowDiscard("people"))return;
     $("personId").value="";$("personName").value="";$("personPosition").value="";
     $("personTerm").value="";$("personBio").value="";$("personOrder").value="0";$("personVisible").checked=true;
-    dirtyForms.people=false;
+    dirtyForms.people=false;previewPerson();
   }
   function editPerson(item){
     if(!allowDiscard("people"))return;
@@ -199,7 +218,7 @@
     $("personPosition").value=item.position||"";$("personTerm").value=item.term||"";
     $("personBio").value=item.bio||"";$("personOrder").value=String(item.sort_order||0);
     $("personVisible").checked=item.visible;
-    dirtyForms.people=false;
+    dirtyForms.people=false;previewPerson();
   }
   function matchesText(query,values){return !query||values.some(v=>String(v||"").toLocaleLowerCase("ko-KR").includes(query));}
   function matchesVisibility(value,record){return !value||(value==="public"&&record.visible)||(value==="private"&&!record.visible);}
@@ -210,7 +229,7 @@
     const filtered=state.people.filter(p=>matchesVisibility(visibility,p)&&matchesText(query,[p.name,p.position,p.term]));
     $("peopleSummary").textContent=filterSummary(state.people,filtered);
     if(!filtered.length)list.append(n("p","sidebar-empty",state.people.length?"검색 조건에 맞는 인물이 없습니다.":"등록된 인물이 없어요. 실제 운영진부터 추가해 주세요."));
-    for(const p of filtered.sort((a,b)=>a.sort_order-b.sort_order)){
+    for(const p of filtered.sort(stableOrder)){
       const row=n("div","studio-record");const info=n("div","");
       info.append(n("strong","",p.name+" · "+(p.position||"직책 미지정")),
         n("small","",(p.term||"")+" / "+(p.visible?"공개":"비공개")));
@@ -231,7 +250,7 @@
     }
   }
   async function loadPeople(){
-    const active=session();if(!active())return;const rows=await queryAll("cms_people");if(!active())return;state.people=rows;renderPeople();
+    const active=session();if(!active())return;const rows=await queryAll("cms_people");if(!active())return;state.people=rows;renderPeople();previewPerson();
   }
   $("newPerson").addEventListener("click",()=>clearPerson());
   $("peopleForm").addEventListener("submit",async event=>{
@@ -240,8 +259,9 @@
     const id=textVal("personId");
     const payload={name:textVal("personName"),position:textVal("personPosition"),
       term:textVal("personTerm"),bio:textVal("personBio"),
-      sort_order:Number($("personOrder").value)||0,visible:$("personVisible").checked};
-    if(!payload.name)return toast("성명을 입력해 주세요.",true);
+      sort_order:orderValue("personOrder"),visible:$("personVisible").checked};
+    if(!payload.name||payload.name.length>100||payload.position.length>130||payload.term.length>80||payload.bio.length>2000||!validateOrder(payload.sort_order))return toast("성명·글자 수·표시 순서 범위를 확인하세요.",true);
+    if(payload.visible&&!confirm("실명·직책·임기·소개에 대한 당사자의 공개 동의를 확인했나요?"))return;
     buttonBusy(save,true);lockForm("people",true);
     try{
       let result;
@@ -257,7 +277,7 @@
     $("sessionId").value="";$("sessionWeek").value="";$("sessionTitle").value="";
     $("sessionSummary").value="";$("sessionDetail").value="";$("sessionStage").value="foundation";
     $("sessionOrder").value="0";$("sessionVisible").checked=true;
-    dirtyForms.sessions=false;
+    dirtyForms.sessions=false;previewSession();
   }
   function editSession(s){
     if(!allowDiscard("sessions"))return;
@@ -265,7 +285,7 @@
     $("sessionTitle").value=s.title;$("sessionSummary").value=s.summary||"";
     $("sessionDetail").value=s.detail||"";$("sessionStage").value=s.stage;
     $("sessionOrder").value=String(s.sort_order||0);$("sessionVisible").checked=s.visible;
-    dirtyForms.sessions=false;
+    dirtyForms.sessions=false;previewSession();
   }
   function renderSessions(){
     const list=$("sessionsList");list.replaceChildren();
@@ -273,7 +293,7 @@
     const filtered=state.sessions.filter(s=>matchesVisibility(visibility,s)&&(!stage||s.stage===stage)&&matchesText(query,[s.week_label,s.title,s.summary]));
     $("sessionSummaryCount").textContent=filterSummary(state.sessions,filtered);
     if(!filtered.length)list.append(n("p","sidebar-empty",state.sessions.length?"검색 조건에 맞는 교육과정이 없습니다.":"아직 등록된 교육과정이 없어요. 이전 기획안은 샘플로 남아 있어요."));
-    for(const s of filtered.sort((a,b)=>a.sort_order-b.sort_order)){
+    for(const s of filtered.sort(stableOrder)){
       const row=n("div","studio-record"),info=n("div","");
       info.append(n("strong","",s.week_label+" · "+s.title),
         n("small","",s.stage+" / "+(s.visible?"공개":"비공개")));
@@ -293,7 +313,7 @@
       controls.append(edit,del);row.append(info,controls);list.append(row);
     }
   }
-  async function loadSessions(){const active=session();if(!active())return;const rows=await queryAll("cms_sessions");if(!active())return;state.sessions=rows;renderSessions();}
+  async function loadSessions(){const active=session();if(!active())return;const rows=await queryAll("cms_sessions");if(!active())return;state.sessions=rows;renderSessions();previewSession();}
   $("newSession").addEventListener("click",()=>clearSession());
   $("sessionForm").addEventListener("submit",async event=>{
     event.preventDefault();const active=session();if(!active()||busyForms.sessions)return;
@@ -301,9 +321,9 @@
     const id=textVal("sessionId");
     const payload={week_label:textVal("sessionWeek"),title:textVal("sessionTitle"),
       summary:textVal("sessionSummary"),detail:textVal("sessionDetail"),
-      stage:$("sessionStage").value,sort_order:Number($("sessionOrder").value)||0,
+      stage:$("sessionStage").value,sort_order:orderValue("sessionOrder"),
       visible:$("sessionVisible").checked};
-    if(!payload.week_label||!payload.title)return toast("주차와 제목을 입력해 주세요.",true);
+    if(!payload.week_label||!payload.title||payload.week_label.length>20||payload.title.length>150||payload.summary.length>500||payload.detail.length>2500||!["foundation","application","research"].includes(payload.stage)||!validateOrder(payload.sort_order))return toast("주차·제목·글자 수·표시 순서를 확인하세요.",true);
     buttonBusy(save,true);lockForm("sessions",true);
     try{
       const result=id
@@ -440,7 +460,7 @@
   });
   $("devGoAccounts").addEventListener("click",()=>{if(util().getRole()==="developer")util().showPane("access");});
   window.addEventListener("sfc:admin-cleared",()=>{
-    generation++;diagnosticSequence++;lastDiagnostic=null;clearInspection();$("inspectBackupFile").value="";
+    generation++;diagnosticSequence++;lastDiagnostic=null;for(const id of ["siteLoadState","peopleLoadState","sessionLoadState","recruitLoadState"])$(id).textContent="조회 전";clearInspection();$("inspectBackupFile").value="";
     state.site={};state.recruitment={};state.people=[];state.sessions=[];state.admins=[];
     for(const [key,id] of Object.entries(formIds)){
       settingVersions[key]=null;dirtyForms[key]=false;lockForm(key,false);$(id).reset();
@@ -456,13 +476,15 @@
   });
   async function openPane(pane){
     const active=session();if(!active())return;
+    const id={site:"siteLoadState",people:"peopleLoadState",sessions:"sessionLoadState",recruitment:"recruitLoadState"}[pane];if(id)$(id).textContent="조회 중";
     try{
       if(pane==="site"||pane==="recruitment")await fetchSettings(pane);
       if(pane==="people")await loadPeople();
       if(pane==="sessions")await loadSessions();
       if(pane==="access")await loadAdmins();
       if(pane==="developer")await developerDiagnostic();
-    }catch(e){if(active())toast("데이터를 불러오지 못했습니다: "+(e.message||e),true);}
+      if(active()&&id)$(id).textContent=(pane==="people"&&!state.people.length||pane==="sessions"&&!state.sessions.length)?"등록된 자료 없음":"조회 완료 · 미저장 입력은 유지";
+    }catch(e){if(active()){if(id)$(id).textContent="조회 실패 · 기존 화면의 정보가 최신이 아닐 수 있습니다.";toast("데이터를 불러오지 못했습니다: "+(e.message||e),true);}}
   }
   window.SFC_STUDIO_FORMS=Object.freeze({hasUnsaved:()=>Object.values(dirtyForms).some(Boolean),hasPendingWrite:()=>Object.values(busyForms).some(Boolean)});
   window.addEventListener("sfc:pane",e=>openPane(e.detail.pane));
