@@ -1,4 +1,6 @@
 window.SFC_TEST_WORKSPACE=true;
+// Consume reset on the next load, after the previous page's beforeunload stash.
+try{if(sessionStorage.getItem('sfc-test-workspace:reset-next')==='1'){for(let i=sessionStorage.length-1;i>=0;i--){const k=sessionStorage.key(i);if(k?.startsWith('sfc-test-workspace:'))sessionStorage.removeItem(k);}}}catch(_){}
 window.SFC_CMS_CONFIG={url:"https://preview-only.supabase.co",publishableKey:"sb_publishable_mock_only"};
 window.mock.mode=location.hash==="#admin"?"admin":"developer";
 Object.assign(window.mock.rows[0],{title:"예시 연구보고서 — 기업 가치 분석",kind:"research",research_author:"가상 연구팀",research_company:"예시 기업",research_sector:"산업재",body:"# 연구 질문\n이 문서는 기능 검증용 가상 자료입니다.\n\n## 분석 방법\n가상 재무 데이터를 이용합니다."});
