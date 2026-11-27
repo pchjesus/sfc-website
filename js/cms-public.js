@@ -6,7 +6,7 @@
   const $=id=>document.getElementById(id);
   let posts=[],loaded=false,loadError="",allPeople=[],allSessions=[],researchSector="all",researchSearch="";
   let recruitConfig={status:"planned"},siteConfig={},refreshClock=null,publicDb=null;
-  const detailCache=new Map();let showRevision=0;
+  let showRevision=0,loadRevision=0;
   const element=(tag,cls,text)=>{
     const el=document.createElement(tag);
     if(cls)el.className=cls;
@@ -145,15 +145,15 @@
     try{
       const db=publicDb||await cms.getPublicClient();
       if(!db)throw new Error("Public client unavailable");
-      let article=detailCache.get(id);
-      if(!article){
+      let article;
+      {
         const response=await db.from("cms_posts").select(
           "id,kind,title,excerpt,body,cover_url,attachment_url,published_at,research_sector,research_company,research_author,research_method,research_limitations"
         ).eq("id",id).eq("status","published").is("deleted_at",null)
           .or("scheduled_at.is.null,scheduled_at.lte."+new Date().toISOString()).maybeSingle();
         if(response.error)throw response.error;
         article=response.data;
-        if(article)detailCache.set(id,article);
+        // Re-query public visibility on every open; formerly public rows may be withdrawn.
       }
       if(revision!==showRevision||location.hash.slice(1)!=="post-"+id)return;
       if(article)window.SFC_READER?.render(article,cms);
@@ -390,8 +390,10 @@
   });
   async function load(){
     if(!cms)return;
+    const revision=++loadRevision;showRevision++;
     try{
       const db=await cms.getPublicClient();
+      if(revision!==loadRevision)return;
       publicDb=db;
       if(!db){loadError="공개 게시글 연결을 확인할 수 없습니다.";loaded=true;renderUpdates();return;}
       const results=await Promise.allSettled([
@@ -404,8 +406,9 @@
         db.from("cms_people").select("id,name,position,term,bio,sort_order,visible").eq("visible",true).order("sort_order"),
         db.from("cms_sessions").select("id,week_label,title,summary,detail,stage,sort_order,visible").eq("visible",true).order("sort_order")
       ]);
+      if(revision!==loadRevision)return;
       if(results[0].status==="fulfilled"&&!results[0].value.error){posts=results[0].value.data||[];loadError="";}
-      else loadError="게시글 조회 실패";
+      else{posts=[];loadError="게시글 조회 실패";}
       if(results[1].status==="fulfilled"&&!results[1].value.error){
         const settings=results[1].value.data||[];
         for(const row of settings){
@@ -415,7 +418,8 @@
       }
       if(results[2].status==="fulfilled"&&!results[2].value.error)allPeople=results[2].value.data||[];
       if(results[3].status==="fulfilled"&&!results[3].value.error)allSessions=results[3].value.data||[];
-    }catch(e){loadError=String(e.message||e);}
+    }catch(e){if(revision!==loadRevision)return;posts=[];loadError=String(e.message||e);}
+    if(revision!==loadRevision)return;
     loaded=true;
     renderHome();renderHomeUpdates();renderResearch();renderUpdates();publicPeople();publicSessions();renderRecruitment();motion.reveal();
     if(publicDb)void window.SFC_PLATFORM?.connect(publicDb);
