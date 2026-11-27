@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import '../js/cms-backup.js';
+const b=globalThis.SFC_BACKUP;
+const tables=Object.fromEntries(b.tables.map(t=>[t,[]]));
+tables.cms_posts=[{id:'TEST',kind:'research',title:'TEST ONLY',body:'Synthetic',status:'draft'}];
+tables.cms_site_settings=[{key:'site',value:{}},{key:'recruitment',value:{}}];
+const sealed=await b.seal(tables,'2026-01-01T00:00:00Z');
+const valid=await b.inspect(JSON.stringify(sealed));assert.equal(valid.ok,true);assert.equal(valid.checksum,'match');
+const old={format:'sfc-cms-export-v1',project:'sfc-website',exported_at:'2026-01-01T00:00:00Z',tables};
+assert.equal((await b.inspect(JSON.stringify(old))).ok,true);
+const tampered=structuredClone(sealed);tampered.tables.cms_posts[0].title='Changed';assert.equal((await b.inspect(JSON.stringify(tampered))).checksum,'mismatch');
+const missing=structuredClone(old);delete missing.tables.cms_people;assert.equal((await b.inspect(JSON.stringify(missing))).ok,false);
+const dupe=structuredClone(old);dupe.tables.cms_posts.push(dupe.tables.cms_posts[0]);assert.equal((await b.inspect(JSON.stringify(dupe))).ok,false);
+assert.equal((await b.inspect('{"__proto__":{}}')).ok,false);
+assert.equal((await b.inspect('x'.repeat(b.maxBytes+1))).ok,false);
+const invalid=structuredClone(old);invalid.tables.cms_post_revisions=[{id:1,post_id:'missing',snapshot:{id:'missing'}}];
+assert.equal((await b.inspect(JSON.stringify(invalid))).ok,true);assert.ok((await b.inspect(JSON.stringify(invalid))).warnings.some(x=>x.includes('참조 없음')));
+// Restore simulation copies synthetic tables only; no client, file or external JSON accepted.
+const cloned=JSON.parse(JSON.stringify(sealed.tables));assert.deepEqual(cloned,tables);cloned.cms_posts[0].title='changed';assert.notEqual(cloned.cms_posts[0].title,tables.cms_posts[0].title);
+console.log('PASS R4 backup schema, checksum, duplicates, missing tables, size, prototype, revision warning and isolated fixture copy');

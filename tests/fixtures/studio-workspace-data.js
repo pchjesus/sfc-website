@@ -1,0 +1,10 @@
+window.SFC_TEST_WORKSPACE=true;
+// Consume reset on the next load, after the previous page's beforeunload stash.
+try{if(sessionStorage.getItem('sfc-test-workspace:reset-next')==='1'){for(let i=sessionStorage.length-1;i>=0;i--){const k=sessionStorage.key(i);if(k?.startsWith('sfc-test-workspace:'))sessionStorage.removeItem(k);}}}catch(_){}
+window.SFC_CMS_CONFIG={url:"https://preview-only.supabase.co",publishableKey:"sb_publishable_mock_only"};
+window.mock.mode=location.hash==="#admin"?"admin":"developer";
+Object.assign(window.mock.rows[0],{title:"예시 연구보고서 — 기업 가치 분석",kind:"research",research_author:"가상 연구팀",research_company:"예시 기업",research_sector:"산업재",body:"# 연구 질문\n이 문서는 기능 검증용 가상 자료입니다.\n\n## 분석 방법\n가상 재무 데이터를 이용합니다."});
+Object.assign(window.mock.rows[1],{title:"예시 학회 공지",status:"published"});
+window.mock.settings=[{key:"site",updated_at:"2026-01-01T00:00:00Z",value:{hero_description:"기업의 숫자를 읽고, 가치의 근거를 찾다.",about_heading:"Research.\nThink beyond numbers.",about_body:"학회의 연구와 교육을 소개하는 가상 문구입니다.",program_note:"2027년 봄학기 예시 교육과정",contact_email:"contact@example.invalid"}},{key:"recruitment",updated_at:"2026-01-01T00:00:00Z",value:{status:"planned",title:"2027 Spring Recruitment",message:"가상 모집 안내입니다.",audience:"재학생",capacity:"00명",meeting:"주 1회",method:"이메일 지원",instructions:"공통 양식을 작성해 제출",start_at:null,end_at:null}}];
+window.mock.people=[{id:"person-demo-1",name:"예시 회장",position:"회장",term:"2027 SPRING",bio:"가상 프로필",sort_order:1,visible:true},{id:"person-demo-2",name:"예시 연구장",position:"리서치장",term:"2027 SPRING",bio:"가상 프로필",sort_order:2,visible:false}];
+window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 기초",stage:"foundation",summary:"기초교육",detail:"가상 교육 내용",sort_order:1,visible:true},{id:"session-demo-2",week_label:"02",title:"기업가치 분석",stage:"application",summary:"실습",detail:"가상 교육 내용",sort_order:2,visible:true},{id:"session-demo-3",week_label:"03",title:"최종 연구",stage:"research",summary:"발표",detail:"가상 교육 내용",sort_order:3,visible:false}];

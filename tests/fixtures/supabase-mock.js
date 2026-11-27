@@ -61,6 +61,7 @@
      return {data:clone(saved),error:null};
     }
     if(m.readDelay&&table==='cms_site_settings')await new Promise(r=>setTimeout(r,m.readDelay));
+    if(m.readFailTable===table)return {data:null,error:{message:'synthetic read failure'},count:null};
     let data=table==='cms_admins'?(['admin','developer'].includes(m.mode)?m.admins:[]):table==='cms_developers'?(m.mode==='developer'?m.developers:[]):table==='cms_posts'?m.rows:table==='cms_site_settings'?m.settings:table==='cms_post_revisions'?m.history:table==='cms_sessions'?m.sessions:table==='cms_people'?m.people:[];
     data=data.filter(r=>q.filters.every(([k,v])=>{
       if(v&&typeof v==='object'&&v.pattern)return String(r[k]||'').toLowerCase().includes(v.pattern.replace(/[%*]/g,'').toLowerCase());

@@ -378,10 +378,12 @@
     const button=$("exportData");buttonBusy(button,true);
     try{
       const tables=["cms_posts","cms_post_revisions","cms_site_settings","cms_people","cms_sessions","cms_admins"];
-      const data={format:"sfc-cms-export-v1",exported_at:new Date().toISOString(),project:"sfc-website",tables:{}};
-      for(const table of tables)data.tables[table]=await readBackupTable(table,active);
+      const data={};
+      for(const table of tables)data[table]=await readBackupTable(table,active);
       if(!active())return;
-      const json=JSON.stringify(data,null,2);
+      const sealed=await window.SFC_BACKUP.seal(data);if(!active())return;
+      const json=JSON.stringify(sealed,null,2);
+      if(new TextEncoder().encode(json).length>window.SFC_BACKUP.maxBytes)throw Error("백업 20MiB 한도를 초과했습니다.");
       const blob=new Blob([json],{type:"application/json;charset=utf-8"});
       const url=URL.createObjectURL(blob);
       const link=document.createElement("a");
@@ -391,6 +393,24 @@
       toast("데이터 백업 파일이 준비됐습니다. 관리자 전용 안전한 위치에 보관하세요.");
     }catch(e){if(active())toast("백업 실패: "+(e.message||e),true);}
     finally{if(active())buttonBusy(button,false);}
+  });
+  let backupSequence=0;
+  function clearInspection(){backupSequence++;$("backupInspection").replaceChildren();$("inspectBackup").disabled=false;}
+  $("inspectBackupFile").addEventListener("change",clearInspection);
+  $("inspectBackup").addEventListener("click",async()=>{
+    const active=session(),file=$("inspectBackupFile").files[0];if(!active()||$("inspectBackup").disabled)return;
+    clearInspection();const seq=backupSequence;
+    const valid=()=>active()&&seq===backupSequence;
+    if(!file||file.size>window.SFC_BACKUP.maxBytes){$("backupInspection").textContent="20MiB 이하의 백업 JSON을 선택하세요.";return;}
+    $("inspectBackup").disabled=true;$("backupInspection").textContent="이 기기에서 검사 중";
+    try{
+      const result=await window.SFC_BACKUP.inspect(await file.text());if(!valid())return;
+      const host=$("backupInspection");host.replaceChildren(n("p","",result.ok?"형식 검사 통과 · 실제 복원 검증 아님":"백업 형식 검사 실패"),n("p","","체크섬: "+result.checksum));
+      for(const [table,count] of Object.entries(result.counts))host.append(n("p","",table+" · "+count+"행"));
+      for(const msg of result.errors)host.append(n("p","","오류: "+msg));
+      for(const msg of result.warnings)host.append(n("p","","경고: "+msg));
+    }catch(_){if(valid())$("backupInspection").textContent="백업 파일을 읽거나 검사하지 못했습니다.";}
+    finally{if(valid())$("inspectBackup").disabled=false;}
   });
   let diagnosticSequence=0,lastDiagnostic=null;
   async function developerDiagnostic(){
@@ -403,13 +423,13 @@
       const queries=[client().from("cms_posts").select("id",{count:"exact",head:true}),client().from("cms_posts").select("id",{count:"exact",head:true}).eq("status","draft"),client().from("cms_admins").select("user_id",{count:"exact",head:true}),client().from("cms_people").select("id",{count:"exact",head:true}),client().from("cms_sessions").select("id",{count:"exact",head:true}),client().from("cms_site_settings").select("key",{count:"exact",head:true})];
       const results=await Promise.all(queries);
       if(!active())return;
-      if(results.some(v=>v.error||typeof v.count!=="number"))throw Error("일부 조회 요청이 실패했습니다.");
+      if(results.some(v=>v.error||typeof v.count!=="number")){const error=Error("일부 조회 요청이 실패했습니다.");error.failed=results.map((v,i)=>v.error||typeof v.count!=="number"?i:-1).filter(i=>i>=0);throw error;}
       const values=[results[0].count,results[1].count,results[2].count+" / 3",results[3].count+" / "+results[4].count,results[5].count];
       $("devCounts").querySelectorAll("dd").forEach((e,i)=>e.textContent=String(values[i]));
       $("devConnection").textContent="조회 성공";
       $("devAuth").textContent="현재 세션: Developer · 서버 회원 조회 확인";
-      lastDiagnostic={format:"sfc-diagnostic-v1",checked_at:new Date().toISOString(),role:"developer",query_status:"success",counts:{all_posts:results[0].count,draft_status:results[1].count,operational_admins:results[2].count,people:results[3].count,activities:results[4].count,settings:results[5].count}};$("devExport").disabled=false;
-    }catch(e){if(active()){$("devConnection").textContent="조회 실패";$("devAuth").textContent="조회 상태를 확인할 수 없습니다.";}}
+      lastDiagnostic={format:"sfc-diagnostic-v1",checked_at:new Date().toISOString(),role:"developer",build:"readiness-c",deployed_sha:null,query_status:"success",counts:{all_posts:results[0].count,draft_status:results[1].count,operational_admins:results[2].count,people:results[3].count,activities:results[4].count,settings:results[5].count}};$("devExport").disabled=false;
+    }catch(e){if(active()){$("devConnection").textContent="조회 실패";$("devAuth").textContent="조회 상태를 확인할 수 없습니다." + (e.failed?" · 실패 요청 "+e.failed.length+"건":"");lastDiagnostic={format:"sfc-diagnostic-v1",checked_at:new Date().toISOString(),role:"developer",build:"readiness-c",deployed_sha:null,query_status:"failed",failed_queries:e.failed||null};$("devExport").disabled=false;}}
     finally{if(active()){$("devRefresh").disabled=false;$("devChecked").textContent="최근 진단: "+new Date().toLocaleString("ko-KR");}}
   }
   $("devRefresh").addEventListener("click",developerDiagnostic);
@@ -420,7 +440,7 @@
   });
   $("devGoAccounts").addEventListener("click",()=>{if(util().getRole()==="developer")util().showPane("access");});
   window.addEventListener("sfc:admin-cleared",()=>{
-    generation++;diagnosticSequence++;lastDiagnostic=null;
+    generation++;diagnosticSequence++;lastDiagnostic=null;clearInspection();$("inspectBackupFile").value="";
     state.site={};state.recruitment={};state.people=[];state.sessions=[];state.admins=[];
     for(const [key,id] of Object.entries(formIds)){
       settingVersions[key]=null;dirtyForms[key]=false;lockForm(key,false);$(id).reset();

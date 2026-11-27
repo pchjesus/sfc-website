@@ -4,7 +4,8 @@
   const $=id=>document.getElementById(id);
   let role=null,client=null,user=null,posts=[],current=null,busy=false,dirty=false,filter="all",checking=null,recovering=false;
   let autosaveTimer=null,stashTimer=null,toastTimer=null,authRecheck=false;
-  const legacyKey="sfc-editor-draft-v2", recoveryPrefix="sfc-editor-draft-v3:";
+  const testPrefix=window.SFC_TEST_WORKSPACE===true?"sfc-test-workspace:":"";
+  const legacyKey=testPrefix+"sfc-editor-draft-v2", recoveryPrefix=testPrefix+"sfc-editor-draft-v3:";
   let workId=null,epoch=0,blockedRecovery=false,pendingFiles={},previewUrl=null;
   let importCandidate=null,importRevision=0,importManual=false;
   let formatUndo=[],formatRedo=[],conflictHold=false;
