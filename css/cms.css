@@ -202,3 +202,18 @@ textarea{resize:vertical;line-height:1.8}input[type=file]{font-size:12px;backgro
 .studio-preview-copy p{white-space:pre-wrap;font-size:13px;line-height:1.7;margin:0}
 .studio-inline-warning{color:#983f39;font-size:12px;line-height:1.7}
 @media(max-width:380px){.studio-member-form .member-input-row>button{font-size:11px;padding:0 9px}}
+
+/* R1: semantic Reader preview and non-destructive comparison. */
+.preview-panel .studio-reader-toc{position:static;display:flex;flex-direction:row;flex-wrap:wrap;gap:7px;max-height:none;margin:0 0 24px;border-bottom:1px solid #d4dee3}
+.preview-panel .studio-reader-toc>span{width:100%}
+.preview-panel .studio-reader-toc button{border:1px solid #d9e1e5;padding:8px 10px}
+.preview-panel .studio-reader-body h2{padding-top:29px;margin-top:22px;border-top:1px solid #d8e2e5;font-size:clamp(23px,2.6vw,34px);line-height:1.35;letter-spacing:-.04em}
+.preview-panel .studio-reader-body h3{font-size:clamp(18px,2vw,25px);margin:22px 0 12px;line-height:1.4}
+.preview-panel .studio-reader-body p,.preview-panel .studio-reader-body li{font-size:14px;line-height:2.1;word-break:keep-all;overflow-wrap:break-word}
+.preview-panel .studio-reader-body ul{padding-left:23px}
+.studio-history-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.comparison-grid{display:grid;gap:14px}.comparison-field h4{font-size:14px;margin:12px 0 6px}
+.comparison-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.comparison-pair label{min-width:0;font-size:12px;color:var(--muted)}
+.comparison-pair textarea{width:100%;min-width:0;font-size:13px;line-height:1.65;resize:vertical;background:#f7f9fa;margin:5px 0 0}
+@media(max-width:600px){.comparison-pair{grid-template-columns:minmax(0,1fr)}}
