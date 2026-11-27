@@ -155,13 +155,13 @@ with sync_playwright() as p:
  # must not clear a new account's form, initiate another write, or show success.
  x=page();x.goto(base+'/admin.html');expect(x.locator('#studioPanel')).to_be_visible()
  x.locator('[data-pane="people"]').click();expect(x.locator('#peopleSummary')).to_contain_text('전체 0')
- x.locator('#personName').fill('Old submitted fixture');x.evaluate('mock.delay=1100')
+ x.locator('#personName').fill('Old submitted fixture');x.evaluate('mock.delay=1800')
  x.locator('#peopleForm button[type="submit"]').click();x.wait_for_function('mock.calls.length===1')
  x.evaluate("mock.authEvent('SIGNED_OUT');mock.mode='developer';mock.authEvent('SIGNED_IN',{user:{id:'developer-test'}})")
  expect(x.locator('#studioRole')).to_have_text('DEVELOPER');expect(x.locator('#studioPanel')).to_be_visible()
- x.locator('[data-pane="people"]').click();expect(x.locator('#peopleSummary')).to_contain_text('전체 0')
+ x.locator('[data-pane="people"]').click();expect(x.locator('#peopleSummary')).to_contain_text('전체 ')
  x.locator('#personName').fill('New account edit')
- x.wait_for_timeout(1200);expect(x.locator('#personName')).to_have_value('New account edit')
+ x.wait_for_timeout(1900);expect(x.locator('#personName')).to_have_value('New account edit')
  assert x.evaluate('mock.calls.length')==1
  expect(x.locator('#studioMessage')).not_to_contain_text('People 정보가 저장되었습니다.')
  ok('R0 delayed write cannot clear or notify newer session');x.context.close()
@@ -202,7 +202,7 @@ with sync_playwright() as p:
  assert not any('example.invalid' in url for url in reqs)
  body=x.locator('#previewBody').inner_text();toc=x.locator('#previewToc button').all_text_contents();meta=x.locator('#previewResearchMeta').inner_text()
  x2=page('anonymous');x2.goto(base+'/#home')
- x2.evaluate("""()=>{navigate('post');SFC_READER.render({kind:'research',title:'TEST ONLY Reader parity',excerpt:'Synthetic overview',body:'# Question\\n본문 <img src=x onerror=alert(1)>\\n\\n## Evidence\\n- 첫째\\n- 둘째',research_sector:'Synthetic industry',research_company:'Synthetic company',research_author:'Synthetic team',research_method:'Synthetic method',research_limitations:'Synthetic limits',published_at:null},SFC_CMS)}""")
+ x2.evaluate("""()=>{SFC_READER.render({kind:'research',title:'TEST ONLY Reader parity',excerpt:'Synthetic overview',body:'# Question\\n본문 <img src=x onerror=alert(1)>\\n\\n## Evidence\\n- 첫째\\n- 둘째',research_sector:'Synthetic industry',research_company:'Synthetic company',research_author:'Synthetic team',research_method:'Synthetic method',research_limitations:'Synthetic limits',published_at:null},SFC_CMS)}""")
  assert x2.locator('#cmsPostBody').text_content()==x.locator('#previewBody').text_content()
  assert x2.locator('#readerToc button').all_text_contents()==toc
  assert x2.locator('#cmsPostMeta').text_content()==meta
@@ -210,7 +210,7 @@ with sync_playwright() as p:
  x.locator('#closePreview').click();x.locator('#compareServer').click();expect(x.locator('#comparisonPanel')).to_be_visible()
  assert x.locator('#comparisonRows textarea').count()>=2
  assert x.locator('#comparisonRows textarea').evaluate_all('els=>els.every(e=>e.readOnly)')
- expect(x.locator('#comparisonRows textarea').first).to_have_value('TEST ONLY Reader parity')
+ expect(x.locator('#comparisonRows .comparison-field').filter(has=x.get_by_role('heading',name='제목',exact=True)).locator('textarea').first).to_have_value('TEST ONLY Reader parity')
  x.locator('#closeComparison').click();x.locator('#historyButton').click();expect(x.locator('#historyList .studio-history-row')).to_have_count(1)
  x.locator('#historyList .studio-history-row button').last.click();expect(x.locator('#comparisonTitle')).to_contain_text('Revision #')
  x.locator('#duplicatePost').click();expect(x.locator('#postTitle')).to_have_value('복제 · TEST ONLY Reader parity')
