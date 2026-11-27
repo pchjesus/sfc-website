@@ -4,7 +4,7 @@ Official repository: `pchjesus/sfc-website`. Static GitHub Pages site with a Sup
 Read `docs/CODEX_QA.md` first and run `npm test` before changing anything.
 
 - Preserve existing Institutional Finance × Modern Editorial aesthetics: minimal layout, clear hierarchy, modest motion, mobile readable.
-- Only three **superadmin accounts** maximum. No public login requirement and no member/admin role. All private functionality must be enforced by Supabase RLS (never rely only on hidden UI).
+- Current production authorization: at most three operational superadmins. D3.1 includes an independent single developer role frontend and unapplied SQL candidate; no real account or production role migration until separate approval. No public login requirement or ordinary member role. All private functionality must be enforced by Supabase RLS (never rely only on hidden UI).
 - Frontend can contain only public Supabase URL and publishable key. Never commit `service_role`, secret key, passwords, tokens, or application submissions.
 - Recruitment public PDF/DOCX in `sfc-media` is safe only for **blank application templates**, never completed submissions.
 - Keep legacy Research SAMPLE content clearly separate from actual published research.
@@ -29,8 +29,11 @@ Read `docs/CODEX_QA.md` first and run `npm test` before changing anything.
 
 ## v3.x development handoff
 
-Read [v3.x roadmap](docs/V3_ROADMAP.md), [Studio UX specification](docs/STUDIO_UX_ROADMAP.md), and [v3.0 preflight](docs/V3.0_PREFLIGHT.md) before starting v3.x. These are planning documents, not implementation or test results. Keep code approval and content-publication approval separate; public GitHub branches must not contain unapproved reports or private files. Prioritize storage visibility and live authorization gates before first publication.
+Read [v3.x roadmap](docs/V3_ROADMAP.md), [Studio UX specification](docs/STUDIO_UX_ROADMAP.md), and [v3.0 preflight](docs/V3.0_PREFLIGHT.md) before starting v3.x. These contain historical plans and remaining requirements; use the current baseline for delivered functions and actual test evidence. Keep code approval and content-publication approval separate; public GitHub branches must not contain unapproved reports or private files. Prioritize storage visibility and live authorization gates before first publication.
 
 For the approved Research Importer track, read [RI roadmap](docs/RESEARCH_IMPORTER_ROADMAP.md) and [report-independent preparation plan](docs/V3.0_PREPARATION_PLAN.md). Imports must be validated, allowlisted and draft-only; treat source documents as untrusted data. No AI API, private-file transmission, paid configuration or live backend changes without separate approval. Implement and test using synthetic fixtures before real report intake.
 
-See [developer access, login and Studio guide](docs/DEVELOPER_ACCESS_AND_STUDIO_GUIDE.md). The proposed owner role is not yet implemented; do not bypass the current three-superadmin model or create production accounts without explicit approval and verified RLS. Match login header to the public site; preserve public access without login.
+See [developer access, login and Studio guide](docs/DEVELOPER_ACCESS_AND_STUDIO_GUIDE.md). The owner role UI and SQL candidate are merged; SQL is unapplied and actual accounts deferred. Do not bypass the current three-superadmin model or create production accounts without explicit approval and verified RLS. Match login header to the public site; preserve public access without login.
+
+## Current execution plan (2026-11-27)
+Read [CURRENT_BASELINE.md](docs/CURRENT_BASELINE.md) and [V3_READINESS_PLAN.md](docs/V3_READINESS_PLAN.md) first. R0→R8 sequence folds report-independent v3.1–v3.4 work into Readiness. Existing 82 mock cases are minimum regression baseline; re-run R0. Implement each package in separate reviewed branches, update baseline with SHA/QA/limitations. Do not implement real content or production account/migration/API/paid changes without separate approval. Only synthetic network-isolated review pages may be exposed; noindex and exclude from sitemap. Do not claim real security or Pages verification from mock results.
