@@ -143,12 +143,34 @@ with sync_playwright() as p:
  # R4 backup inspection is local-only, and production scratch namespace is not read in mock.
  x=page();x.goto(base+'/admin.html');expect(x.locator('#studioPanel')).to_be_visible()
  x.locator('[data-pane="access"]').click()
+ x.locator('.studio-backup details summary').click()
  x.locator('#inspectBackupFile').set_input_files({'name':'bad.json','mimeType':'application/json','buffer':b'{"format":"wrong"}'})
  x.locator('#inspectBackup').click();expect(x.locator('#backupInspection')).to_contain_text('검사 실패')
  assert x.evaluate('mock.calls.length===0 && mock.uploads.length===0')
+ with x.expect_download() as download:
+  x.locator('#exportData').click()
+ raw=download.value.path().read_bytes()
+ x.locator('#inspectBackupFile').set_input_files({'name':'backup.json','mimeType':'application/json','buffer':raw})
+ x.locator('#inspectBackup').click();expect(x.locator('#backupInspection')).to_contain_text('형식 검사 통과');expect(x.locator('#backupInspection')).to_contain_text('체크섬: match')
+ assert x.evaluate('mock.calls.length===0 && mock.uploads.length===0')
  x.evaluate("mock.authEvent('SIGNED_OUT');mock.mode='anonymous'");expect(x.locator('#studioLogin')).to_be_visible()
  expect(x.locator('#backupInspection')).to_have_text('')
- ok('R4 local backup inspection and session reset');x.context.close()
+ ok('R4 local backup export, checksum inspection and session reset');x.context.close()
+ x=page('developer');x.goto(base+'/admin.html');expect(x.locator('#studioPanel')).to_be_visible()
+ x.evaluate("mock.readFailTable='cms_people'");x.locator('#developerTab').click();expect(x.locator('#devConnection')).to_have_text('조회 실패')
+ with x.expect_download() as download:
+  x.locator('#devExport').click()
+ import json
+ report=json.loads(download.value.path().read_text());assert report['query_status']=='failed' and report['deployed_sha'] is None and report['failed_queries']==[3]
+ x.evaluate("mock.readFailTable=null");x.locator('#devRefresh').click();expect(x.locator('#devConnection')).to_have_text('조회 성공')
+ ok('R4 diagnostic failure and retry without private error payload');x.context.close()
+ c=browser.new_context(viewport={'width':390,'height':900});x=c.new_page();x.on('dialog',lambda d:d.accept());x.goto(base+'/preview/developer-studio-demo.html');expect(x.locator('#studioPanel')).to_be_visible()
+ x.evaluate("sessionStorage.setItem('sfc-editor-draft-v3:production-sentinel','keep');sessionStorage.setItem('sfc-test-workspace:test-sentinel','discard')")
+ x.locator('#postTitle').fill('TEST ONLY isolated scratch');x.wait_for_timeout(500)
+ assert x.evaluate("Object.keys(sessionStorage).some(k=>k.startsWith('sfc-test-workspace:sfc-editor-draft-v3:'))")
+ x.locator('#previewReset').click();expect(x.locator('#studioPanel')).to_be_visible()
+ assert x.evaluate("sessionStorage.getItem('sfc-editor-draft-v3:production-sentinel')==='keep' && !Object.keys(sessionStorage).some(k=>k.startsWith('sfc-test-workspace:'))")
+ ok('R4 workspace reset does not touch production scratch namespace');c.close()
  # R0: a delayed read from a prior session must not repopulate a cleared pane.
  x=page();x.goto(base+'/admin.html');expect(x.locator('#studioPanel')).to_be_visible()
  x.evaluate("""mock.people=[{id:'old-person',name:'Old account record',position:'TEST',visible:false,sort_order:0}];mock.deferredRead={table:'cms_people',ms:1000};mock.deferredReadStarted=false""")

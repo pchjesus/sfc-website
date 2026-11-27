@@ -60,7 +60,7 @@
     if((counts.cms_admins||0)>3)issue(errors,"운영 관리자 정원(3명)을 초과했습니다.");
     let checksum="not-provided";
     if(version==="sfc-cms-export-v2"){
-      if(!object(data.checksum)||data.checksum.algorithm!=="SHA-256"||!/^([a-f0-9]{64})$/.test(data.checksum.value||"")){checksum="invalid";issue(errors,"체크섬 형식 누락 또는 오류");}
+      if(!object(data.checksum)||data.checksum.algorithm!=="SHA-256"||typeof data.checksum.value!=="string"||!/^([a-f0-9]{64})$/.test(data.checksum.value)){checksum="invalid";issue(errors,"체크섬 형식 누락 또는 오류");}
       else if(errors.length===0){try{checksum=await digest({format:data.format,project:data.project,exported_at:data.exported_at,tables:data.tables})===data.checksum.value?"match":"mismatch";if(checksum!=="match")issue(errors,"체크섬 불일치: 백업 내용이 변경되었을 수 있습니다.");}catch(_){checksum="unavailable";issue(errors,"체크섬을 계산하지 못했습니다.");}}
     }else issue(warnings,"이전 v1 백업은 체크섬이 없습니다.");
     issue(warnings,"파일 원본·Auth 계정은 포함되지 않습니다. 검사 통과는 운영 복원 가능성이나 진위 보증이 아닙니다.");
@@ -68,6 +68,8 @@
   }
   async function seal(tablesData,exportedAt=new Date().toISOString()){
     const data={format:"sfc-cms-export-v2",project:"sfc-website",exported_at:exportedAt,tables:tablesData};
+    if(!safeStructure(data))throw Error("백업 구조 제한을 초과했습니다.");
+    if(new TextEncoder().encode(JSON.stringify(data)).length>maxBytes)throw Error("백업 20MiB 한도를 초과했습니다.");
     const value=await digest(data);return {...data,checksum:{algorithm:"SHA-256",value}};
   }
   root.SFC_BACKUP=Object.freeze({tables,maxBytes,inspect,seal,canonical});
