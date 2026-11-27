@@ -84,7 +84,7 @@ assert.match(publicHtml,/id="readerToc"/);
 assert.match(publicHtml,/id="journeyContext"/);
 assert.match(publicHtml,/id="recruitmentStatusTrack"/);
 assert.match(publicHtml,/src="js\/research-platform\.js\?v=2\.8\.1"/);
-assert.match(publicHtml,/src="js\/research-reader\.js\?v=2\.6-preview"/);
+assert.match(publicHtml,/src="js\/research-reader\.js\?v=3\.0-readiness-a"/);
 assert.match(publicHtml,/src="js\/visual-story\.js\?v=2\.8\.4"/);
 assert.match(read('js/research-platform.js'),/\.range\(from,from\+limit-1\)/);
 assert.match(read('js/cms-public.js'),/\.maybeSingle\(\)/);
@@ -148,3 +148,8 @@ assert.doesNotMatch(developerDemo,/<script[^>]+src=/i);
 assert.doesNotMatch(developerDemo,/nnoicikkennbihjdoivt|sb_secret_[A-Za-z0-9]+/);
 assert.match(developerDemo,/preview-only\.supabase\.co/);
 console.log('PASS D3 static role constraints and network-denied standalone demo');
+
+assert.match(read('js/cms-core.js'),/function renderArticle\(/);
+assert.match(read('js/research-reader.js'),/cms\.renderArticle\(/);
+assert.match(read('js/cms-admin.js'),/cms\.renderArticle\(/);
+console.log('PASS R1 shared article rendering contract');
