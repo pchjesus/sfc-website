@@ -122,6 +122,43 @@ try:
   assert x.locator('#readerToc button').count()>=3
   ok('direct deep link to clearly labeled demo Reader')
   x.context.close()
+  # R5: full synthetic editorial-to-public workflow in separate contexts.
+  import json
+  from datetime import datetime, timedelta
+  x=page('admin');x.goto(base+'/admin.html');expect(x.locator('#studioPanel')).to_be_visible()
+  x.locator('#studioHelp summary').click();expect(x.locator('#studioHelp')).to_contain_text('직접 AI 분석은 연결되지 않았습니다.')
+  x.locator('#studioHelp summary').click();x.locator('#openImporter').click()
+  payload={'schema_version':'0.1','kind':'research','source':{'filename':'TEST ONLY'},'article':{'title':'TEST ONLY full workflow','body':'# 연구 질문\\n합성 본문','research_author':'Synthetic team'},'evidence':[],'references':[],'issues':[]}
+  x.locator('#importText').fill(json.dumps(payload));x.locator('#validateImport').click();x.locator('#applyImport').click()
+  x.locator('#postExcerpt').fill('TEST ONLY overview');x.locator('#previewButton').click();expect(x.locator('#previewTitle')).to_have_text('TEST ONLY full workflow')
+  x.locator('#closePreview').click();x.locator('#saveDraft').click();expect(x.locator('#editorSavedAt')).to_have_text('서버에 저장됨')
+  def publish():
+   x.locator('#publishPost').click();expect(x.locator('#confirmPublication')).to_be_disabled()
+   for checkbox in x.locator('#publicationChecks input').all(): checkbox.check()
+   x.locator('#confirmPublication').click()
+  publish();expect(x.locator('#editorMode')).to_contain_text('게시됨')
+  post_id=x.evaluate("mock.rows.find(r=>r.title==='TEST ONLY full workflow').id")
+  y=page('anonymous');y.goto(base+'/#research')
+  def sync(rows=None):
+   if rows is None: rows=x.evaluate('mock.rows')
+   y.evaluate('rows=>{mock.rows=rows;return SFC_PUBLIC.load()}',rows)
+  sync();expect(y.locator('#archiveResults .archive-report')).to_have_count(1)
+  y.locator('#archiveResults .archive-report').first.click();expect(y.locator('#cmsPostTitle')).to_have_text('TEST ONLY full workflow')
+  x.locator('#unpublishPost').click();expect(x.locator('#editorMode')).to_contain_text('임시글')
+  sync();expect(y.locator('#cmsPostTitle')).to_have_text('게시글을 찾을 수 없습니다.')
+  y.evaluate("location.hash='research'");expect(y.locator('#archiveResults .archive-report')).to_have_count(0)
+  x.locator('#postSchedule').fill((datetime.now()+timedelta(days=2)).strftime('%Y-%m-%dT%H:%M'));publish();expect(x.locator('#editorMode')).to_contain_text('예약 발행')
+  sync();expect(y.locator('#archiveResults .archive-report')).to_have_count(0)
+  reached=x.evaluate('mock.rows');next(r for r in reached if r['id']==post_id)['scheduled_at']='2000-01-01T00:00:00Z'
+  sync(reached);expect(y.locator('#archiveResults .archive-report')).to_have_count(1)
+  x.locator('#trashPost').click();expect(x.locator('#restorePost')).to_be_visible();sync();expect(y.locator('#archiveResults .archive-report')).to_have_count(0)
+  x.locator('#restorePost').click()
+  for checkbox in x.locator('#publicationChecks input').all(): checkbox.check()
+  x.locator('#confirmPublication').click();expect(x.locator('#postForm')).to_be_visible()
+  sync();expect(y.locator('#archiveResults .archive-report')).to_have_count(0)
+  assert y.evaluate('mock.calls.length===0')
+  ok('R5 import/edit/preview/publish/withdraw/schedule/trash/restore mock workflow')
+  x.context.close();y.context.close()
   browser.close()
 finally:
  server.shutdown()

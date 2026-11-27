@@ -242,7 +242,7 @@
         .eq("kind","research").eq("status","published").is("deleted_at",null)
         .or("scheduled_at.is.null,scheduled_at.lte."+new Date().toISOString()).limit(1);
       if(probe.error)throw probe.error;
-      if(!(probe.data?.length||probe.count>0))return; // no publications: sample stays explicitly labelled
+      if(!(probe.data?.length||probe.count>0)){if(mode==="live"){sectors=[];state.page=1;activate(true);refresh();}return;} // Initial empty state retains explicitly labelled samples.
       const response=await db.from("cms_posts").select("research_sector")
         .eq("kind","research").eq("status","published").is("deleted_at",null)
         .or("scheduled_at.is.null,scheduled_at.lte."+new Date().toISOString()).limit(400);
