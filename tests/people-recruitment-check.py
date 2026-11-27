@@ -148,6 +148,19 @@ try:
   assert x.evaluate('document.querySelectorAll(".motion-snapshot-layer").length')==0
   ok('hover and navigation never hide or replace People/Recruitment information')
   x.context.close()
+  # R7: withdrawn profiles and stale recruitment settings must not survive a failed read.
+  x=new_page();x.goto(base+'/index.html#people')
+  x.evaluate("""async()=>{mock.people=[{id:'test-a',name:'TEST ONLY profile',position:'TEST',sort_order:0,visible:true}];await SFC_PUBLIC.load();}""")
+  expect(x.locator('#roleList')).to_contain_text('TEST ONLY profile')
+  x.evaluate("async()=>{mock.readFailTable='cms_people';await SFC_PUBLIC.load()}")
+  expect(x.locator('#roleList')).not_to_contain_text('TEST ONLY profile');expect(x.locator('#peopleDisclaimer')).to_contain_text('조회 실패')
+  x.evaluate("""async()=>{mock.readFailTable=null;mock.settings=[{key:'recruitment',value:{status:'open',title:'TEST campaign',pdf_url:'https://example.invalid/blank.pdf'}}];await SFC_PUBLIC.load();navigate('recruitment');}""")
+  expect(x.locator('#applicationTrigger')).to_have_attribute('data-action','form')
+  x.evaluate("async()=>{mock.readFailTable='cms_site_settings';await SFC_PUBLIC.load();}")
+  expect(x.locator('#recruitStatus')).to_have_text('모집 상태 미확인')
+  expect(x.locator('#applicationDownload')).to_be_hidden();expect(x.locator('#recruitMessage')).to_contain_text('불러오지 못했습니다')
+  assert x.evaluate('mock.calls.length===0')
+  ok('R7 public failure removes stale identity and recruitment downloads');x.context.close()
   browser.close()
 finally:
  server.shutdown()

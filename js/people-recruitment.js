@@ -16,7 +16,7 @@
   function normalize(records){
     const visible=Array.isArray(records)?records.filter(x=>x&&x.visible!==false):[];
     if(!visible.length)return plan;
-    return [...visible].sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0)).map((p,i)=>({
+    return [...visible].sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0)||String(a.id).localeCompare(String(b.id))).map((p,i)=>({
       id:safe(p.id,"member-"+i),
       primary:safe(p.name,"등록된 구성원"),
       role:[p.position,p.term].filter(Boolean).join(" · ")||"SFC 구성원",

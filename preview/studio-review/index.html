@@ -609,7 +609,7 @@ button:disabled{cursor:not-allowed;opacity:.55}
 
 </style>
 </head>
-<body><div class="studio-preview-banner"><strong>DEMO / Readiness D · 로그인 없는 검토용 · 가상 데이터 · 실제 DB 연결 없음</strong><div><button id="previewSwitch" type="button">개발자 / 관리자 전환</button> <button id="previewReset" type="button">모의 데이터 초기화</button></div></div>
+<body><div class="studio-preview-banner"><strong>DEMO / Readiness F · 로그인 없는 검토용 · 가상 데이터 · 실제 DB 연결 없음</strong><div><button id="previewSwitch" type="button">개발자 / 관리자 전환</button> <button id="previewReset" type="button">모의 데이터 초기화</button></div></div>
 <header class="studio-header">
 <a class="studio-brand" href="#" aria-label="SFC 홈페이지"><span class="studio-brand-mark">SFC<i>.</i></span><small>SANGMYUNG<br>FINANCIAL CLUB</small></a>
 <div class="studio-top-actions"><a href="#">홈페이지 ↗</a><span id="studioRole" class="studio-role-label" hidden></span><span id="studioAccount" hidden></span><button type="button" id="studioLogout" hidden>로그아웃</button></div>
@@ -684,7 +684,7 @@ button:disabled{cursor:not-allowed;opacity:.55}
 </section></div></section>
 <section data-pane-view="site" class="studio-pane" hidden><div class="studio-section-bar"><div><span class="eyebrow">SITE CONTENT</span><h2>Homepage & About.</h2></div></div>
 <p class="studio-pane-intro">홈페이지와 소개 문구를 수정할 수 있어요. 배치·색상·레이아웃 변경은 GitHub에서 진행합니다.</p>
-<form id="siteForm" class="studio-wide-form">
+<form id="siteForm" class="studio-wide-form"><p id="siteLoadState" class="studio-filter-summary" role="status">조회 전</p>
 <label>히어로 첫 번째 슬라이드 설명<input id="siteHeroDescription" maxlength="220" placeholder="기업의 숫자를 읽고, 가치의 근거를 찾다."></label>
 <label>About 제목 (줄바꿈 가능)<textarea id="siteAboutHeading" rows="2" maxlength="180"></textarea></label>
 <label>About 소개<textarea id="siteAboutBody" rows="5" maxlength="1800"></textarea></label>
@@ -693,20 +693,20 @@ button:disabled{cursor:not-allowed;opacity:.55}
 <details class="studio-inline-preview"><summary>작성 중인 공개 문구 확인</summary><div id="sitePreview" class="studio-preview-copy" aria-live="polite"></div></details><button type="submit" class="primary">공개 문구 저장 →</button></form></section>
 <section data-pane-view="people" class="studio-pane" hidden>
 <div class="studio-section-bar"><div><span class="eyebrow">PEOPLE / TEAM</span><h2>People.</h2></div><button type="button" class="secondary" id="newPerson">＋ 신규 인물</button></div>
-<div class="studio-two-columns"><form id="peopleForm">
+<div class="studio-two-columns"><form id="peopleForm"><p id="peopleLoadState" class="studio-filter-summary" role="status">조회 전</p>
 <input type="hidden" id="personId"><label>성명<input id="personName" maxlength="100" required></label>
 <label>역할 / 직책<input id="personPosition" maxlength="130" placeholder="회장 / 리서치장 등"></label>
 <label>활동 기수 또는 임기<input id="personTerm" maxlength="80" placeholder="예: 2027 SPRING"></label>
 <label>소개<textarea id="personBio" rows="5" maxlength="2000"></textarea></label>
 <label>표시 순서<input id="personOrder" type="number" value="0" min="0" max="9999"></label>
 <label class="studio-checkbox"><input id="personVisible" type="checkbox" checked> 홈페이지에 공개</label>
-<button type="submit" class="primary">인물 정보 저장 →</button></form>
+<details class="studio-inline-preview"><summary>공개 프로필 확인</summary><div id="personPreview" class="studio-preview-copy" aria-live="polite"></div></details><p class="editor-hint">실명·직책·소개는 공개 동의를 받은 정보만 사용합니다. 사진과 회장 인사말은 별도 승인·필드 설계 후 추가합니다.</p><button type="submit" class="primary">인물 정보 저장 →</button></form>
 <div><span class="eyebrow">등록된 인물</span><p id="peopleSummary" class="studio-filter-summary" aria-live="polite">조회 전</p><div class="studio-list-filters"><label>이름 · 직책 · 기수 검색<input id="peopleSearch" type="search" placeholder="검색"></label><label>공개 상태<select id="peopleVisibility"><option value="">전체</option><option value="public">공개</option><option value="private">비공개</option></select></label></div><div id="peopleList" class="studio-manage-list"></div></div></div>
 </section>
 <section data-pane-view="sessions" class="studio-pane" hidden>
 <div class="studio-section-bar"><div><span class="eyebrow">ACTIVITIES / CURRICULUM</span><h2>Program.</h2></div><button type="button" id="newSession" class="secondary">＋ 주차 추가</button></div>
 <p class="studio-pane-intro">등록된 공개 교육과정이 있으면 기존 15주 샘플 대신 이 자료를 보여줘요.</p>
-<div class="studio-two-columns"><form id="sessionForm">
+<div class="studio-two-columns"><form id="sessionForm"><p id="sessionLoadState" class="studio-filter-summary" role="status">조회 전</p>
 <input type="hidden" id="sessionId">
 <div class="studio-field-grid"><label>주차 표기<input id="sessionWeek" maxlength="20" required placeholder="01 / 05–06"></label><label>단계<select id="sessionStage"><option value="foundation">기초교육</option><option value="application">기업분석 실습</option><option value="research">최종 연구</option></select></label></div>
 <label>영문 또는 한글 제목<input id="sessionTitle" maxlength="150" required></label>
@@ -714,13 +714,13 @@ button:disabled{cursor:not-allowed;opacity:.55}
 <label>세부 내용<textarea id="sessionDetail" rows="5" maxlength="2500"></textarea></label>
 <label>표시 순서<input id="sessionOrder" type="number" value="0" min="0" max="9999"></label>
 <label class="studio-checkbox"><input id="sessionVisible" type="checkbox" checked> 공개</label>
-<button type="submit" class="primary">교육과정 저장 →</button></form>
+<details class="studio-inline-preview"><summary>공개 교육과정 확인</summary><div id="sessionPreview" class="studio-preview-copy" aria-live="polite"></div></details><p class="editor-hint">이 탭은 교육과정 계획입니다. 실제 활동 결과는 별도의 활동 소식으로 작성합니다.</p><button type="submit" class="primary">교육과정 저장 →</button></form>
 <div><span class="eyebrow">등록된 교육과정</span><p id="sessionSummaryCount" class="studio-filter-summary" aria-live="polite">조회 전</p><div class="studio-list-filters"><label>주차 · 제목 검색<input id="sessionSearch" type="search" placeholder="검색"></label><label>교육 단계<select id="sessionFilterStage"><option value="">전체</option><option value="foundation">기초교육</option><option value="application">기업분석 실습</option><option value="research">최종 연구</option></select></label><label>공개 상태<select id="sessionVisibility"><option value="">전체</option><option value="public">공개</option><option value="private">비공개</option></select></label></div><div id="sessionsList" class="studio-manage-list"></div></div></div>
 </section>
 <section data-pane-view="recruitment" class="studio-pane" hidden>
 <div class="studio-section-bar"><div><span class="eyebrow">RECRUITMENT / APPLICATION</span><h2>Recruitment.</h2></div></div>
 <p class="studio-pane-intro">모집 상태를 설정하고 공식 지원서 파일을 등록하세요. 파일이 없으면 공개 다운로드 버튼은 비활성화됩니다.</p>
-<form id="recruitForm" class="studio-wide-form">
+<form id="recruitForm" class="studio-wide-form"><p id="recruitLoadState" class="studio-filter-summary" role="status">조회 전</p>
 <div class="studio-field-grid"><label>모집 상태<select id="recruitStatus"><option value="planned">모집 예정</option><option value="open">모집 중</option><option value="closed">모집 마감</option></select></label><label>모집 제목<input id="recruitTitle" maxlength="150" placeholder="2027 Spring Recruitment"></label></div>
 <label>모집 안내<textarea id="recruitMessage" rows="3" maxlength="700"></textarea></label>
 <div class="studio-field-grid"><label>모집 시작 시각<input type="datetime-local" id="recruitStart"></label><label>모집 종료 시각<input type="datetime-local" id="recruitEnd"></label></div>
@@ -747,7 +747,7 @@ button:disabled{cursor:not-allowed;opacity:.55}
 <div class="studio-section-bar"><div><span class="eyebrow">DEVELOPMENT / MAINTENANCE</span><h2>Developer desk.</h2></div><button type="button" id="devRefresh" class="secondary">진단 새로고침 ↻</button></div>
 <p class="studio-pane-intro">Studio의 모든 운영 기능을 그대로 사용하면서 배포 정보와 데이터 연결 상태를 확인합니다. 진단은 읽기 전용입니다.</p>
 <div class="developer-grid">
-<article class="developer-card"><span class="eyebrow">01 / RELEASE</span><h3>Release.</h3><strong id="devRelease">Readiness D · MOCK ONLY</strong><p>빌드 식별값입니다. 실제 배포 SHA 및 Pages 응답은 이 화면에서 미확인입니다.</p><a href="#" target="_blank" rel="noopener noreferrer">GitHub 저장소 ↗</a><a href="#" target="_blank" rel="noopener noreferrer">배포 및 검증 기록 ↗</a></article>
+<article class="developer-card"><span class="eyebrow">01 / RELEASE</span><h3>Release.</h3><strong id="devRelease">Readiness F · MOCK ONLY</strong><p>빌드 식별값입니다. 실제 배포 SHA 및 Pages 응답은 이 화면에서 미확인입니다.</p><a href="#" target="_blank" rel="noopener noreferrer">GitHub 저장소 ↗</a><a href="#" target="_blank" rel="noopener noreferrer">배포 및 검증 기록 ↗</a></article>
 <article class="developer-card"><span class="eyebrow">02 / DATABASE</span><h3>Database.</h3><strong id="devConnection" role="status">확인 전</strong><dl id="devCounts"><dt>전체 게시글 (휴지통 포함)</dt><dd>—</dd><dt>임시 상태 (휴지통 포함)</dt><dd>—</dd><dt>운영 관리자</dt><dd>—</dd><dt>People / Activities</dt><dd>—</dd><dt>사이트 설정</dt><dd>—</dd></dl></article>
 <article class="developer-card"><span class="eyebrow">03 / DIAGNOSTICS</span><h3>Diagnostics.</h3><p id="devAuth">권한 확인 전</p><p id="devChecked">진단 기록 없음</p><button type="button" id="devExport" class="secondary" disabled>진단 결과 JSON ↗</button><p>현재 계정의 조회 요청 결과만 표시합니다. 서버 오류 로그 또는 전체 RLS 검증 결과는 아닙니다.</p></article>
 <article class="developer-card"><span class="eyebrow">04 / MAINTENANCE</span><h3>Maintenance.</h3><p>기존 계정 관리에서 운영 관리자 등록 및 권한 해제, JSON 백업을 이용할 수 있습니다.</p><button type="button" id="devGoAccounts" class="secondary">계정 관리 및 백업 →</button><a href="#" target="_blank" rel="noopener noreferrer">격리된 테스트 Workspace ↗</a><small>운영 데이터의 백업과 진단은 별도입니다. 합성 테스트 환경은 운영 데이터와 분리됩니다. 실제 감사 로그·복원 기능은 별도 승인 이후 적용합니다.</small></article>
@@ -1950,7 +1950,8 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
   ]);}
   function previewRecruitment(){
     const start=$("recruitStart").value,end=$("recruitEnd").value;
-    const warning=start&&end&&start>=end?"모집 마감은 시작 시각보다 나중이어야 합니다.":"";
+    const invalidLocal=id=>$(id).validity.badInput||($(id).value&&isoToForm(formToIso($(id).value))!==$(id).value);
+    const warning=invalidLocal("recruitStart")||invalidLocal("recruitEnd")?"유효한 현지 날짜와 시각을 확인하세요.":start&&end&&start>=end?"모집 마감은 시작 시각보다 나중이어야 합니다.":"";
     $("recruitDateWarning").hidden=!warning;$("recruitDateWarning").textContent=warning;
     const fileState=(id,key)=>$(id).files[0]?"선택됨 (저장 전): "+$(id).files[0].name:safe(state.recruitment?.[key])?"등록됨":"미등록";
     const status={planned:"모집 예정",open:"모집 중",closed:"모집 마감"}[$("recruitStatus").value];
@@ -2030,6 +2031,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     buttonBusy(button,true);lockForm("recruitment",true);
     try{
       const start_at=formToIso(textVal("recruitStart")),end_at=formToIso(textVal("recruitEnd"));
+      if($("recruitStart").validity.badInput||$("recruitEnd").validity.badInput||($("recruitStart").value&&isoToForm(start_at)!==$("recruitStart").value)||($("recruitEnd").value&&isoToForm(end_at)!==$("recruitEnd").value))throw Error("유효한 현지 시각을 입력하세요.");
       if(start_at&&end_at&&new Date(start_at)>=new Date(end_at))throw Error("모집 마감은 시작 시각보다 나중이어야 합니다.");
       const data={
         status:$("recruitStatus").value,title:textVal("recruitTitle"),
@@ -2039,6 +2041,8 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
         start_at,end_at,pdf_url:safe(state.recruitment?.pdf_url),docx_url:safe(state.recruitment?.docx_url)
       };
       const pdfFile=$("recruitPdf").files[0],docxFile=$("recruitDocx").files[0];
+      if((pdfFile||docxFile)&&!confirm("작성 완료된 지원서나 개인정보가 아닌, 공개 허가된 빈 공통 양식임을 확인했나요?"))return;
+      await validateRecruitFile(pdfFile,"pdf");if(!active())return;await validateRecruitFile(docxFile,"docx");if(!active())return;
       const pdf=await util().upload(pdfFile,"pdf");if(!active())return;
       const docx=await util().upload(docxFile,"docx");if(!active())return;
       if(pdf)data.pdf_url=pdf;
@@ -2050,11 +2054,26 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     }catch(e){if(active())toast("모집 설정 저장 실패: "+(e.message||e),true);}
     finally{if(active()){lockForm("recruitment",false);buttonBusy(button,false);}}
   });
+  const stableOrder=(a,b)=>Number(a.sort_order||0)-Number(b.sort_order||0)||String(a.id).localeCompare(String(b.id));
+  function orderValue(id){const value=$(id).value;return value===""?0:Number(value);}
+  function orderWarning(rows,id,value){return rows.some(r=>r.id!==id&&Number(r.sort_order)===value)?"동일한 표시 순서가 있습니다. ID 기준으로 순서를 안정적으로 표시하지만 순서값을 구분하는 것을 권장합니다.":"";}
+  function validateOrder(value){return Number.isInteger(value)&&value>=0&&value<=9999;}
+  function previewPerson(){previewRows("personPreview",[["이름 / 직책",[textVal("personName"),textVal("personPosition")].filter(Boolean).join(" · ")],["임기",textVal("personTerm")],["소개",textVal("personBio")],["공개 여부",$("personVisible").checked?"공개 예정 · 동의 확인 필요":"비공개"],["표시 순서",String(orderValue("personOrder"))],["확인",orderWarning(state.people,textVal("personId"),orderValue("personOrder"))||"입력값을 검토하세요."]]);}
+  function previewSession(){previewRows("sessionPreview",[["주차 / 제목",[textVal("sessionWeek"),textVal("sessionTitle")].filter(Boolean).join(" · ")],["교육 단계",$("sessionStage").value],["소개",textVal("sessionSummary")],["세부",textVal("sessionDetail")],["구분","교육과정 계획 / 실제 활동 결과 아님"],["공개 여부",$("sessionVisible").checked?"공개 예정":"비공개"],["확인",orderWarning(state.sessions,textVal("sessionId"),orderValue("sessionOrder"))||"입력값을 검토하세요."]]);}
+  for(const [id,fn] of [["peopleForm",previewPerson],["sessionForm",previewSession]]){$(id).addEventListener("input",fn);$(id).addEventListener("change",fn);}
+  async function validateRecruitFile(file,type){
+    if(!file)return;
+    const mime=type==="pdf"?"application/pdf":"application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    if(file.type!==mime||!file.size||file.size>20*1024*1024)throw Error("지원서 파일 형식·20MiB 제한을 확인하세요.");
+    const b=new Uint8Array(await file.slice(0,5).arrayBuffer());
+    const valid=type==="pdf"?String.fromCharCode(...b)==="%PDF-":b[0]===80&&b[1]===75&&b[2]===3&&b[3]===4;
+    if(!valid)throw Error("지원서 파일 헤더를 확인하세요.");
+  }
   function clearPerson(force=false){
     if(!force&&!allowDiscard("people"))return;
     $("personId").value="";$("personName").value="";$("personPosition").value="";
     $("personTerm").value="";$("personBio").value="";$("personOrder").value="0";$("personVisible").checked=true;
-    dirtyForms.people=false;
+    dirtyForms.people=false;previewPerson();
   }
   function editPerson(item){
     if(!allowDiscard("people"))return;
@@ -2062,7 +2081,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     $("personPosition").value=item.position||"";$("personTerm").value=item.term||"";
     $("personBio").value=item.bio||"";$("personOrder").value=String(item.sort_order||0);
     $("personVisible").checked=item.visible;
-    dirtyForms.people=false;
+    dirtyForms.people=false;previewPerson();
   }
   function matchesText(query,values){return !query||values.some(v=>String(v||"").toLocaleLowerCase("ko-KR").includes(query));}
   function matchesVisibility(value,record){return !value||(value==="public"&&record.visible)||(value==="private"&&!record.visible);}
@@ -2073,7 +2092,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     const filtered=state.people.filter(p=>matchesVisibility(visibility,p)&&matchesText(query,[p.name,p.position,p.term]));
     $("peopleSummary").textContent=filterSummary(state.people,filtered);
     if(!filtered.length)list.append(n("p","sidebar-empty",state.people.length?"검색 조건에 맞는 인물이 없습니다.":"등록된 인물이 없어요. 실제 운영진부터 추가해 주세요."));
-    for(const p of filtered.sort((a,b)=>a.sort_order-b.sort_order)){
+    for(const p of filtered.sort(stableOrder)){
       const row=n("div","studio-record");const info=n("div","");
       info.append(n("strong","",p.name+" · "+(p.position||"직책 미지정")),
         n("small","",(p.term||"")+" / "+(p.visible?"공개":"비공개")));
@@ -2094,7 +2113,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     }
   }
   async function loadPeople(){
-    const active=session();if(!active())return;const rows=await queryAll("cms_people");if(!active())return;state.people=rows;renderPeople();
+    const active=session();if(!active())return;const rows=await queryAll("cms_people");if(!active())return;state.people=rows;renderPeople();previewPerson();
   }
   $("newPerson").addEventListener("click",()=>clearPerson());
   $("peopleForm").addEventListener("submit",async event=>{
@@ -2103,8 +2122,9 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     const id=textVal("personId");
     const payload={name:textVal("personName"),position:textVal("personPosition"),
       term:textVal("personTerm"),bio:textVal("personBio"),
-      sort_order:Number($("personOrder").value)||0,visible:$("personVisible").checked};
-    if(!payload.name)return toast("성명을 입력해 주세요.",true);
+      sort_order:orderValue("personOrder"),visible:$("personVisible").checked};
+    if(!payload.name||payload.name.length>100||payload.position.length>130||payload.term.length>80||payload.bio.length>2000||!validateOrder(payload.sort_order))return toast("성명·글자 수·표시 순서 범위를 확인하세요.",true);
+    if(payload.visible&&!confirm("실명·직책·임기·소개에 대한 당사자의 공개 동의를 확인했나요?"))return;
     buttonBusy(save,true);lockForm("people",true);
     try{
       let result;
@@ -2120,7 +2140,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     $("sessionId").value="";$("sessionWeek").value="";$("sessionTitle").value="";
     $("sessionSummary").value="";$("sessionDetail").value="";$("sessionStage").value="foundation";
     $("sessionOrder").value="0";$("sessionVisible").checked=true;
-    dirtyForms.sessions=false;
+    dirtyForms.sessions=false;previewSession();
   }
   function editSession(s){
     if(!allowDiscard("sessions"))return;
@@ -2128,7 +2148,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     $("sessionTitle").value=s.title;$("sessionSummary").value=s.summary||"";
     $("sessionDetail").value=s.detail||"";$("sessionStage").value=s.stage;
     $("sessionOrder").value=String(s.sort_order||0);$("sessionVisible").checked=s.visible;
-    dirtyForms.sessions=false;
+    dirtyForms.sessions=false;previewSession();
   }
   function renderSessions(){
     const list=$("sessionsList");list.replaceChildren();
@@ -2136,7 +2156,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     const filtered=state.sessions.filter(s=>matchesVisibility(visibility,s)&&(!stage||s.stage===stage)&&matchesText(query,[s.week_label,s.title,s.summary]));
     $("sessionSummaryCount").textContent=filterSummary(state.sessions,filtered);
     if(!filtered.length)list.append(n("p","sidebar-empty",state.sessions.length?"검색 조건에 맞는 교육과정이 없습니다.":"아직 등록된 교육과정이 없어요. 이전 기획안은 샘플로 남아 있어요."));
-    for(const s of filtered.sort((a,b)=>a.sort_order-b.sort_order)){
+    for(const s of filtered.sort(stableOrder)){
       const row=n("div","studio-record"),info=n("div","");
       info.append(n("strong","",s.week_label+" · "+s.title),
         n("small","",s.stage+" / "+(s.visible?"공개":"비공개")));
@@ -2156,7 +2176,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
       controls.append(edit,del);row.append(info,controls);list.append(row);
     }
   }
-  async function loadSessions(){const active=session();if(!active())return;const rows=await queryAll("cms_sessions");if(!active())return;state.sessions=rows;renderSessions();}
+  async function loadSessions(){const active=session();if(!active())return;const rows=await queryAll("cms_sessions");if(!active())return;state.sessions=rows;renderSessions();previewSession();}
   $("newSession").addEventListener("click",()=>clearSession());
   $("sessionForm").addEventListener("submit",async event=>{
     event.preventDefault();const active=session();if(!active()||busyForms.sessions)return;
@@ -2164,9 +2184,9 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     const id=textVal("sessionId");
     const payload={week_label:textVal("sessionWeek"),title:textVal("sessionTitle"),
       summary:textVal("sessionSummary"),detail:textVal("sessionDetail"),
-      stage:$("sessionStage").value,sort_order:Number($("sessionOrder").value)||0,
+      stage:$("sessionStage").value,sort_order:orderValue("sessionOrder"),
       visible:$("sessionVisible").checked};
-    if(!payload.week_label||!payload.title)return toast("주차와 제목을 입력해 주세요.",true);
+    if(!payload.week_label||!payload.title||payload.week_label.length>20||payload.title.length>150||payload.summary.length>500||payload.detail.length>2500||!["foundation","application","research"].includes(payload.stage)||!validateOrder(payload.sort_order))return toast("주차·제목·글자 수·표시 순서를 확인하세요.",true);
     buttonBusy(save,true);lockForm("sessions",true);
     try{
       const result=id
@@ -2303,7 +2323,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
   });
   $("devGoAccounts").addEventListener("click",()=>{if(util().getRole()==="developer")util().showPane("access");});
   window.addEventListener("sfc:admin-cleared",()=>{
-    generation++;diagnosticSequence++;lastDiagnostic=null;clearInspection();$("inspectBackupFile").value="";
+    generation++;diagnosticSequence++;lastDiagnostic=null;for(const id of ["siteLoadState","peopleLoadState","sessionLoadState","recruitLoadState"])$(id).textContent="조회 전";clearInspection();$("inspectBackupFile").value="";
     state.site={};state.recruitment={};state.people=[];state.sessions=[];state.admins=[];
     for(const [key,id] of Object.entries(formIds)){
       settingVersions[key]=null;dirtyForms[key]=false;lockForm(key,false);$(id).reset();
@@ -2319,13 +2339,15 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
   });
   async function openPane(pane){
     const active=session();if(!active())return;
+    const id={site:"siteLoadState",people:"peopleLoadState",sessions:"sessionLoadState",recruitment:"recruitLoadState"}[pane];if(id)$(id).textContent="조회 중";
     try{
       if(pane==="site"||pane==="recruitment")await fetchSettings(pane);
       if(pane==="people")await loadPeople();
       if(pane==="sessions")await loadSessions();
       if(pane==="access")await loadAdmins();
       if(pane==="developer")await developerDiagnostic();
-    }catch(e){if(active())toast("데이터를 불러오지 못했습니다: "+(e.message||e),true);}
+      if(active()&&id)$(id).textContent=(pane==="people"&&!state.people.length||pane==="sessions"&&!state.sessions.length)?"등록된 자료 없음":"조회 완료 · 미저장 입력은 유지";
+    }catch(e){if(active()){if(id)$(id).textContent="조회 실패 · 기존 화면의 정보가 최신이 아닐 수 있습니다.";toast("데이터를 불러오지 못했습니다: "+(e.message||e),true);}}
   }
   window.SFC_STUDIO_FORMS=Object.freeze({hasUnsaved:()=>Object.values(dirtyForms).some(Boolean),hasPendingWrite:()=>Object.values(busyForms).some(Boolean)});
   window.addEventListener("sfc:pane",e=>openPane(e.detail.pane));
