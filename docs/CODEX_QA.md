@@ -1,6 +1,6 @@
 # SFC 2.0 — Codex verification handoff
 
-**Current handoff (2026-11-27):** [CURRENT_BASELINE.md](CURRENT_BASELINE.md) is the source for latest Readiness B QA; [V3_READINESS_PLAN.md](V3_READINESS_PLAN.md) defines R0–R8. PR #16 merged; 90 mock cases PASS (see exact runs in baseline), live Auth/RLS/Storage NOT RUN, D1 SQL candidate unapplied and real accounts deferred. Below is the historical 2.0 checklist, not evidence of real execution; apply current preflight and file-publication restrictions.
+**Current handoff (2026-11-27):** [CURRENT_BASELINE.md](CURRENT_BASELINE.md) is the source for latest Readiness QA; [V3_READINESS_PLAN.md](V3_READINESS_PLAN.md) defines R0–R8. PR #17 merged; 93 mock cases PASS; PR #18 quality passed (see exact runs in baseline), live Auth/RLS/Storage NOT RUN, D1 SQL candidate unapplied and real accounts deferred. Below is the historical 2.0 checklist, not evidence of real execution; apply current preflight and file-publication restrictions.
 
 **Target:** https://pchjesus.github.io/sfc-website/  
 **Private Studio:** https://pchjesus.github.io/sfc-website/admin.html  
@@ -40,7 +40,7 @@ No package installation needed. Review `sql/sfc-integrated-2.0.sql` before makin
 10. People: add, hide, reorder, edit and remove a sample profile. Public shows actual profiles only when visible. Curriculum: add/edit/hide sessions, public stage filters and inline details, fallback behavior when no published sessions.
 11. Recruit: set start/end dates, planned/open/closed, verify automatic time-bound status. Upload PDF and DOCX, test unauthenticated access.
 12. Access: add second superadmin by **existing** Auth email. Create max three and attempt a fourth (should fail in DB even under concurrent requests). Verify self-removal and removal of last admin are denied. Removing a superadmin should revoke writes immediately in the next API call.
-13. As superadmin, use **계정 관리 → 데이터 백업(JSON)**. Inspect that the archive contains all six CMS tables and includes deleted drafts/revisions. Note the archive contains sensitive unpublished content, and **does not** include original Storage objects or Auth accounts. Test exporting with 0 and multiple posts. No import/restore UI is implemented.
+13. As superadmin, use **계정 관리 → 데이터 백업(JSON)**. Inspect that the archive contains all six CMS tables and includes deleted drafts/revisions. Note the archive contains sensitive unpublished content, and **does not** include original Storage objects or Auth accounts. Test exporting with 0 and multiple posts. Local backup verification exists; no production restore UI is implemented.
 14. Security negative tests **using non-admin token**, not service role: attempt `cms_posts.insert`, `cms_people.insert`, `cms_sessions.update`, `cms_site_settings.update`, `cms_admins.insert`, Storage upload, `cms_post_revisions.insert` — all must fail. Anonymous SELECT of future scheduled/draft/deleted posts should return zero.
 15. Accessibility: keyboard tab order, focus visibility, modal close focus, contrast, reduced-motion preferences, narrow-screen overflow, soft reveal animations.
 

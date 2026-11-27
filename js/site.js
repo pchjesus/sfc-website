@@ -110,6 +110,7 @@ function renderRoute(){
 }
 window.addEventListener("popstate",renderRoute);
 window.addEventListener("hashchange",renderRoute);
+$("skipMain").addEventListener("click",event=>{event.preventDefault();$("main-content").focus({preventScroll:true});});
 document.addEventListener("click",event=>{
   if(event.defaultPrevented||event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
   const a=event.target.closest('a[href^="#"]');

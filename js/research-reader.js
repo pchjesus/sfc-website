@@ -4,8 +4,10 @@
   const $=id=>document.getElementById(id);
   const node=(tag,cls,value)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(value!==undefined)e.textContent=value;return e;};
   const dialog=$("researchPdfDialog");
+  let pdfOpener=null;
   const toc=$("readerToc");
   function clear(){
+    if(dialog?.open){pdfOpener=null;dialog.close();$("researchPdfFrame").removeAttribute("src");}
     $("post")?.classList.remove("reader-active","reader-demo");
     toc?.replaceChildren();if(toc)toc.hidden=true;
     const summary=$("readerOverview");if(summary)summary.hidden=true;
@@ -26,7 +28,7 @@
     const cover=cms.safeUrl(article.cover_url),pdf=cms.safeUrl(article.attachment_url);
     if(cover){
       const image=node("img","cms-post-cover");
-      image.src=cover;image.alt="게시글 대표 이미지";image.loading="lazy";
+      image.src=cover;image.alt="게시글 대표 이미지";image.loading="lazy";image.decoding="async";
       assets.append(image);
     }
     if(pdf){
@@ -34,7 +36,7 @@
       link.href=pdf;link.target="_blank";link.rel="noopener noreferrer";assets.append(link);
       if(research){
         const preview=node("button","reader-pdf-trigger","PREVIEW / PDF 미리보기 ↗");
-        preview.type="button";preview.addEventListener("click",()=>openPdf(pdf));
+        preview.type="button";preview.addEventListener("click",()=>openPdf(pdf,preview));
         assets.append(preview);
       }
     }
@@ -42,16 +44,22 @@
   function scrollToSection(el){
     el?.scrollIntoView({behavior:window.SFC_MOTION?.reduced()?"instant":"smooth",block:"start"});
   }
-  function openPdf(url){
-    if(!dialog)return;
+  function openPdf(url,opener){
+    if(!dialog||dialog.open)return;
     const safe=window.SFC_CMS?.safeUrl(url);
     if(!safe)return;
+    pdfOpener=opener;
     $("researchPdfFrame").src=safe+"#toolbar=0";
     $("researchPdfDownload").href=safe;
     dialog.showModal();$("researchPdfClose").focus({preventScroll:true});
   }
   $("researchPdfClose")?.addEventListener("click",()=>dialog.close());
-  dialog?.addEventListener("close",()=>$("researchPdfFrame").removeAttribute("src"));
+  dialog?.addEventListener("close",()=>{
+    if(dialog.open)return;
+    $("researchPdfFrame").removeAttribute("src");$("researchPdfDownload").removeAttribute("href");
+    if(pdfOpener?.isConnected&&pdfOpener.getClientRects().length)pdfOpener.focus({preventScroll:true});
+    pdfOpener=null;
+  });
   dialog?.addEventListener("click",e=>{if(e.target===dialog)dialog.close();});
   $("readerCopyLink")?.addEventListener("click",async()=>{
     const feedback=$("readerShareFeedback");
