@@ -1,5 +1,7 @@
 # SFC 2.0 — Codex verification handoff
 
+**Current handoff (2026-11-27):** [CURRENT_BASELINE.md](CURRENT_BASELINE.md) is the source for latest D3.1 QA; [V3_READINESS_PLAN.md](V3_READINESS_PLAN.md) defines R0–R8. PR #13 merged; 82 mock cases PASS (see exact runs in baseline), live Auth/RLS/Storage NOT RUN, D1 SQL candidate unapplied and real accounts deferred. Below is the historical 2.0 checklist, not evidence of real execution; apply current preflight and file-publication restrictions.
+
 **Target:** https://pchjesus.github.io/sfc-website/  
 **Private Studio:** https://pchjesus.github.io/sfc-website/admin.html  
 **Repository:** `pchjesus/sfc-website`, `main`  
