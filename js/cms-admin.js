@@ -3,7 +3,7 @@
   const cms=window.SFC_CMS;
   const $=id=>document.getElementById(id);
   let role=null,client=null,user=null,posts=[],current=null,busy=false,dirty=false,filter="all",checking=null,recovering=false;
-  let autosaveTimer=null,stashTimer=null,toastTimer=null;
+  let autosaveTimer=null,stashTimer=null,toastTimer=null,authRecheck=false;
   const legacyKey="sfc-editor-draft-v2", recoveryPrefix="sfc-editor-draft-v3:";
   let workId=null,epoch=0,blockedRecovery=false,pendingFiles={},previewUrl=null;
   let importCandidate=null,importRevision=0,importManual=false;
@@ -225,8 +225,10 @@
     const ext={"image/jpeg":"jpg","image/png":"png","image/webp":"webp",
       "application/pdf":"pdf",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document":"docx"}[file.type];
-    const path=user.id+"/"+crypto.randomUUID()+"."+ext;
+    const owner=user?.id,started=epoch;if(!owner)throw Error("로그인이 필요합니다.");
+    const path=owner+"/"+crypto.randomUUID()+"."+ext;
     const {error}=await client.storage.from("sfc-media").upload(path,file,{upsert:false,contentType:file.type,cacheControl:"3600"});
+    if(epoch!==started||user?.id!==owner)throw Error("세션이 변경되었습니다.");
     if(error)throw error;
     const {data}=client.storage.from("sfc-media").getPublicUrl(path);
     const url=cms.safeUrl(data.publicUrl);
@@ -400,14 +402,15 @@
   function clearSession(preserve=true){
     if(preserve&&user&&(dirty||hasPending()))stash();
     role=null;$("developerTab").hidden=true;$("studioRole").hidden=true;$("studioRole").textContent="";$("developerIdentity").hidden=true;$("developerEmail").textContent="";$("devConnection").textContent="확인 전";$("devAuth").textContent="권한 확인 전";$("devChecked").textContent="진단 기록 없음";$("devCounts").querySelectorAll("dd").forEach(e=>e.textContent="—");window.dispatchEvent(new Event("sfc:admin-cleared"));
-    epoch++;clearTimeout(autosaveTimer);clearTimeout(stashTimer);clearPreviewFile();
+    epoch++;clearTimeout(autosaveTimer);clearTimeout(stashTimer);clearTimeout(toastTimer);$("studioMessage").hidden=true;$("studioMessage").textContent="";clearPreviewFile();
     user=null;posts=[];current=null;workId=null;dirty=false;pendingFiles={};blockedRecovery=false;importManual=false;closeImport();clearImportReview();
+    filter="all";$("postSearch").value="";$("postKindFilter").value="";$("postSort").value="updated";$("postFilterSummary").textContent="";$("postsCount").textContent="0 POSTS";document.querySelectorAll(".sidebar-tabs button").forEach(b=>b.classList.toggle("selected",b.dataset.status==="all"));
     $("postForm").inert=false;busyMode(false);applyForm(null);pendingNotice();renderRecovery();$("adminPostList").replaceChildren();$("historyList").replaceChildren();$("previewBody").replaceChildren();$("previewTitle").textContent="";$("previewExcerpt").textContent="";$("previewResearchMeta").textContent="";$("previewResearchNotes").replaceChildren();$("studioAccount").textContent="";detail("");visible("studioLogin");
   }
   async function checkUser(){
     if(recovering)return;
-    if(checking)return checking;
-    const started=epoch;
+    if(checking){authRecheck=true;return checking;}
+    let started=epoch;
     checking=(async()=>{
       const {data,error}=await client.auth.getUser();
       if(epoch!==started)return;
@@ -428,7 +431,7 @@
         notify("승인된 운영 계정이 아닙니다.",true);return;
       }
       const changedUser=user?.id!==verified.id||role!==nextRole;
-      if(changedUser)clearSession();
+      if(changedUser){clearSession();started=epoch;}
       user=verified;role=nextRole;const confirmedEpoch=epoch;
       $("studioRole").textContent=role==="developer"?"DEVELOPER":"ADMIN";$("studioRole").hidden=false;
       $("studioAccount").textContent=verified.email||"운영 계정";
@@ -436,18 +439,21 @@
       if(changedUser){migrateLegacy();await loadPosts();if(epoch!==confirmedEpoch||user?.id!==verified.id)return;selectPost(null,false);showPane("posts");}
       visible("studioPanel");
       window.dispatchEvent(new Event("sfc:admin-ready"));
-    })().catch(e=>{clearSession();notify("권한 확인 실패: "+(e.message||e),true);})
-      .finally(()=>{checking=null;});
+    })().catch(e=>{if(epoch===started){clearSession();notify("권한 확인 실패: "+(e.message||e),true);}})
+      .finally(()=>{checking=null;if(authRecheck&&!recovering){authRecheck=false;setTimeout(()=>checkUser(),0);}});
     return checking;
   }
   async function start(){
     if(!cms?.configured()){visible("studioSetup");return;}
     try{
       client=await cms.getClient();
-      client.auth.onAuthStateChange(event=>{
+      client.auth.onAuthStateChange((event,session)=>{
         if(event==="PASSWORD_RECOVERY"){clearSession();recovering=true;visible("studioReset");return;}
-        if(event==="SIGNED_OUT"){clearSession();return;}
-        if((event==="SIGNED_IN"||event==="TOKEN_REFRESHED")&&!recovering)setTimeout(()=>checkUser(),0);
+        if(event==="SIGNED_OUT"){authRecheck=false;clearSession();return;}
+        if((event==="SIGNED_IN"||event==="TOKEN_REFRESHED")&&!recovering){
+          if(user&&session?.user?.id&&user.id!==session.user.id)clearSession();
+          setTimeout(()=>checkUser(),0);
+        }
       });
       await checkUser();
     }catch(e){visible("studioLogin");notify("연결 실패: "+e.message,true);}
@@ -484,10 +490,10 @@
     const owner=user?.id;if(!owner)return;
     if((dirty||hasPending()||snapshots(owner).length)&&!confirm("로그아웃하면 이 계정의 이 기기 복구본과 미저장 편집 내용이 삭제됩니다. 서버 저장본은 유지됩니다. 계속할까요?"))return;
     clearTimeout(autosaveTimer);clearTimeout(stashTimer);
-    const {error}=await client.auth.signOut();
-    if(error){notify("로그아웃 실패: "+error.message,true);return;}
+    const started=epoch;const {error}=await client.auth.signOut();
+    if(error){if(epoch===started)notify("로그아웃 실패: "+error.message,true);return;}
     for(const v of snapshots(owner))forget(v.workId,owner);
-    clearSession(false);notify("로그아웃했습니다.");
+    if(!user||user.id===owner){clearSession(false);notify("로그아웃했습니다.");}
   });
   document.querySelectorAll("[data-pane]").forEach(button=>button.addEventListener("click",()=>{
     if(busy||!user||(button.dataset.pane==="developer"&&role!=="developer"))return;
