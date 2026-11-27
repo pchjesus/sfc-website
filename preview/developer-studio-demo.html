@@ -224,6 +224,21 @@ textarea{resize:vertical;line-height:1.8}input[type=file]{font-size:12px;backgro
 .studio-inline-warning{color:#983f39;font-size:12px;line-height:1.7}
 @media(max-width:380px){.studio-member-form .member-input-row>button{font-size:11px;padding:0 9px}}
 
+/* R1: semantic Reader preview and non-destructive comparison. */
+.preview-panel .studio-reader-toc{position:static;display:flex;flex-direction:row;flex-wrap:wrap;gap:7px;max-height:none;margin:0 0 24px;border-bottom:1px solid #d4dee3}
+.preview-panel .studio-reader-toc>span{width:100%}
+.preview-panel .studio-reader-toc button{border:1px solid #d9e1e5;padding:8px 10px}
+.preview-panel .studio-reader-body h2{padding-top:29px;margin-top:22px;border-top:1px solid #d8e2e5;font-size:clamp(23px,2.6vw,34px);line-height:1.35;letter-spacing:-.04em}
+.preview-panel .studio-reader-body h3{font-size:clamp(18px,2vw,25px);margin:22px 0 12px;line-height:1.4}
+.preview-panel .studio-reader-body p,.preview-panel .studio-reader-body li{font-size:14px;line-height:2.1;word-break:keep-all;overflow-wrap:break-word}
+.preview-panel .studio-reader-body ul{padding-left:23px}
+.studio-history-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.comparison-grid{display:grid;gap:14px}.comparison-field h4{font-size:14px;margin:12px 0 6px}
+.comparison-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.comparison-pair label{min-width:0;font-size:12px;color:var(--muted)}
+.comparison-pair textarea{width:100%;min-width:0;font-size:13px;line-height:1.65;resize:vertical;background:#f7f9fa;margin:5px 0 0}
+@media(max-width:600px){.comparison-pair{grid-template-columns:minmax(0,1fr)}}
+
 /* SFC 2.3.3 — balanced, direction-independent editorial motion */
 :root{
   --motion-ease:cubic-bezier(.4,0,.2,1);
@@ -585,7 +600,7 @@ button:disabled{cursor:not-allowed;opacity:.55}
 .recruitment-next-step{margin:19px 0 39px;padding:13px 0;border-top:1px solid #d8e1e5;border-bottom:1px solid #d8e1e5}
 </style>
 </head>
-<body><div class="studio-preview-banner"><strong>DEMO / 로그인 없는 검토용 · 가상 데이터 · 실제 DB 연결 없음</strong><div><button id="previewSwitch" type="button">개발자 / 관리자 전환</button> <button id="previewReset" type="button">모의 데이터 초기화</button></div></div>
+<body><div class="studio-preview-banner"><strong>DEMO / Readiness A · 로그인 없는 검토용 · 가상 데이터 · 실제 DB 연결 없음</strong><div><button id="previewSwitch" type="button">개발자 / 관리자 전환</button> <button id="previewReset" type="button">모의 데이터 초기화</button></div></div>
 <header class="studio-header">
 <a class="studio-brand" href="#" aria-label="SFC 홈페이지"><span class="studio-brand-mark">SFC<i>.</i></span><small>SANGMYUNG<br>FINANCIAL CLUB</small></a>
 <div class="studio-top-actions"><a href="#">홈페이지 ↗</a><span id="studioRole" class="studio-role-label" hidden></span><span id="studioAccount" hidden></span><button type="button" id="studioLogout" hidden>로그아웃</button></div>
@@ -639,7 +654,7 @@ button:disabled{cursor:not-allowed;opacity:.55}
   <button type="button" id="insertResearchOutline">빈 본문에 연구 구성 템플릿 넣기</button>
 </div>
 </div>
-<div class="studio-format-bar" aria-label="본문 편집 도구"><button type="button" data-format="# ">제목</button><button type="button" data-format="## ">소제목</button><button type="button" data-format="- ">목록</button><button type="button" id="focusEditor" aria-pressed="false">집중 모드</button></div><label>본문<textarea id="postBody" rows="15" maxlength="50000" placeholder="# 제목&#10;&#10;본문을 입력해 주세요.&#10;&#10;## 소제목&#10;- 핵심 항목"></textarea></label>
+<div class="studio-format-bar" aria-label="본문 편집 도구"><button type="button" id="insertGeneralOutline">공지·활동 기본 틀</button><button type="button" data-format="# ">제목</button><button type="button" data-format="## ">소제목</button><button type="button" data-format="- ">목록</button><button type="button" id="undoFormat" disabled>서식 취소</button><button type="button" id="redoFormat" disabled>서식 다시 적용</button><button type="button" id="focusEditor" aria-pressed="false">집중 모드</button></div><label>본문<textarea id="postBody" rows="15" maxlength="50000" placeholder="# 제목&#10;&#10;본문을 입력해 주세요.&#10;&#10;## 소제목&#10;- 핵심 항목"></textarea></label>
 <p class="editor-hint"># 제목 · ## 소제목 · - 목록 · 빈 줄 지원. HTML은 실행되지 않습니다.</p><p id="editorCounts" class="editor-hint"></p><section id="importReview" class="studio-import-review" hidden><h3>원문 검토 정보</h3><p class="editor-hint">AI 추출 결과이며 검증 완료를 의미하지 않습니다. 원문과 비교하세요. 아래 정보는 현재 작업에서만 표시되며 서버 게시물에 자동 저장되지 않습니다.</p><div id="importReviewContent" class="cms-richtext"></div></section>
 <div class="studio-field-grid">
 <label>대표 이미지 URL<input id="postCoverUrl" type="url" placeholder="https://..."></label>
@@ -650,11 +665,11 @@ button:disabled{cursor:not-allowed;opacity:.55}
 <label>예약 발행 (선택, 현지 시간)<input type="datetime-local" id="postSchedule"><span class="form-help">미래 시각을 지정한 뒤 '게시'하면 해당 시각부터 공개돼요. 빈칸이면 즉시 게시합니다.</span></label>
 <div class="editor-toolbar studio-save-toolbar"><button type="button" id="previewButton" class="secondary">미리보기</button><button type="button" id="saveDraft" class="secondary">임시저장</button><button type="button" id="publishPost" class="primary">게시하기 ↗</button></div>
 </form>
-<div id="previewPanel" class="preview-panel" hidden><button type="button" id="previewWidth" class="secondary" aria-pressed="false">모바일 폭 미리보기</button><span class="eyebrow">ARTICLE PREVIEW</span><h2 id="previewTitle"></h2><p id="previewExcerpt"></p><p id="previewResearchMeta" class="editor-hint"></p>
-<div class="cms-richtext" id="previewBody"></div>
-<div id="previewResearchNotes" class="cms-richtext"></div><a id="previewLocalPdf" class="secondary" target="_blank" rel="noopener noreferrer" hidden>선택한 PDF 열기 (이 기기)</a><button type="button" id="closePreview" class="secondary">편집으로 돌아가기</button></div>
-<div class="editor-danger"><button type="button" id="unpublishPost" hidden>게시 취소</button><button type="button" id="trashPost" hidden>휴지통으로</button><button type="button" id="restorePost" hidden>복구하기</button><button type="button" id="deletePost" hidden>영구 삭제</button><button type="button" id="historyButton" hidden>수정 이력</button></div>
-<div id="historyPanel" class="studio-history" hidden><div class="studio-history-head"><h3>수정 이력</h3><button type="button" id="historyClose">닫기</button></div><p class="editor-hint">이전을 선택하면 편집기에 불러와져요. 실제 복원은 다시 저장한 후 적용됩니다.</p><div id="historyList"></div></div>
+<div id="previewPanel" class="preview-panel" hidden><button type="button" id="previewWidth" class="secondary" aria-pressed="false">모바일 폭 미리보기</button><span class="eyebrow">ARTICLE PREVIEW</span><h2 id="previewTitle"></h2><p id="previewResearchMeta" class="editor-hint"></p><div id="previewOverview" class="reader-overview" hidden><span class="eyebrow">RESEARCH / INTRODUCTION</span><p id="previewExcerpt"></p></div><nav id="previewToc" class="reader-toc studio-reader-toc" aria-label="미리보기 목차" hidden></nav>
+<div class="cms-richtext studio-reader-body" id="previewBody"></div>
+<p class="editor-hint" id="previewAssetNote"></p><a id="previewLocalPdf" class="secondary" target="_blank" rel="noopener noreferrer" hidden>선택한 PDF 열기 (이 기기)</a><button type="button" id="closePreview" class="secondary">편집으로 돌아가기</button></div>
+<div class="editor-danger"><button type="button" id="unpublishPost" hidden>게시 취소</button><button type="button" id="trashPost" hidden>휴지통으로</button><button type="button" id="restorePost" hidden>복구하기</button><button type="button" id="deletePost" hidden>영구 삭제</button><button type="button" id="historyButton" hidden>수정 이력</button><button type="button" id="duplicatePost" hidden>새 임시글로 복제</button><button type="button" id="compareServer" hidden>서버 최신본 비교</button></div>
+<div id="historyPanel" class="studio-history" hidden><div class="studio-history-head"><h3>수정 이력</h3><button type="button" id="historyClose">닫기</button></div><p class="editor-hint">이전을 선택하면 편집기에 불러와져요. 실제 복원은 다시 저장한 후 적용됩니다.</p><div id="historyList"></div></div><section id="comparisonPanel" class="studio-history" hidden><div class="studio-history-head"><h3 id="comparisonTitle">내용 비교</h3><button type="button" id="closeComparison">닫기</button></div><p class="editor-hint">읽기 전용 비교입니다. 저장하거나 서버 버전을 변경하지 않습니다. 필요한 부분을 직접 복사하세요.</p><div class="comparison-grid" id="comparisonRows"></div></section>
 </section></div></section>
 <section data-pane-view="site" class="studio-pane" hidden><div class="studio-section-bar"><div><span class="eyebrow">SITE CONTENT</span><h2>Homepage & About.</h2></div></div>
 <p class="studio-pane-intro">홈페이지와 소개 문구를 수정할 수 있어요. 배치·색상·레이아웃 변경은 GitHub에서 진행합니다.</p>
@@ -720,7 +735,7 @@ button:disabled{cursor:not-allowed;opacity:.55}
 <div class="studio-section-bar"><div><span class="eyebrow">DEVELOPMENT / MAINTENANCE</span><h2>Developer desk.</h2></div><button type="button" id="devRefresh" class="secondary">진단 새로고침 ↻</button></div>
 <p class="studio-pane-intro">Studio의 모든 운영 기능을 그대로 사용하면서 배포 정보와 데이터 연결 상태를 확인합니다. 진단은 읽기 전용입니다.</p>
 <div class="developer-grid">
-<article class="developer-card"><span class="eyebrow">01 / RELEASE</span><h3>Release.</h3><strong id="devRelease">v3.0 · Developer D3.1 demo</strong><p>실제 배포 커밋과 이력은 저장소에서 확인합니다.</p><a href="#" target="_blank" rel="noopener noreferrer">GitHub 저장소 ↗</a><a href="#" target="_blank" rel="noopener noreferrer">배포 및 검증 기록 ↗</a></article>
+<article class="developer-card"><span class="eyebrow">01 / RELEASE</span><h3>Release.</h3><strong id="devRelease">v3.0 · Readiness A demo</strong><p>실제 배포 커밋과 이력은 저장소에서 확인합니다.</p><a href="#" target="_blank" rel="noopener noreferrer">GitHub 저장소 ↗</a><a href="#" target="_blank" rel="noopener noreferrer">배포 및 검증 기록 ↗</a></article>
 <article class="developer-card"><span class="eyebrow">02 / DATABASE</span><h3>Database.</h3><strong id="devConnection" role="status">확인 전</strong><dl id="devCounts"><dt>전체 게시글 (휴지통 포함)</dt><dd>—</dd><dt>임시 상태 (휴지통 포함)</dt><dd>—</dd><dt>운영 관리자</dt><dd>—</dd><dt>People / Activities</dt><dd>—</dd><dt>사이트 설정</dt><dd>—</dd></dl></article>
 <article class="developer-card"><span class="eyebrow">03 / DIAGNOSTICS</span><h3>Diagnostics.</h3><p id="devAuth">권한 확인 전</p><p id="devChecked">진단 기록 없음</p><button type="button" id="devExport" class="secondary" disabled>진단 결과 JSON ↗</button><p>현재 계정의 조회 요청 결과만 표시합니다. 서버 오류 로그 또는 전체 RLS 검증 결과는 아닙니다.</p></article>
 <article class="developer-card"><span class="eyebrow">04 / MAINTENANCE</span><h3>Maintenance.</h3><p>기존 계정 관리에서 운영 관리자 등록 및 권한 해제, JSON 백업을 이용할 수 있습니다.</p><button type="button" id="devGoAccounts" class="secondary">계정 관리 및 백업 →</button><small>운영 데이터의 백업과 진단은 별도입니다. 격리된 테스트 환경·감사 로그·복원 도구는 D5 예정.</small></article>
@@ -820,7 +835,10 @@ button:disabled{cursor:not-allowed;opacity:.55}
       const keys=q.columns.split(',').map(k=>k.trim());
       data=data.map(r=>Object.fromEntries(keys.map(k=>[k,r[k]])));
     }
-    return {data:clone(q.one?(data[0]||null):data),error:null,count:q.withCount?count:null};
+    const result={data:clone(q.one?(data[0]||null):data),error:null,count:q.withCount?count:null};
+    // Test delayed response captured before a session change, rather than a new query.
+    if(m.deferredRead?.table===table){const delay=m.deferredRead.ms;m.deferredRead=null;m.deferredReadStarted=true;await new Promise(r=>setTimeout(r,delay));}
+    return result;
    })().then(resolve,reject);
    return q;
   }};return db;
@@ -918,7 +936,31 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     const dt=new Date(iso);
     return Number.isNaN(dt.valueOf())?"":new Intl.DateTimeFormat("ko-KR",{year:"numeric",month:"2-digit",day:"2-digit"}).format(dt);
   }
-  window.SFC_CMS=Object.freeze({configured,getClient,getPublicClient,safeUrl,renderBody,kindNames,dateText});
+  // Both public Reader and private unsaved preview use the same semantic DOM.
+  // This renderer never creates an image, iframe, external link or network request.
+  function renderArticle(article,{title,meta,body,overview,overviewText,toc,idPrefix="reader",scroll}){
+    const n=(tag,cls,value)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(value!==undefined)e.textContent=value;return e;};
+    const research=article.kind==="research";
+    title.textContent=article.title||"제목 없음";
+    meta.textContent=[kindNames[article.kind]||article.kind,article.research_sector,article.research_company,article.research_author,dateText(article.published_at)].filter(Boolean).join(" / ");
+    renderBody(body,article.body||"");
+    overview.hidden=!research;overviewText.textContent="";
+    toc.replaceChildren();toc.hidden=!research;
+    if(research){
+      overviewText.textContent=article.excerpt||"연구 개요가 별도로 제공되지 않았습니다. 본문을 확인해 주세요.";
+      for(const [label,value] of [["분석 방법",article.research_method],["가정과 한계",article.research_limitations]]){
+        const valueText=String(value||"").trim();
+        if(valueText){const section=n("section","cms-research-notes");section.append(n("h2","",label),n("p","",valueText));body.append(section);}
+      }
+      if(!body.children.length)body.append(n("p","","연구 본문은 아직 등록되지 않았습니다. 원문 파일을 확인해 주세요."));
+      toc.append(n("span","","CONTENTS / RESEARCH"));
+      const add=(label,target,level)=>{const button=n("button","",label);button.type="button";if(level)button.dataset.level=level;button.addEventListener("click",()=>scroll(target));toc.append(button);};
+      add("01 / 연구 개요",overview);
+      [...body.querySelectorAll("h2,h3")].forEach((h,i)=>{h.id=idPrefix+"-heading-"+i;add(String(i+2).padStart(2,"0")+" / "+h.textContent,h,h.tagName.slice(1));});
+    }else if(article.excerpt){body.prepend(n("p","cms-post-deck",article.excerpt));}
+    return research;
+  }
+  window.SFC_CMS=Object.freeze({configured,getClient,getPublicClient,safeUrl,renderBody,renderArticle,kindNames,dateText});
 })();
 
 ;
@@ -976,10 +1018,14 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
   const cms=window.SFC_CMS;
   const $=id=>document.getElementById(id);
   let role=null,client=null,user=null,posts=[],current=null,busy=false,dirty=false,filter="all",checking=null,recovering=false;
-  let autosaveTimer=null,stashTimer=null,toastTimer=null;
+  let autosaveTimer=null,stashTimer=null,toastTimer=null,authRecheck=false;
   const legacyKey="sfc-editor-draft-v2", recoveryPrefix="sfc-editor-draft-v3:";
   let workId=null,epoch=0,blockedRecovery=false,pendingFiles={},previewUrl=null;
   let importCandidate=null,importRevision=0,importManual=false;
+  let formatUndo=[],formatRedo=[],conflictHold=false;
+  function updateFormatButtons(){$("undoFormat").disabled=busy||!formatUndo.length;$("redoFormat").disabled=busy||!formatRedo.length;}
+  function resetFormatHistory(){formatUndo=[];formatRedo=[];updateFormatButtons();}
+  function clearComparison(){$("comparisonPanel").hidden=true;$("comparisonRows").replaceChildren();}
   const editorFields=["postKind","postTitle","postExcerpt","postBody","postCoverUrl","postAttachmentUrl",
    "postSchedule","researchSector","researchCompany","researchAuthor","researchMethod","researchLimitations"];
   function node(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;}
@@ -1038,7 +1084,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     for(const [name,id] of [["research_sector","researchSector"],["research_company","researchCompany"],["research_author","researchAuthor"],
       ["research_method","researchMethod"],["research_limitations","researchLimitations"]])$(id).value=item?.[name]||"";
     $("postCoverFile").value="";$("postPdfFile").value="";
-    $("researchFields").hidden=$("postKind").value!=="research";
+    $("researchFields").hidden=$("postKind").value!=="research";resetFormatHistory();clearComparison();
   }
   function key(id,owner=user?.id){return owner&&id?recoveryPrefix+encodeURIComponent(owner)+":"+encodeURIComponent(id):null;}
   function readScratch(id){try{return JSON.parse(sessionStorage.getItem(key(id))||"null");}catch(_){return null;}}
@@ -1095,6 +1141,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     if(Object.hasOwn(v.values,"postTitle"))for(const field of editorFields)$(field).value=typeof v.values[field]==="string"?v.values[field]:"";
     else applyForm(v.values);
     pendingFiles={};for(const field of ["postCoverFile","postPdfFile"])if(typeof v.pendingFiles?.[field]==="string")pendingFiles[field]=v.pendingFiles[field];
+    resetFormatHistory();clearComparison();
     importManual=Boolean(v.importManual);
     blockedRecovery=Boolean(v.blockedRecovery||(current&&v.baseVersion!==current.updated_at));
     $("researchFields").hidden=$("postKind").value!=="research";$("publishPost").textContent=$("postSchedule").value?"예약·게시하기 ↗":"게시하기 ↗";markChanged(false);pendingNotice();
@@ -1109,7 +1156,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     if(!blockedRecovery)detail("마지막 서버 저장: "+savedTime());
     clearTimeout(stashTimer);stashTimer=setTimeout(stash,400);
     clearTimeout(autosaveTimer);
-    if(schedule!==false&&!importManual&&!blockedRecovery&&(!current||current.status==="draft"))autosaveTimer=setTimeout(()=>savePost("draft",true),2600);
+    if(schedule!==false&&!importManual&&!blockedRecovery&&!conflictHold&&(!current||current.status==="draft"))autosaveTimer=setTimeout(()=>savePost("draft",true),2600);
   }
   function selectPost(item,confirmDirty=true,newId=null){
     if(busy&&confirmDirty)return false;
@@ -1118,7 +1165,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
       if(!stash()&&!confirm("복구본을 저장하지 못했습니다. 그래도 이동할까요?"))return false;
     }
     clearTimeout(autosaveTimer);clearTimeout(stashTimer);clearPreviewFile();
-    clearImportReview();importManual=false;current=item||null;workId=newId||item?.id||crypto.randomUUID();dirty=false;pendingFiles={};blockedRecovery=false;applyForm(item);pendingNotice();updateCounts();
+    clearImportReview();importManual=false;conflictHold=false;current=item||null;workId=newId||item?.id||crypto.randomUUID();dirty=false;pendingFiles={};blockedRecovery=false;applyForm(item);pendingNotice();updateCounts();
     const trashed=Boolean(item?.deleted_at);
     $("editorMode").textContent=item?"EDIT / "+(trashed?"TRASHED":item.status.toUpperCase()):"NEW ARTICLE";
     $("editorSavedAt").textContent=item?"마지막 저장 "+cms.dateText(item.updated_at):"아직 저장되지 않음";detail("");
@@ -1126,7 +1173,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     $("saveDraft").hidden=Boolean(item?.status==="published");
     $("publishPost").textContent=$("postSchedule").value?"예약·게시하기 ↗":"게시하기 ↗";
     $("trashPost").hidden=!item||trashed;$("restorePost").hidden=!trashed;$("deletePost").hidden=!trashed;
-    $("historyButton").hidden=!item;$("unpublishPost").hidden=!item||item.status!=="published"||trashed;
+    $("historyButton").hidden=!item;$("duplicatePost").hidden=!item||trashed;$("compareServer").hidden=!item||trashed;$("unpublishPost").hidden=!item||item.status!=="published"||trashed;
     renderPosts();renderRecovery();return true;
   }
   function newPost(){selectPost(null);}
@@ -1184,7 +1231,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     posts=data||[];renderPosts();
   }
   function busyMode(state){
-    busy=state;["saveDraft","publishPost","trashPost","restorePost","deletePost","newPost","unpublishPost","previewButton","historyButton","recoverWork","discardRecovery","discardPendingFiles"].forEach(id=>$(id).disabled=state);
+    busy=state;["saveDraft","publishPost","trashPost","restorePost","deletePost","newPost","unpublishPost","previewButton","historyButton","recoverWork","discardRecovery","discardPendingFiles","duplicatePost","compareServer"].forEach(id=>$(id).disabled=state);updateFormatButtons();
   }
   async function upload(file,type="image"){
     if(!file)return null;
@@ -1198,8 +1245,10 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     const ext={"image/jpeg":"jpg","image/png":"png","image/webp":"webp",
       "application/pdf":"pdf",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document":"docx"}[file.type];
-    const path=user.id+"/"+crypto.randomUUID()+"."+ext;
+    const owner=user?.id,started=epoch;if(!owner)throw Error("로그인이 필요합니다.");
+    const path=owner+"/"+crypto.randomUUID()+"."+ext;
     const {error}=await client.storage.from("sfc-media").upload(path,file,{upsert:false,contentType:file.type,cacheControl:"3600"});
+    if(epoch!==started||user?.id!==owner)throw Error("세션이 변경되었습니다.");
     if(error)throw error;
     const {data}=client.storage.from("sfc-media").getPublicUrl(path);
     const url=cms.safeUrl(data.publicUrl);
@@ -1211,7 +1260,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     if(status==="draft"&&current?.status==="published"&&!unpublish){if(stash())detail("공개본은 유지됩니다. 수정 내용은 이 기기에만 보관됩니다.");return;}
     if(blockedRecovery){if(!automatic)notify("복구본과 서버 버전이 다릅니다. 비교 후 새로 편집해 주세요.",true);return;}
     if(automatic&&(!dirty||current?.status==="published"))return;
-    if(automatic&&importManual)return;
+    if(automatic&&(importManual||conflictHold))return;
     if(!automatic&&status==="draft"&&!unpublish&&!dirty&&current&&!hasPending()){detail("마지막 서버 저장: "+savedTime());return;}
     clearTimeout(autosaveTimer);
     let draft;
@@ -1256,7 +1305,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
       if(response.error)throw response.error;
       if(!active())return;
       if(!response.data)throw Error("서버 저장 결과를 확인할 수 없습니다.");
-      current=response.data;saved=true;importManual=false;
+      current=response.data;saved=true;importManual=false;conflictHold=false;
       if(JSON.stringify(editorFields.map(id=>$(id).value))===fingerprint
         &&$("postCoverFile").files[0]===imageFile&&$("postPdfFile").files[0]===pdfFile){
         dirty=false;forget();
@@ -1270,11 +1319,11 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
       detail("마지막 서버 저장: "+savedTime()+(hasPending()?" · 파일은 아직 저장되지 않음":""));
       $("saveDraft").hidden=status==="published";
       $("unpublishPost").hidden=status!=="published";
-      $("trashPost").hidden=false;$("historyButton").hidden=false;
+      $("trashPost").hidden=false;$("historyButton").hidden=false;$("duplicatePost").hidden=false;$("compareServer").hidden=false;
       $("publishPost").textContent=status==="published"?"변경사항 게시 ↗":"게시하기 ↗";
       try{await loadPosts();}catch(e){if(active())notify("글은 저장됐지만 목록 갱신 실패: "+e.message,true);}
       if(active()&&!automatic)notify(status==="published"?(current.scheduled_at&&new Date(current.scheduled_at)>new Date()?"예약 발행이 저장되었습니다.":"공개 게시되었습니다."):"임시저장이 완료되었습니다.");
-    }catch(e){if(active()){clearTimeout(autosaveTimer);$("editorSavedAt").textContent="저장 실패";detail((e.isConflict?"저장 충돌":navigator.onLine?"서버 저장 실패":"오프라인")+" · 입력 유지 · 마지막 서버 저장: "+savedTime());stash();notify((automatic?"자동저장":"저장")+" 실패: "+(e.message||e),true);}}
+    }catch(e){if(active()){clearTimeout(autosaveTimer);if(e.isConflict)conflictHold=true;$("editorSavedAt").textContent="저장 실패";detail((e.isConflict?"저장 충돌":navigator.onLine?"서버 저장 실패":"오프라인")+" · 입력 유지 · 마지막 서버 저장: "+savedTime());stash();notify((automatic?"자동저장":"저장")+" 실패: "+(e.message||e),true);}}
     finally{
       if(active()){$("postForm").inert=false;busyMode(false);}
       if(active()&&saved&&dirty&&current?.status==="draft"){
@@ -1321,11 +1370,11 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
   }
   async function loadHistory(){
     if(!current||busy)return;
-    const id=current.id,started=epoch;
+    const id=current.id,started=epoch,work=workId;
     const {data,error}=await client.from("cms_post_revisions")
       .select("id,post_id,snapshot,recorded_at").eq("post_id",id)
       .order("id",{ascending:false}).limit(40);
-    if(epoch!==started||current?.id!==id)return;
+    if(epoch!==started||current?.id!==id||workId!==work)return;
     if(error){notify("이력 조회 실패: "+error.message,true);return;}
     $("historyPanel").hidden=false;
     const holder=$("historyList");holder.replaceChildren();
@@ -1335,52 +1384,78 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
       const stamp=cms.dateText(revision.recorded_at);
       item.append(node("strong","","Revision #"+revision.id),node("small","",stamp+" · "+(revision.snapshot?.title||"제목 없음")));
       item.addEventListener("click",()=>{
-        if(busy||epoch!==started||current?.id!==id)return;
+        if(busy||epoch!==started||current?.id!==id||workId!==work)return;
         if(current.deleted_at){notify("휴지통의 글은 먼저 복구해 주세요.",true);return;}
         if(!confirm("이 버전을 편집기에 불러올까요? 저장하기 전에는 실제 글이 변경되지 않습니다."))return;
         if((dirty||hasPending())&&!confirm("현재 편집 내용이 이 버전으로 대체됩니다. 계속할까요?"))return;
         pendingFiles={};applyForm(revision.snapshot);pendingNotice();markChanged(false);$("historyPanel").hidden=true;
         notify("과거 버전을 편집기에 불러왔어요. 내용을 확인한 후 저장하세요.");
       });
-      holder.append(item);
+      const compare=node("button","secondary","비교");compare.type="button";compare.addEventListener("click",()=>{if(!busy&&epoch===started&&current?.id===id&&workId===work)try{compareSnapshot(revision.snapshot,"Revision #"+revision.id);}catch(e){notify(e.message,true);}});
+      const row=node("div","studio-history-row");row.append(item,compare);holder.append(row);
     }
     if(!holder.childElementCount)holder.append(node("p","sidebar-empty","수정 이력이 없습니다."));
   }
   function preview(){
+    if(!user||busy)return;
     let v;try{v=readPost();}catch(e){notify(e.message,true);return;}
-    $("previewTitle").textContent=v.title||"제목 없음";
-    $("previewExcerpt").textContent=v.excerpt||"";
-    cms.renderBody($("previewBody"),v.body);
-    const notes=$("previewResearchNotes"),meta=$("previewResearchMeta");
-    notes.replaceChildren();
-    if(v.kind==="research"){
-      meta.textContent=[v.research_sector,v.research_company,v.research_author].filter(Boolean).join(" / ");
-      if(v.research_method){
-        const head=document.createElement("h2"),text=document.createElement("p");
-        head.textContent="분석 방법";text.textContent=v.research_method;
-        notes.append(head,text);
-      }
-      if(v.research_limitations){
-        const head=document.createElement("h2"),text=document.createElement("p");
-        head.textContent="가정과 한계";text.textContent=v.research_limitations;
-        notes.append(head,text);
-      }
-    }else meta.textContent="";
+    cms.renderArticle({...v,published_at:current?.published_at||null},{
+      title:$("previewTitle"),meta:$("previewResearchMeta"),body:$("previewBody"),overview:$("previewOverview"),overviewText:$("previewExcerpt"),toc:$("previewToc"),idPrefix:"studio-preview",scroll:el=>el.scrollIntoView({block:"start",behavior:"instant"})
+    });
     clearPreviewFile();const file=$("postPdfFile").files[0];
     if(file&&file.type==="application/pdf"&&file.size>0&&file.size<=20*1024*1024){previewUrl=URL.createObjectURL(file);$("previewLocalPdf").href=previewUrl;$("previewLocalPdf").hidden=false;}
+    const assets=[];
+    if(v.cover_url||$("postCoverFile").files[0])assets.push("대표 이미지 지정됨");
+    if(v.attachment_url||file)assets.push("PDF 지정됨");
+    $("previewAssetNote").textContent=assets.length?assets.join(" · ")+" · 미리보기에서는 외부 파일을 자동으로 불러오지 않습니다.":"첨부파일 없음";
     $("postForm").hidden=true;$("previewPanel").hidden=false;
+  }
+  function compareSnapshot(remote,label){
+    const local=readPost(),rows=$("comparisonRows");rows.replaceChildren();
+    $("comparisonTitle").textContent=label;
+    const fields=[["title","제목"],["excerpt","요약"],["body","본문"],["research_sector","산업"],["research_company","기업"],["research_author","저자"],["research_method","방법"],["research_limitations","한계"],["cover_url","대표 이미지 주소"],["attachment_url","첨부 주소"],["scheduled_at","예약 시각"]];
+    for(const [key,name] of fields){
+      const a=String(local[key]||""),b=String(remote?.[key]||"");if(a===b)continue;
+      const group=node("div","comparison-field");group.append(node("h4","",name));
+      const pair=node("div","comparison-pair");
+      for(const [caption,value] of [["현재 내 입력",a],[label,b]]){
+        const wrap=node("label","",caption),field=node("textarea","","");field.readOnly=true;field.rows=key==="body"?8:3;field.value=value;wrap.append(field);pair.append(wrap);
+      }
+      group.append(pair);rows.append(group);
+    }
+    if(!rows.children.length)rows.append(node("p","editor-hint","비교 대상과 현재 입력이 같습니다."));
+    $("comparisonPanel").hidden=false;
+  }
+  async function compareServer(){
+    if(!user||busy||!current||current.deleted_at)return;
+    const started=epoch,id=current.id,work=workId;
+    const active=()=>epoch===started&&current?.id===id&&workId===work&&Boolean(user);
+    try{
+      const {data,error}=await client.from("cms_posts").select("*").eq("id",id).maybeSingle();
+      if(!active())return;if(error)throw error;if(!data)throw Error("서버 글을 찾을 수 없습니다.");
+      compareSnapshot(data,"서버 최신본");
+    }catch(e){if(active())notify("비교 실패: "+e.message,true);}
+  }
+  function duplicatePost(){
+    if(!user||busy||!current||current.deleted_at)return;
+    let draft;try{draft=readPost();}catch(e){notify(e.message,true);return;}
+    if(!confirm("현재 입력을 새 임시글로 복제할까요? 파일, 예약 및 공개 상태는 승계하지 않습니다."))return;
+    if(!selectPost(null))return;
+    applyForm({...draft,title:("복제 · "+draft.title).slice(0,180),cover_url:null,attachment_url:null,scheduled_at:null});
+    markChanged(false);stash();$("postTitle").focus();notify("새 임시글로 복제했습니다. 파일 및 예약은 별도로 설정하세요.");
   }
   function clearSession(preserve=true){
     if(preserve&&user&&(dirty||hasPending()))stash();
     role=null;$("developerTab").hidden=true;$("studioRole").hidden=true;$("studioRole").textContent="";$("developerIdentity").hidden=true;$("developerEmail").textContent="";$("devConnection").textContent="확인 전";$("devAuth").textContent="권한 확인 전";$("devChecked").textContent="진단 기록 없음";$("devCounts").querySelectorAll("dd").forEach(e=>e.textContent="—");window.dispatchEvent(new Event("sfc:admin-cleared"));
-    epoch++;clearTimeout(autosaveTimer);clearTimeout(stashTimer);clearPreviewFile();
-    user=null;posts=[];current=null;workId=null;dirty=false;pendingFiles={};blockedRecovery=false;importManual=false;closeImport();clearImportReview();
-    $("postForm").inert=false;busyMode(false);applyForm(null);pendingNotice();renderRecovery();$("adminPostList").replaceChildren();$("historyList").replaceChildren();$("previewBody").replaceChildren();$("previewTitle").textContent="";$("previewExcerpt").textContent="";$("previewResearchMeta").textContent="";$("previewResearchNotes").replaceChildren();$("studioAccount").textContent="";detail("");visible("studioLogin");
+    epoch++;clearTimeout(autosaveTimer);clearTimeout(stashTimer);clearTimeout(toastTimer);$("studioMessage").hidden=true;$("studioMessage").textContent="";clearPreviewFile();
+    user=null;posts=[];current=null;workId=null;dirty=false;pendingFiles={};blockedRecovery=false;importManual=false;conflictHold=false;closeImport();clearImportReview();
+    filter="all";$("postSearch").value="";$("postKindFilter").value="";$("postSort").value="updated";$("postFilterSummary").textContent="";$("postsCount").textContent="0 POSTS";document.querySelectorAll(".sidebar-tabs button").forEach(b=>b.classList.toggle("selected",b.dataset.status==="all"));
+    $("postForm").inert=false;busyMode(false);applyForm(null);pendingNotice();renderRecovery();$("adminPostList").replaceChildren();$("historyList").replaceChildren();$("previewBody").replaceChildren();$("previewTitle").textContent="";$("previewExcerpt").textContent="";$("previewResearchMeta").textContent="";$("previewToc").replaceChildren();$("previewToc").hidden=true;$("previewOverview").hidden=true;$("previewAssetNote").textContent="";$("studioAccount").textContent="";detail("");visible("studioLogin");
   }
   async function checkUser(){
     if(recovering)return;
-    if(checking)return checking;
-    const started=epoch;
+    if(checking){authRecheck=true;return checking;}
+    let started=epoch;
     checking=(async()=>{
       const {data,error}=await client.auth.getUser();
       if(epoch!==started)return;
@@ -1401,7 +1476,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
         notify("승인된 운영 계정이 아닙니다.",true);return;
       }
       const changedUser=user?.id!==verified.id||role!==nextRole;
-      if(changedUser)clearSession();
+      if(changedUser){clearSession();started=epoch;}
       user=verified;role=nextRole;const confirmedEpoch=epoch;
       $("studioRole").textContent=role==="developer"?"DEVELOPER":"ADMIN";$("studioRole").hidden=false;
       $("studioAccount").textContent=verified.email||"운영 계정";
@@ -1409,18 +1484,21 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
       if(changedUser){migrateLegacy();await loadPosts();if(epoch!==confirmedEpoch||user?.id!==verified.id)return;selectPost(null,false);showPane("posts");}
       visible("studioPanel");
       window.dispatchEvent(new Event("sfc:admin-ready"));
-    })().catch(e=>{clearSession();notify("권한 확인 실패: "+(e.message||e),true);})
-      .finally(()=>{checking=null;});
+    })().catch(e=>{if(epoch===started){clearSession();notify("권한 확인 실패: "+(e.message||e),true);}})
+      .finally(()=>{checking=null;if(authRecheck&&!recovering){authRecheck=false;setTimeout(()=>checkUser(),0);}});
     return checking;
   }
   async function start(){
     if(!cms?.configured()){visible("studioSetup");return;}
     try{
       client=await cms.getClient();
-      client.auth.onAuthStateChange(event=>{
+      client.auth.onAuthStateChange((event,session)=>{
         if(event==="PASSWORD_RECOVERY"){clearSession();recovering=true;visible("studioReset");return;}
-        if(event==="SIGNED_OUT"){clearSession();return;}
-        if((event==="SIGNED_IN"||event==="TOKEN_REFRESHED")&&!recovering)setTimeout(()=>checkUser(),0);
+        if(event==="SIGNED_OUT"){authRecheck=false;clearSession();return;}
+        if((event==="SIGNED_IN"||event==="TOKEN_REFRESHED")&&!recovering){
+          if(user&&session?.user?.id&&user.id!==session.user.id)clearSession();
+          setTimeout(()=>checkUser(),0);
+        }
       });
       await checkUser();
     }catch(e){visible("studioLogin");notify("연결 실패: "+e.message,true);}
@@ -1457,10 +1535,10 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     const owner=user?.id;if(!owner)return;
     if((dirty||hasPending()||snapshots(owner).length)&&!confirm("로그아웃하면 이 계정의 이 기기 복구본과 미저장 편집 내용이 삭제됩니다. 서버 저장본은 유지됩니다. 계속할까요?"))return;
     clearTimeout(autosaveTimer);clearTimeout(stashTimer);
-    const {error}=await client.auth.signOut();
-    if(error){notify("로그아웃 실패: "+error.message,true);return;}
+    const started=epoch;const {error}=await client.auth.signOut();
+    if(error){if(epoch===started)notify("로그아웃 실패: "+error.message,true);return;}
     for(const v of snapshots(owner))forget(v.workId,owner);
-    clearSession(false);notify("로그아웃했습니다.");
+    if(!user||user.id===owner){clearSession(false);notify("로그아웃했습니다.");}
   });
   document.querySelectorAll("[data-pane]").forEach(button=>button.addEventListener("click",()=>{
     if(busy||!user||(button.dataset.pane==="developer"&&role!=="developer"))return;
@@ -1528,13 +1606,17 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     detail("가져온 초안 · 확인 후 임시저장하세요. 자동저장은 첫 수동 저장 이후 시작됩니다.");
     closeImport();$("postTitle").focus();
   });
+  $("postBody").addEventListener("input",resetFormatHistory);
+  function bodySnapshot(){const f=$("postBody");return {value:f.value,start:f.selectionStart,end:f.selectionEnd};}
+  function formatRestore(stack,other){if(!user||busy||!stack.length)return;const f=$("postBody"),v=stack.pop();other.push(bodySnapshot());f.value=v.value;f.focus();f.setSelectionRange(v.start,v.end);updateFormatButtons();markChanged();}
+  $("undoFormat").addEventListener("click",()=>formatRestore(formatUndo,formatRedo));$("redoFormat").addEventListener("click",()=>formatRestore(formatRedo,formatUndo));
   document.querySelectorAll("[data-format]").forEach(button=>button.addEventListener("click",()=>{
     if(busy||!user)return;const field=$("postBody"),start=field.selectionStart,end=field.selectionEnd;
     const from=start===0?0:field.value.lastIndexOf("\n",start-1)+1;
     const selection=field.value.slice(from,end);
     const replacement=selection.split("\n").map(line=>button.dataset.format+line.replace(/^(?:#{1,3}|[-*])\s+/,"")).join("\n");
     if(field.value.length-(end-from)+replacement.length>field.maxLength){notify("본문 글자 수 제한을 초과합니다.",true);return;}
-    field.setRangeText(replacement,from,end,"end");field.focus();markChanged();
+    formatUndo.push(bodySnapshot());if(formatUndo.length>30)formatUndo.shift();formatRedo=[];field.setRangeText(replacement,from,end,"end");field.focus();updateFormatButtons();markChanged();
   }));
   $("focusEditor").addEventListener("click",()=>{const on=$("focusEditor").getAttribute("aria-pressed")!=="true";$("focusEditor").setAttribute("aria-pressed",String(on));$("focusEditor").textContent=on?"집중 모드 종료":"집중 모드";document.querySelector(".studio-editor").classList.toggle("focused",on);});
   $("previewWidth").addEventListener("click",()=>{const on=$("previewWidth").getAttribute("aria-pressed")!=="true";$("previewWidth").setAttribute("aria-pressed",String(on));$("previewWidth").textContent=on?"기본 폭 미리보기":"모바일 폭 미리보기";$("previewPanel").classList.toggle("mobile-preview",on);});
@@ -1545,7 +1627,9 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
   $("restorePost").addEventListener("click",()=>changeDeleted(true));
   $("deletePost").addEventListener("click",purgePost);
   $("historyButton").addEventListener("click",loadHistory);
+  $("compareServer").addEventListener("click",compareServer);$("closeComparison").addEventListener("click",clearComparison);$("duplicatePost").addEventListener("click",duplicatePost);
   $("historyClose").addEventListener("click",()=>$("historyPanel").hidden=true);
+  $("insertGeneralOutline").addEventListener("click",()=>{const field=$("postBody");if(!user||busy||field.value.trim()||$("postKind").value==="research"){notify("공지 또는 활동 글의 빈 본문에서 사용할 수 있습니다.",true);return;}field.value=$("postKind").value==="activity"?"# 활동 개요\n\n## 진행 내용\n\n## 배운 점 및 후속 활동":"# 안내 사항\n\n## 일정 및 대상\n\n## 세부 안내\n\n## 문의";field.dispatchEvent(new Event("input",{bubbles:true}));field.focus();});
   $("insertResearchOutline")?.addEventListener("click",()=>{
     const field=$("postBody");
     if(field.value.trim()){
@@ -1594,6 +1678,8 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
   const util=()=>window.SFC_STUDIO;
   const cms=window.SFC_CMS;
   const state={site:{},recruitment:{},people:[],sessions:[],admins:[]};
+  let generation=0;
+  const session=()=>{const g=generation,owner=util().getUser()?.id;return ()=>Boolean(owner)&&g===generation&&util().getUser()?.id===owner;};
   // Never overwrite unsubmitted structured CMS input with asynchronous reads.
   const dirtyForms={site:false,recruitment:false,people:false,sessions:false};
   const busyForms={site:false,recruitment:false,people:false,sessions:false};
@@ -1651,6 +1737,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
   const settingReadTickets={site:0,recruitment:0};
   async function fetchSettings(pane){
     if(!(pane in settingReadTickets))return;
+    const active=session();if(!active())return;
     const ticket=++settingReadTickets[pane];
     // Read only the pane being displayed. A Recruitment read must never
     // advance Site's version while its old inputs are still on screen.
@@ -1658,7 +1745,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
       .select("key,value,updated_at").eq("key",pane).maybeSingle();
     if(error)throw error;
     if(!data)throw new Error("설정 데이터를 찾을 수 없습니다. 관리자에게 문의해 주세요.");
-    if(ticket!==settingReadTickets[pane]||dirtyForms[pane]||busyForms[pane])return;
+    if(!active()||ticket!==settingReadTickets[pane]||dirtyForms[pane]||busyForms[pane])return;
     // The form and the optimistic-concurrency token are updated as one snapshot.
     state[pane]=data.value||{};
     settingVersions[pane]=data.updated_at||null;
@@ -1711,7 +1798,8 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     }
     previewRecruitment();
   }
-  async function persistSetting(key,value){
+  async function persistSetting(key,value,active){
+    if(!active())return false;
     // Both records are seeded by SQL migration. Saving with an unknown
     // version would bypass conflict checking and silently replace an unseen
     // record after a failed initial read.
@@ -1721,16 +1809,17 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
       .eq("key",key).eq("updated_at",settingVersions[key])
       .select("key,value,updated_at").maybeSingle();
     const {data,error}=await request;
+    if(!active())return false;
     if(error)throw error;
     if(!data)throw new Error("다른 관리자가 먼저 수정한 설정입니다. 입력 내용은 유지됩니다. 복사한 뒤 페이지를 새로고침해 최신 상태를 확인하세요.");
     state[key]=data.value||{};
     settingVersions[key]=data.updated_at||updated_at;
-    dirtyForms[key]=false;
+    dirtyForms[key]=false;return true;
   }
   $("siteForm").addEventListener("submit",async event=>{
     event.preventDefault();
     const button=event.currentTarget.querySelector('button[type="submit"]');
-    if(!client())return;
+    const active=session();if(!active()||busyForms.site)return;
     const data={
       hero_description:textVal("siteHeroDescription"),
       about_heading:textVal("siteAboutHeading"),
@@ -1741,13 +1830,13 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     if(data.contact_email&&(!$("siteContactEmail").checkValidity()))
       return toast("이메일 주소를 확인해 주세요.",true);
     buttonBusy(button,true);lockForm("site",true);
-    try{await persistSetting("site",data);toast("홈페이지 문구를 저장했습니다. 공개 페이지에서 반영됩니다.");}
-    catch(e){toast("저장 실패: "+e.message,true);}
-    finally{lockForm("site",false);buttonBusy(button,false);}
+    try{if(!await persistSetting("site",data,active)||!active())return;toast("홈페이지 문구를 저장했습니다. 공개 페이지에서 반영됩니다.");}
+    catch(e){if(active())toast("저장 실패: "+e.message,true);}
+    finally{if(active()){lockForm("site",false);buttonBusy(button,false);}}
   });
   $("recruitForm").addEventListener("submit",async event=>{
     event.preventDefault();
-    if(!client())return;
+    const active=session();if(!active()||busyForms.recruitment)return;
     const button=event.currentTarget.querySelector('button[type="submit"]');
     buttonBusy(button,true);lockForm("recruitment",true);
     try{
@@ -1760,16 +1849,17 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
         method:textVal("recruitMethod"),instructions:textVal("recruitInstructions"),
         start_at,end_at,pdf_url:safe(state.recruitment?.pdf_url),docx_url:safe(state.recruitment?.docx_url)
       };
-      const pdf=await util().upload($("recruitPdf").files[0],"pdf");
-      const docx=await util().upload($("recruitDocx").files[0],"docx");
+      const pdfFile=$("recruitPdf").files[0],docxFile=$("recruitDocx").files[0];
+      const pdf=await util().upload(pdfFile,"pdf");if(!active())return;
+      const docx=await util().upload(docxFile,"docx");if(!active())return;
       if(pdf)data.pdf_url=pdf;
       if(docx)data.docx_url=docx;
-      await persistSetting("recruitment",data);
+      if(!await persistSetting("recruitment",data,active)||!active())return;
       $("recruitPdf").value="";$("recruitDocx").value="";
       fillRecruitment();
       toast("모집 설정과 지원서 파일을 저장했습니다.");
-    }catch(e){toast("모집 설정 저장 실패: "+(e.message||e),true);}
-    finally{lockForm("recruitment",false);buttonBusy(button,false);}
+    }catch(e){if(active())toast("모집 설정 저장 실패: "+(e.message||e),true);}
+    finally{if(active()){lockForm("recruitment",false);buttonBusy(button,false);}}
   });
   function clearPerson(force=false){
     if(!force&&!allowDiscard("people"))return;
@@ -1801,25 +1891,25 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
       const controls=n("div","studio-record-actions");
       const edit=n("button","","편집");edit.type="button";edit.addEventListener("click",()=>editPerson(p));
       const del=n("button","","삭제");del.type="button";del.addEventListener("click",async()=>{
-        if(!allowDiscard("people")||!confirm(p.name+" 님의 프로필을 삭제할까요?"))return;
+        const active=session();if(!active()||!allowDiscard("people")||!confirm(p.name+" 님의 프로필을 삭제할까요?"))return;
         del.disabled=true;lockForm("people",true);
         try{
           const {error}=await client().from("cms_people").delete().eq("id",p.id);
-          if(error)throw error;
-          await loadPeople();clearPerson(true);
+          if(!active())return;if(error)throw error;
+          await loadPeople();if(!active())return;clearPerson(true);
           toast("인물 정보를 삭제했습니다.");
-        }catch(error){toast("삭제 실패: "+(error.message||error),true);}
-        finally{lockForm("people",false);del.disabled=false;}
+        }catch(error){if(active())toast("삭제 실패: "+(error.message||error),true);}
+        finally{if(active()){lockForm("people",false);del.disabled=false;}}
       });
       controls.append(edit,del);row.append(info,controls);list.append(row);
     }
   }
   async function loadPeople(){
-    state.people=await queryAll("cms_people");renderPeople();
+    const active=session();if(!active())return;const rows=await queryAll("cms_people");if(!active())return;state.people=rows;renderPeople();
   }
   $("newPerson").addEventListener("click",()=>clearPerson());
   $("peopleForm").addEventListener("submit",async event=>{
-    event.preventDefault();
+    event.preventDefault();const active=session();if(!active()||busyForms.people)return;
     const save=event.currentTarget.querySelector('button[type="submit"]');
     const id=textVal("personId");
     const payload={name:textVal("personName"),position:textVal("personPosition"),
@@ -1831,10 +1921,10 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
       let result;
       if(id)result=await client().from("cms_people").update(payload).eq("id",id);
       else result=await client().from("cms_people").insert(payload);
-      if(result.error)throw result.error;
-      await loadPeople();clearPerson(true);toast("People 정보가 저장되었습니다.");
-    }catch(e){toast("저장 실패: "+e.message,true);}
-    finally{lockForm("people",false);buttonBusy(save,false);}
+      if(!active())return;if(result.error)throw result.error;
+      await loadPeople();if(!active())return;clearPerson(true);toast("People 정보가 저장되었습니다.");
+    }catch(e){if(active())toast("저장 실패: "+e.message,true);}
+    finally{if(active()){lockForm("people",false);buttonBusy(save,false);}}
   });
   function clearSession(force=false){
     if(!force&&!allowDiscard("sessions"))return;
@@ -1864,23 +1954,23 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
       const controls=n("div","studio-record-actions");
       const edit=n("button","","편집");edit.type="button";edit.addEventListener("click",()=>editSession(s));
       const del=n("button","","삭제");del.type="button";del.addEventListener("click",async()=>{
-        if(!allowDiscard("sessions")||!confirm(s.title+" 과정을 삭제할까요?"))return;
+        const active=session();if(!active()||!allowDiscard("sessions")||!confirm(s.title+" 과정을 삭제할까요?"))return;
         del.disabled=true;lockForm("sessions",true);
         try{
           const {error}=await client().from("cms_sessions").delete().eq("id",s.id);
-          if(error)throw error;
-          await loadSessions();clearSession(true);
+          if(!active())return;if(error)throw error;
+          await loadSessions();if(!active())return;clearSession(true);
           toast("교육과정을 삭제했습니다.");
-        }catch(error){toast("삭제 실패: "+(error.message||error),true);}
-        finally{lockForm("sessions",false);del.disabled=false;}
+        }catch(error){if(active())toast("삭제 실패: "+(error.message||error),true);}
+        finally{if(active()){lockForm("sessions",false);del.disabled=false;}}
       });
       controls.append(edit,del);row.append(info,controls);list.append(row);
     }
   }
-  async function loadSessions(){state.sessions=await queryAll("cms_sessions");renderSessions();}
+  async function loadSessions(){const active=session();if(!active())return;const rows=await queryAll("cms_sessions");if(!active())return;state.sessions=rows;renderSessions();}
   $("newSession").addEventListener("click",()=>clearSession());
   $("sessionForm").addEventListener("submit",async event=>{
-    event.preventDefault();
+    event.preventDefault();const active=session();if(!active()||busyForms.sessions)return;
     const save=event.currentTarget.querySelector('button[type="submit"]');
     const id=textVal("sessionId");
     const payload={week_label:textVal("sessionWeek"),title:textVal("sessionTitle"),
@@ -1893,16 +1983,17 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
       const result=id
         ? await client().from("cms_sessions").update(payload).eq("id",id)
         : await client().from("cms_sessions").insert(payload);
-      if(result.error)throw result.error;
-      await loadSessions();clearSession(true);toast("Activities 프로그램이 저장되었습니다.");
-    }catch(e){toast("저장 실패: "+e.message,true);}
-    finally{lockForm("sessions",false);buttonBusy(save,false);}
+      if(!active())return;if(result.error)throw result.error;
+      await loadSessions();if(!active())return;clearSession(true);toast("Activities 프로그램이 저장되었습니다.");
+    }catch(e){if(active())toast("저장 실패: "+e.message,true);}
+    finally{if(active()){lockForm("sessions",false);buttonBusy(save,false);}}
   });
   $("peopleSearch").addEventListener("input",renderPeople);$("peopleVisibility").addEventListener("change",renderPeople);
   $("sessionSearch").addEventListener("input",renderSessions);["sessionVisibility","sessionFilterStage"].forEach(id=>$(id).addEventListener("change",renderSessions));
   async function loadAdmins(){
+    const active=session();if(!active())return;
     const {data,error}=await client().from("cms_admins").select("user_id,email,created_at").order("created_at",{ascending:true});
-    if(error)throw error;
+    if(!active())return;if(error)throw error;
     state.admins=data||[];renderAdmins();
   }
   function renderAdmins(){
@@ -1918,11 +2009,11 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
       const btn=n("button","","권한 해제");btn.type="button";btn.className="secondary";
       btn.disabled=isSelf||state.admins.length<=1;
       btn.addEventListener("click",async()=>{
-        if(!confirm(a.email+" 계정의 SFC 운영 권한을 해제할까요?"))return;
+        const active=session();if(!active()||!confirm(a.email+" 계정의 SFC 운영 권한을 해제할까요?"))return;
         btn.disabled=true;
         const {error}=await client().from("cms_admins").delete().eq("user_id",a.user_id);
-        if(error)toast("권한 해제 실패: "+error.message,true);
-        else{await loadAdmins();toast("최고관리자 권한을 해제했습니다. 기존 Supabase Auth 계정은 유지됩니다.");}
+        if(!active())return;if(error)toast("권한 해제 실패: "+error.message,true);
+        else{await loadAdmins();if(!active())return;toast("최고관리자 권한을 해제했습니다. 기존 Supabase Auth 계정은 유지됩니다.");}
         btn.disabled=false;
       });
       row.append(info,btn);list.append(row);
@@ -1930,7 +2021,7 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     if(!state.admins.length)list.append(n("p","sidebar-empty","최초 최고관리자 계정 등록이 필요합니다."));
   }
   $("memberAddForm").addEventListener("submit",async event=>{
-    event.preventDefault();
+    event.preventDefault();const active=session();if(!active()||$("memberAddButton").disabled)return;
     if(state.admins.length>=3)return toast("최고관리자는 최대 3명입니다.",true);
     const email=textVal("memberEmail").toLowerCase();
     if(!util().getUser())return;
@@ -1939,29 +2030,31 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     const button=$("memberAddButton");buttonBusy(button,true);
     try{
       const {error}=await client().from("cms_admins").insert({email});
-      if(error)throw error;
-      $("memberEmail").value="";await loadAdmins();
+      if(!active())return;if(error)throw error;
+      $("memberEmail").value="";await loadAdmins();if(!active())return;
       toast("최고관리자가 추가되었습니다. 해당 계정은 다음 로그인부터 관리할 수 있습니다.");
-    }catch(e){toast("추가 실패: "+e.message+". Auth에 등록된 이메일인지 확인해 주세요.",true);}
-    finally{buttonBusy(button,state.admins.length>=3);}
+    }catch(e){if(active())toast("추가 실패: "+e.message+". Auth에 등록된 이메일인지 확인해 주세요.",true);}
+    finally{if(active())buttonBusy(button,state.admins.length>=3);}
   });
-  async function readBackupTable(table){
+  async function readBackupTable(table,active){
     const rows=[];
     for(let start=0;start<10000;start+=1000){
+      if(!active())throw Error("세션 변경");
       const {data,error}=await client().from(table).select("*").order(table==="cms_site_settings"?"key":table==="cms_admins"?"user_id":"id").range(start,start+999);
-      if(error)throw error;
+      if(!active())throw Error("세션 변경");if(error)throw error;
       rows.push(...(data||[]));
       if((data||[]).length<1000)return rows;
     }
     throw Error(table+" 데이터가 10,000행을 초과합니다. 불완전한 백업 방지를 위해 중단했어요.");
   }
   $("exportData").addEventListener("click",async()=>{
-    if(!util().getUser())return;
+    const active=session();if(!active())return;
     const button=$("exportData");buttonBusy(button,true);
     try{
       const tables=["cms_posts","cms_post_revisions","cms_site_settings","cms_people","cms_sessions","cms_admins"];
       const data={format:"sfc-cms-export-v1",exported_at:new Date().toISOString(),project:"sfc-website",tables:{}};
-      for(const table of tables)data.tables[table]=await readBackupTable(table);
+      for(const table of tables)data.tables[table]=await readBackupTable(table,active);
+      if(!active())return;
       const json=JSON.stringify(data,null,2);
       const blob=new Blob([json],{type:"application/json;charset=utf-8"});
       const url=URL.createObjectURL(blob);
@@ -1970,8 +2063,8 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
       document.body.append(link);link.click();link.remove();
       setTimeout(()=>URL.revokeObjectURL(url),10_000);
       toast("데이터 백업 파일이 준비됐습니다. 관리자 전용 안전한 위치에 보관하세요.");
-    }catch(e){toast("백업 실패: "+(e.message||e),true);}
-    finally{buttonBusy(button,false);}
+    }catch(e){if(active())toast("백업 실패: "+(e.message||e),true);}
+    finally{if(active())buttonBusy(button,false);}
   });
   let diagnosticSequence=0,lastDiagnostic=null;
   async function developerDiagnostic(){
@@ -2000,15 +2093,30 @@ window.mock.sessions=[{id:"session-demo-1",week_label:"01",title:"재무제표 �
     const link=document.createElement("a");link.href=url;link.download="sfc-diagnostic-"+new Date().toISOString().slice(0,10)+".json";document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
   });
   $("devGoAccounts").addEventListener("click",()=>{if(util().getRole()==="developer")util().showPane("access");});
-  window.addEventListener("sfc:admin-cleared",()=>{diagnosticSequence++;lastDiagnostic=null;$("devRefresh").disabled=false;$("devExport").disabled=true;});
+  window.addEventListener("sfc:admin-cleared",()=>{
+    generation++;diagnosticSequence++;lastDiagnostic=null;
+    state.site={};state.recruitment={};state.people=[];state.sessions=[];state.admins=[];
+    for(const [key,id] of Object.entries(formIds)){
+      settingVersions[key]=null;dirtyForms[key]=false;lockForm(key,false);$(id).reset();
+      $(id).querySelectorAll("button[type=submit]").forEach(b=>b.disabled=false);
+    }
+    settingReadTickets.site++;settingReadTickets.recruitment++;
+    fillSite();fillRecruitment();clearPerson(true);clearSession(true);
+    for(const id of ["peopleList","sessionsList","memberList"])$(id).replaceChildren();
+    for(const id of ["peopleSearch","peopleVisibility","sessionSearch","sessionVisibility","sessionFilterStage","memberEmail"])$(id).value="";
+    for(const id of ["peopleSummary","sessionSummaryCount","memberCapacityNote"])$(id).textContent="조회 전";
+    $("superadminCount").textContent="— / 3";$("memberAddButton").disabled=false;$("exportData").disabled=false;
+    $("devRefresh").disabled=false;$("devExport").disabled=true;
+  });
   async function openPane(pane){
+    const active=session();if(!active())return;
     try{
       if(pane==="site"||pane==="recruitment")await fetchSettings(pane);
       if(pane==="people")await loadPeople();
       if(pane==="sessions")await loadSessions();
       if(pane==="access")await loadAdmins();
       if(pane==="developer")await developerDiagnostic();
-    }catch(e){toast("데이터를 불러오지 못했습니다: "+(e.message||e),true);}
+    }catch(e){if(active())toast("데이터를 불러오지 못했습니다: "+(e.message||e),true);}
   }
   window.addEventListener("sfc:pane",e=>openPane(e.detail.pane));
 })();
