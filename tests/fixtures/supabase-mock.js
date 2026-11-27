@@ -88,7 +88,10 @@
       const keys=q.columns.split(',').map(k=>k.trim());
       data=data.map(r=>Object.fromEntries(keys.map(k=>[k,r[k]])));
     }
-    return {data:clone(q.one?(data[0]||null):data),error:null,count:q.withCount?count:null};
+    const result={data:clone(q.one?(data[0]||null):data),error:null,count:q.withCount?count:null};
+    // Test delayed response captured before a session change, rather than a new query.
+    if(m.deferredRead?.table===table){const delay=m.deferredRead.ms;m.deferredRead=null;m.deferredReadStarted=true;await new Promise(r=>setTimeout(r,delay));}
+    return result;
    })().then(resolve,reject);
    return q;
   }};return db;
