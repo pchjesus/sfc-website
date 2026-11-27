@@ -174,7 +174,9 @@ try:
   # R8 keyboard skip navigation, lazy PDF, native Escape and lab-only layout metrics.
   x=page('anonymous',360)
   x.context.add_init_script("""window.lab={lcp:null,cls:0};try{new PerformanceObserver(l=>{for(const e of l.getEntries())window.lab.lcp=e.startTime;}).observe({type:'largest-contentful-paint',buffered:true});new PerformanceObserver(l=>{for(const e of l.getEntries())if(!e.hadRecentInput)window.lab.cls+=e.value;}).observe({type:'layout-shift',buffered:true});}catch(e){}""")
-  x.goto(base+'/#home');x.keyboard.press('Tab')
+  # A fragment navigation can move the browser's sequential focus start to that section.
+  # Test first Tab from the real root entry; hash deep-link behavior is tested separately.
+  x.goto(base+'/');x.keyboard.press('Tab')
   expect(x.locator('#skipMain')).to_be_focused();x.keyboard.press('Enter')
   expect(x.locator('#main-content')).to_be_focused();assert x.evaluate("location.hash==='#home'")
   assert x.locator('#researchPdfFrame').get_attribute('src') is None

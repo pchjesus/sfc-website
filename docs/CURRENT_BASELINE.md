@@ -1,6 +1,6 @@
 # SFC — 현재 구현 및 검증 기준선
 
-최신화: 2026-11-28 (KST). 확인된 병합 기준 Readiness D main `76792eff3f5d9a56ddceaa64e5fdd082f57496d8`. 이전 main D3.1은 `a50a0f380a270a5a2200f7273f16a5f6ac4cbf37`. 이 문서는 역사적 명세의 완료 여부를 판단하는 기준이며, 계획과 실제 운영 활성화를 구분한다. [통합 선행 개발 계획](V3_READINESS_PLAN.md).
+최신화: 2026-11-28 (KST). 확인된 병합 기준 Readiness F main `b4c8b66e03be3b8764ce63b791e8fda310f4f80d`. 이전 main D3.1은 `a50a0f380a270a5a2200f7273f16a5f6ac4cbf37`. 이 문서는 역사적 명세의 완료 여부를 판단하는 기준이며, 계획과 실제 운영 활성화를 구분한다. [통합 선행 개발 계획](V3_READINESS_PLAN.md).
 
 ## 현재 상태
 
@@ -35,7 +35,9 @@
 ## Readiness C / D verification
 - PR [#17](https://github.com/pchjesus/sfc-website/pull/17): 93 mock browser scenarios; [quality](https://github.com/pchjesus/sfc-website/actions/runs/46023119136), [preview](https://github.com/pchjesus/sfc-website/actions/runs/46023119219) passed. Main `6f1c6e71364ca66d895b0a9b5dd65f0a67008bd6`. Local backup validation, deterministic isolated workspace, diagnostic export. Actual restoration and SQL migration NOT RUN.
 - PR [#18](https://github.com/pchjesus/sfc-website/pull/18): [quality](https://github.com/pchjesus/sfc-website/actions/runs/46023377291) passed, merged `76792eff3f5d9a56ddceaa64e5fdd082f57496d8`. R5 guide and integrated mock lifecycle. Separate preview workflow not run on dependent-base PR.
-- R6–R8 branch candidates are not evidence of merged delivery. See individual QA docs and final CI receipts.
+- PR [#19](https://github.com/pchjesus/sfc-website/pull/19): [quality 46023596851](https://github.com/pchjesus/sfc-website/actions/runs/46023596851) passed 95 mock scenarios (62+10+11+12), merged `521867a489edd061a4339d394f59835e8c3d32ec`. R6 public research normalization/search/pagination/history and related-candidate logic.
+- PR [#20](https://github.com/pchjesus/sfc-website/pull/20): [quality 46024139338](https://github.com/pchjesus/sfc-website/actions/runs/46024139338) passed 97 mock scenarios (63+10+12+12), merged `b4c8b66e03be3b8764ce63b791e8fda310f4f80d`. R7 preview/consent/validation and stale-data failure handling. Separate Preview QA not triggered on dependent PRs R5–R7.
+- R8 branch candidate pending. Initial [quality 46024254667](https://github.com/pchjesus/sfc-website/actions/runs/46024254667) passed npm and 63 browser cases but failed new skip-link initial focus assertion on fragment navigation; test root entry corrected. [Codex receipt](https://github.com/pchjesus/sfc-website/pull/21#issuecomment-7222026490) no findings on `4387634`; subsequent test/doc changes need green CI.
 
 ## Next starting point
-R6 → R8, owner authorized each merge on green verification; R2–R5 merged. Verify remaining candidates and final independent review before RC claim. After R8, satisfy actual v3.0–v3.4 release gates first; consider v4.x research intelligence, editorial intelligence, society operations and platform sustainability as provisional, evidence-driven themes, not approved implementations. No production migration, account creation, actual report analysis, real content publication, direct AI API, paid environment or separate staging provisioning authorized in this documentation update. Do not silently carry forward stale completion claims. Update this file at each merged package with source SHA, actual QA evidence, NOT RUN and open risks.
+R8, owner authorized each merge on green verification; R2–R7 merged. Verify corrected candidate before RC claim. After R8, satisfy actual v3.0–v3.4 release gates first; consider v4.x research intelligence, editorial intelligence, society operations and platform sustainability as provisional, evidence-driven themes, not approved implementations. No production migration, account creation, actual report analysis, real content publication, direct AI API, paid environment or separate staging provisioning authorized in this documentation update. Do not silently carry forward stale completion claims. Update this file at each merged package with source SHA, actual QA evidence, NOT RUN and open risks.
