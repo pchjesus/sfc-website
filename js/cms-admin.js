@@ -7,7 +7,7 @@
   const legacyKey="sfc-editor-draft-v2", recoveryPrefix="sfc-editor-draft-v3:";
   let workId=null,epoch=0,blockedRecovery=false,pendingFiles={},previewUrl=null;
   let importCandidate=null,importRevision=0,importManual=false;
-  let formatUndo=[],formatRedo=[];
+  let formatUndo=[],formatRedo=[],conflictHold=false;
   function updateFormatButtons(){$("undoFormat").disabled=busy||!formatUndo.length;$("redoFormat").disabled=busy||!formatRedo.length;}
   function resetFormatHistory(){formatUndo=[];formatRedo=[];updateFormatButtons();}
   function clearComparison(){$("comparisonPanel").hidden=true;$("comparisonRows").replaceChildren();}
@@ -141,7 +141,7 @@
     if(!blockedRecovery)detail("마지막 서버 저장: "+savedTime());
     clearTimeout(stashTimer);stashTimer=setTimeout(stash,400);
     clearTimeout(autosaveTimer);
-    if(schedule!==false&&!importManual&&!blockedRecovery&&(!current||current.status==="draft"))autosaveTimer=setTimeout(()=>savePost("draft",true),2600);
+    if(schedule!==false&&!importManual&&!blockedRecovery&&!conflictHold&&(!current||current.status==="draft"))autosaveTimer=setTimeout(()=>savePost("draft",true),2600);
   }
   function selectPost(item,confirmDirty=true,newId=null){
     if(busy&&confirmDirty)return false;
@@ -150,7 +150,7 @@
       if(!stash()&&!confirm("복구본을 저장하지 못했습니다. 그래도 이동할까요?"))return false;
     }
     clearTimeout(autosaveTimer);clearTimeout(stashTimer);clearPreviewFile();
-    clearImportReview();importManual=false;current=item||null;workId=newId||item?.id||crypto.randomUUID();dirty=false;pendingFiles={};blockedRecovery=false;applyForm(item);pendingNotice();updateCounts();
+    clearImportReview();importManual=false;conflictHold=false;current=item||null;workId=newId||item?.id||crypto.randomUUID();dirty=false;pendingFiles={};blockedRecovery=false;applyForm(item);pendingNotice();updateCounts();
     const trashed=Boolean(item?.deleted_at);
     $("editorMode").textContent=item?"EDIT / "+(trashed?"TRASHED":item.status.toUpperCase()):"NEW ARTICLE";
     $("editorSavedAt").textContent=item?"마지막 저장 "+cms.dateText(item.updated_at):"아직 저장되지 않음";detail("");
@@ -245,7 +245,7 @@
     if(status==="draft"&&current?.status==="published"&&!unpublish){if(stash())detail("공개본은 유지됩니다. 수정 내용은 이 기기에만 보관됩니다.");return;}
     if(blockedRecovery){if(!automatic)notify("복구본과 서버 버전이 다릅니다. 비교 후 새로 편집해 주세요.",true);return;}
     if(automatic&&(!dirty||current?.status==="published"))return;
-    if(automatic&&importManual)return;
+    if(automatic&&(importManual||conflictHold))return;
     if(!automatic&&status==="draft"&&!unpublish&&!dirty&&current&&!hasPending()){detail("마지막 서버 저장: "+savedTime());return;}
     clearTimeout(autosaveTimer);
     let draft;
@@ -290,7 +290,7 @@
       if(response.error)throw response.error;
       if(!active())return;
       if(!response.data)throw Error("서버 저장 결과를 확인할 수 없습니다.");
-      current=response.data;saved=true;importManual=false;
+      current=response.data;saved=true;importManual=false;conflictHold=false;
       if(JSON.stringify(editorFields.map(id=>$(id).value))===fingerprint
         &&$("postCoverFile").files[0]===imageFile&&$("postPdfFile").files[0]===pdfFile){
         dirty=false;forget();
@@ -308,7 +308,7 @@
       $("publishPost").textContent=status==="published"?"변경사항 게시 ↗":"게시하기 ↗";
       try{await loadPosts();}catch(e){if(active())notify("글은 저장됐지만 목록 갱신 실패: "+e.message,true);}
       if(active()&&!automatic)notify(status==="published"?(current.scheduled_at&&new Date(current.scheduled_at)>new Date()?"예약 발행이 저장되었습니다.":"공개 게시되었습니다."):"임시저장이 완료되었습니다.");
-    }catch(e){if(active()){clearTimeout(autosaveTimer);if(e.isConflict)blockedRecovery=true;$("editorSavedAt").textContent="저장 실패";detail((e.isConflict?"저장 충돌":navigator.onLine?"서버 저장 실패":"오프라인")+" · 입력 유지 · 마지막 서버 저장: "+savedTime());stash();notify((automatic?"자동저장":"저장")+" 실패: "+(e.message||e),true);}}
+    }catch(e){if(active()){clearTimeout(autosaveTimer);if(e.isConflict)conflictHold=true;$("editorSavedAt").textContent="저장 실패";detail((e.isConflict?"저장 충돌":navigator.onLine?"서버 저장 실패":"오프라인")+" · 입력 유지 · 마지막 서버 저장: "+savedTime());stash();notify((automatic?"자동저장":"저장")+" 실패: "+(e.message||e),true);}}
     finally{
       if(active()){$("postForm").inert=false;busyMode(false);}
       if(active()&&saved&&dirty&&current?.status==="draft"){
@@ -369,7 +369,7 @@
       const stamp=cms.dateText(revision.recorded_at);
       item.append(node("strong","","Revision #"+revision.id),node("small","",stamp+" · "+(revision.snapshot?.title||"제목 없음")));
       item.addEventListener("click",()=>{
-        if(busy||epoch!==started||current?.id!==id)return;
+        if(busy||epoch!==started||current?.id!==id||workId!==work)return;
         if(current.deleted_at){notify("휴지통의 글은 먼저 복구해 주세요.",true);return;}
         if(!confirm("이 버전을 편집기에 불러올까요? 저장하기 전에는 실제 글이 변경되지 않습니다."))return;
         if((dirty||hasPending())&&!confirm("현재 편집 내용이 이 버전으로 대체됩니다. 계속할까요?"))return;
@@ -433,7 +433,7 @@
     if(preserve&&user&&(dirty||hasPending()))stash();
     role=null;$("developerTab").hidden=true;$("studioRole").hidden=true;$("studioRole").textContent="";$("developerIdentity").hidden=true;$("developerEmail").textContent="";$("devConnection").textContent="확인 전";$("devAuth").textContent="권한 확인 전";$("devChecked").textContent="진단 기록 없음";$("devCounts").querySelectorAll("dd").forEach(e=>e.textContent="—");window.dispatchEvent(new Event("sfc:admin-cleared"));
     epoch++;clearTimeout(autosaveTimer);clearTimeout(stashTimer);clearTimeout(toastTimer);$("studioMessage").hidden=true;$("studioMessage").textContent="";clearPreviewFile();
-    user=null;posts=[];current=null;workId=null;dirty=false;pendingFiles={};blockedRecovery=false;importManual=false;closeImport();clearImportReview();
+    user=null;posts=[];current=null;workId=null;dirty=false;pendingFiles={};blockedRecovery=false;importManual=false;conflictHold=false;closeImport();clearImportReview();
     filter="all";$("postSearch").value="";$("postKindFilter").value="";$("postSort").value="updated";$("postFilterSummary").textContent="";$("postsCount").textContent="0 POSTS";document.querySelectorAll(".sidebar-tabs button").forEach(b=>b.classList.toggle("selected",b.dataset.status==="all"));
     $("postForm").inert=false;busyMode(false);applyForm(null);pendingNotice();renderRecovery();$("adminPostList").replaceChildren();$("historyList").replaceChildren();$("previewBody").replaceChildren();$("previewTitle").textContent="";$("previewExcerpt").textContent="";$("previewResearchMeta").textContent="";$("previewToc").replaceChildren();$("previewToc").hidden=true;$("previewOverview").hidden=true;$("previewAssetNote").textContent="";$("studioAccount").textContent="";detail("");visible("studioLogin");
   }
