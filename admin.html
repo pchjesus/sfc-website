@@ -70,10 +70,10 @@
 <div class="studio-research-guide" id="researchGuide">
   <strong>연구보고서 구성 안내</strong>
   <p>연구 질문과 분석 방법, 데이터 출처, 주요 가정, 결과의 해석 및 한계를 구분해서 작성해 주세요. 독자는 소제목을 목차로 이동할 수 있습니다.</p>
-  <button type="button" id="insertGeneralOutline" class="secondary">공지·활동 기본 틀</button><button type="button" id="insertResearchOutline">빈 본문에 연구 구성 템플릿 넣기</button>
+  <button type="button" id="insertResearchOutline">빈 본문에 연구 구성 템플릿 넣기</button>
 </div>
 </div>
-<div class="studio-format-bar" aria-label="본문 편집 도구"><button type="button" data-format="# ">제목</button><button type="button" data-format="## ">소제목</button><button type="button" data-format="- ">목록</button><button type="button" id="undoFormat" disabled>서식 취소</button><button type="button" id="redoFormat" disabled>서식 다시 적용</button><button type="button" id="focusEditor" aria-pressed="false">집중 모드</button></div><label>본문<textarea id="postBody" rows="15" maxlength="50000" placeholder="# 제목&#10;&#10;본문을 입력해 주세요.&#10;&#10;## 소제목&#10;- 핵심 항목"></textarea></label>
+<div class="studio-format-bar" aria-label="본문 편집 도구"><button type="button" id="insertGeneralOutline">공지·활동 기본 틀</button><button type="button" data-format="# ">제목</button><button type="button" data-format="## ">소제목</button><button type="button" data-format="- ">목록</button><button type="button" id="undoFormat" disabled>서식 취소</button><button type="button" id="redoFormat" disabled>서식 다시 적용</button><button type="button" id="focusEditor" aria-pressed="false">집중 모드</button></div><label>본문<textarea id="postBody" rows="15" maxlength="50000" placeholder="# 제목&#10;&#10;본문을 입력해 주세요.&#10;&#10;## 소제목&#10;- 핵심 항목"></textarea></label>
 <p class="editor-hint"># 제목 · ## 소제목 · - 목록 · 빈 줄 지원. HTML은 실행되지 않습니다.</p><p id="editorCounts" class="editor-hint"></p><section id="importReview" class="studio-import-review" hidden><h3>원문 검토 정보</h3><p class="editor-hint">AI 추출 결과이며 검증 완료를 의미하지 않습니다. 원문과 비교하세요. 아래 정보는 현재 작업에서만 표시되며 서버 게시물에 자동 저장되지 않습니다.</p><div id="importReviewContent" class="cms-richtext"></div></section>
 <div class="studio-field-grid">
 <label>대표 이미지 URL<input id="postCoverUrl" type="url" placeholder="https://..."></label>
