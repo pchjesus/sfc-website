@@ -16,8 +16,9 @@
 <script defer src="js/cms-config.js?v=2.0"></script>
 <script defer src="js/cms-core.js?v=3.0-readiness-b"></script>
 <script defer src="js/research-importer.js?v=0.1-r3"></script>
-<script defer src="js/cms-admin.js?v=3.0-readiness-b"></script>
-<script defer src="js/cms-studio.js?v=3.0-readiness-b"></script>
+<script defer src="js/cms-admin.js?v=3.0-readiness-c"></script>
+<script defer src="js/cms-backup.js?v=1"></script>
+<script defer src="js/cms-studio.js?v=3.0-readiness-c"></script>
 </head>
 <body>
 <header class="studio-header">
@@ -148,17 +149,18 @@
 <div class="studio-backup"><span class="eyebrow">DATA / EXPORT</span>
   <h3>Content archive.</h3><p>공개 및 비공개 게시글, 수정 이력, 설정과 운영 데이터를 JSON 파일로 내보냅니다. 관리자 이메일·임시글도 포함되니 안전하게 보관하세요.</p>
   <button type="button" class="secondary" id="exportData">데이터 백업(JSON) 내려받기 ↗</button>
-  <small>첨부파일 자체와 Auth 계정은 백업에 포함되지 않습니다.</small>
+  <small>첨부파일 자체와 Auth 계정은 백업에 포함되지 않습니다. SHA-256은 변경 감지용이며 전자서명이 아닙니다.</small>
+  <details class="studio-inline-preview"><summary>백업 파일 검사 (이 기기에서만)</summary><p>운영 데이터 복원·업로드 기능이 아닙니다. 파일은 서버로 전송되지 않습니다.</p><label>백업 JSON 선택<input id="inspectBackupFile" type="file" accept=".json,application/json"></label><button id="inspectBackup" type="button" class="secondary">구조·체크섬 검사</button><div id="backupInspection" class="cms-richtext" role="status"></div></details>
 </div>
 </section>
 <section data-pane-view="developer" class="studio-pane" hidden>
 <div class="studio-section-bar"><div><span class="eyebrow">DEVELOPMENT / MAINTENANCE</span><h2>Developer desk.</h2></div><button type="button" id="devRefresh" class="secondary">진단 새로고침 ↻</button></div>
 <p class="studio-pane-intro">Studio의 모든 운영 기능을 그대로 사용하면서 배포 정보와 데이터 연결 상태를 확인합니다. 진단은 읽기 전용입니다.</p>
 <div class="developer-grid">
-<article class="developer-card"><span class="eyebrow">01 / RELEASE</span><h3>Release.</h3><strong id="devRelease">v3.0 · Developer D3.1 candidate</strong><p>실제 배포 커밋과 이력은 저장소에서 확인합니다.</p><a href="https://github.com/pchjesus/sfc-website" target="_blank" rel="noopener noreferrer">GitHub 저장소 ↗</a><a href="https://github.com/pchjesus/sfc-website/actions" target="_blank" rel="noopener noreferrer">배포 및 검증 기록 ↗</a></article>
+<article class="developer-card"><span class="eyebrow">01 / RELEASE</span><h3>Release.</h3><strong id="devRelease">Readiness C · R4 build</strong><p>빌드 식별값입니다. 실제 배포 SHA 및 Pages 응답은 이 화면에서 미확인입니다.</p><a href="https://github.com/pchjesus/sfc-website" target="_blank" rel="noopener noreferrer">GitHub 저장소 ↗</a><a href="https://github.com/pchjesus/sfc-website/actions" target="_blank" rel="noopener noreferrer">배포 및 검증 기록 ↗</a></article>
 <article class="developer-card"><span class="eyebrow">02 / DATABASE</span><h3>Database.</h3><strong id="devConnection" role="status">확인 전</strong><dl id="devCounts"><dt>전체 게시글 (휴지통 포함)</dt><dd>—</dd><dt>임시 상태 (휴지통 포함)</dt><dd>—</dd><dt>운영 관리자</dt><dd>—</dd><dt>People / Activities</dt><dd>—</dd><dt>사이트 설정</dt><dd>—</dd></dl></article>
 <article class="developer-card"><span class="eyebrow">03 / DIAGNOSTICS</span><h3>Diagnostics.</h3><p id="devAuth">권한 확인 전</p><p id="devChecked">진단 기록 없음</p><button type="button" id="devExport" class="secondary" disabled>진단 결과 JSON ↗</button><p>현재 계정의 조회 요청 결과만 표시합니다. 서버 오류 로그 또는 전체 RLS 검증 결과는 아닙니다.</p></article>
-<article class="developer-card"><span class="eyebrow">04 / MAINTENANCE</span><h3>Maintenance.</h3><p>기존 계정 관리에서 운영 관리자 등록 및 권한 해제, JSON 백업을 이용할 수 있습니다.</p><button type="button" id="devGoAccounts" class="secondary">계정 관리 및 백업 →</button><small>운영 데이터의 백업과 진단은 별도입니다. 격리된 테스트 환경·감사 로그·복원 도구는 D5 예정.</small></article>
+<article class="developer-card"><span class="eyebrow">04 / MAINTENANCE</span><h3>Maintenance.</h3><p>기존 계정 관리에서 운영 관리자 등록 및 권한 해제, JSON 백업을 이용할 수 있습니다.</p><button type="button" id="devGoAccounts" class="secondary">계정 관리 및 백업 →</button><a href="preview/studio-review/" target="_blank" rel="noopener noreferrer">격리된 테스트 Workspace ↗</a><small>운영 데이터의 백업과 진단은 별도입니다. 합성 테스트 환경은 운영 데이터와 분리됩니다. 실제 감사 로그·복원 기능은 별도 승인 이후 적용합니다.</small></article>
 </div>
 </section>
 </section>

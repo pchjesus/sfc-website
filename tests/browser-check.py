@@ -140,6 +140,15 @@ with sync_playwright() as p:
   assert all(url.startswith(base) for url in requests),requests
   ok(f'D3.1 aligned member CTA and standalone responsive preview {width}px')
   context.close()
+ # R4 backup inspection is local-only, and production scratch namespace is not read in mock.
+ x=page();x.goto(base+'/admin.html');expect(x.locator('#studioPanel')).to_be_visible()
+ x.locator('[data-pane="access"]').click()
+ x.locator('#inspectBackupFile').set_input_files({'name':'bad.json','mimeType':'application/json','buffer':b'{"format":"wrong"}'})
+ x.locator('#inspectBackup').click();expect(x.locator('#backupInspection')).to_contain_text('검사 실패')
+ assert x.evaluate('mock.calls.length===0 && mock.uploads.length===0')
+ x.evaluate("mock.authEvent('SIGNED_OUT');mock.mode='anonymous'");expect(x.locator('#studioLogin')).to_be_visible()
+ expect(x.locator('#backupInspection')).to_have_text('')
+ ok('R4 local backup inspection and session reset');x.context.close()
  # R0: a delayed read from a prior session must not repopulate a cleared pane.
  x=page();x.goto(base+'/admin.html');expect(x.locator('#studioPanel')).to_be_visible()
  x.evaluate("""mock.people=[{id:'old-person',name:'Old account record',position:'TEST',visible:false,sort_order:0}];mock.deferredRead={table:'cms_people',ms:1000};mock.deferredReadStarted=false""")
