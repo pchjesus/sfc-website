@@ -626,3 +626,8 @@ html{scroll-behavior:auto}
  .application-dialog-foot{padding:18px}
  .application-unavailable{padding:45px 12px}
 }
+
+/* Keyboard-only skip navigation: no change to the default editorial layout. */
+.skip-link{position:fixed;top:8px;left:8px;z-index:10000;padding:12px 18px;background:#fff;color:#172433;border:2px solid #172433;clip-path:inset(50%);white-space:nowrap}
+.skip-link:focus{clip-path:none;outline:3px solid #172433;outline-offset:2px}
+#main-content:focus{outline:none}

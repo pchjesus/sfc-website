@@ -171,6 +171,37 @@ try:
   x.go_back();expect(x.locator('#archivePage')).to_have_text('1 / 68')
   assert x.evaluate('mock.calls.length===0')
   ok('R6 405 public rows, late sector, punctuation and history navigation');x.context.close()
+  # R8 keyboard skip navigation, lazy PDF, native Escape and lab-only layout metrics.
+  x=page('anonymous',360)
+  x.context.add_init_script("""window.lab={lcp:null,cls:0};try{new PerformanceObserver(l=>{for(const e of l.getEntries())window.lab.lcp=e.startTime;}).observe({type:'largest-contentful-paint',buffered:true});new PerformanceObserver(l=>{for(const e of l.getEntries())if(!e.hadRecentInput)window.lab.cls+=e.value;}).observe({type:'layout-shift',buffered:true});}catch(e){}""")
+  # Root entry must stay fragment-free; the skip link is the first DOM link.
+  x.goto(base+'/');x.bring_to_front()
+  assert x.evaluate("location.hash==='' && document.querySelector('a[href]').id==='skipMain'")
+  # Record the actual keyboard path (browser may choose a different initial
+  # focus origin). Require real Tab navigation, not locator.focus().
+  focus_path=[]
+  for _ in range(60):
+   x.keyboard.press('Tab')
+   current=x.evaluate("document.activeElement.id || document.activeElement.tagName")
+   focus_path.append(current)
+   if current=='skipMain':break
+  assert focus_path[-1]=='skipMain',focus_path
+  print('R8 keyboard traversal:',focus_path)
+  assert x.locator('#skipMain').evaluate("e=>getComputedStyle(e).clipPath==='none' && e.getBoundingClientRect().top>=0")
+  x.keyboard.press('Enter')
+  expect(x.locator('#main-content')).to_be_focused();assert x.evaluate("location.hash===''")
+  assert x.locator('#researchPdfFrame').get_attribute('src') is None
+  assert x.locator('#applicationFrame').get_attribute('src') is None
+  x.evaluate("""async()=>{mock.rows=[{id:'00000000-0000-4000-8000-000000000099',kind:'research',status:'published',deleted_at:null,scheduled_at:null,published_at:'2026-11-01T00:00:00Z',title:'TEST ONLY PDF',excerpt:'Fixture',body:'## TEST',attachment_url:'https://example.invalid/test.pdf'}];await SFC_PUBLIC.load();location.hash='post-00000000-0000-4000-8000-000000000099';}""")
+  expect(x.locator('#cmsPostTitle')).to_have_text('TEST ONLY PDF')
+  assert x.locator('#researchPdfFrame').get_attribute('src') is None
+  x.locator('.reader-pdf-trigger').click();expect(x.locator('#researchPdfDialog')).to_be_visible()
+  expect(x.locator('#researchPdfClose')).to_be_focused();x.keyboard.press('Escape')
+  expect(x.locator('#researchPdfDialog')).to_be_hidden();expect(x.locator('.reader-pdf-trigger')).to_be_focused()
+  assert x.locator('#researchPdfFrame').get_attribute('src') is None
+  assert x.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
+  print('R8 lab-only metrics (mock/local, external blocked):',x.evaluate('window.lab'))
+  ok('R8 keyboard, focus return, PDF on demand and 360px');x.context.close()
   browser.close()
 finally:
  server.shutdown()

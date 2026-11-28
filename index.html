@@ -19,7 +19,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/site.css?v=2.0">
+<link rel="stylesheet" href="css/site.css?v=3.0-readiness-g2">
 <link rel="stylesheet" href="css/cms-public.css?v=2.0">
 <script defer src="js/cms-config.js?v=1.3"></script>
 <script defer src="js/cms-core.js?v=3.0-readiness-a"></script>
@@ -34,14 +34,15 @@
 <script defer src="js/v2.8-motion.js?v=2.8.4"></script>
 <script defer src="js/research-logic.js?v=1"></script>
 <script defer src="js/research-platform.js?v=3.0-readiness-e"></script>
-<script defer src="js/research-reader.js?v=3.0-readiness-a"></script>
-<script defer src="js/site.js?v=2.8.1"></script>
+<script defer src="js/research-reader.js?v=3.0-readiness-g"></script>
+<script defer src="js/site.js?v=3.0-readiness-g2"></script>
 <script defer src="js/cms-public.js?v=3.0-readiness-f"></script>
 <script defer src="js/about-experience.js?v=2.8.4"></script>
 <script defer src="js/visual-story.js?v=2.8.4"></script>
 <script defer src="js/people-recruitment.js?v=3.0-readiness-f"></script>
 </head>
 <body>
+<a class="skip-link" id="skipMain" href="#main-content">본문 바로가기</a>
 <header class="site-header">
 <nav class="nav" aria-label="주요 메뉴">
 <a class="brand" href="#home" aria-label="SFC 홈"><span class="brand-mark">SFC<i>.</i></span><span class="brand-name">SANGMYUNG<br>FINANCIAL CLUB</span></a>
@@ -52,13 +53,13 @@
 </header>
 <div class="reading-progress" id="readingProgress" aria-hidden="true" hidden></div>
 <div class="scrim" id="scrim" aria-hidden="true"></div>
-<main>
+<main id="main-content" tabindex="-1">
 <!-- HOME -->
 <section class="view active" id="home">
   <div class="hero" id="hero">
     <div class="hero-photo active"><img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1800&q=85" alt="현대 금융도시의 고층 건축물" fetchpriority="high"></div>
-    <div class="hero-photo"><img src="https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1800&q=85" alt="현대적인 연구 공간" loading="lazy"></div>
-    <div class="hero-photo"><img src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1800&q=85" alt="도시의 거리와 건축물" loading="lazy"></div>
+    <div class="hero-photo"><img src="https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1800&q=85" alt="현대적인 연구 공간" loading="lazy" decoding="async"></div>
+    <div class="hero-photo"><img src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1800&q=85" alt="도시의 거리와 건축물" loading="lazy" decoding="async"></div>
     <div class="hero-inner">
       <div class="hero-top"><span>INDEPENDENT RESEARCH / SANGMYUNG UNIVERSITY</span><span>2027 SPRING / SEOUL</span></div>
       <div class="hero-copy" id="heroCopy">
@@ -91,7 +92,7 @@
     <div class="home-section" data-motion="rise">
       <div class="section-head"><div><span class="eyebrow">01 / RESEARCH</span><h2>Selected work.</h2></div><a class="line-link" href="#research">ALL RESEARCH ↗</a></div>
       <a class="featured-work" href="#report-0" aria-label="샘플 리서치 보고서 상세 보기">
-        <div class="featured-photo"><img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=1100&q=80" alt="건축적 구조와 공간" loading="lazy"></div>
+        <div class="featured-photo"><img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=1100&q=80" alt="건축적 구조와 공간" loading="lazy" decoding="async"></div>
         <div class="featured-copy"><span class="eyebrow">DEMO / 실제 발행된 연구가 아닙니다</span><h3>반도체 산업의 구조적 변화와 기업가치 재평가</h3><p>Equity Research · SAMPLE</p><span class="line-link">VIEW SAMPLE ↗</span></div>
       </a>
       <div class="work-list" id="homeWorks"></div>

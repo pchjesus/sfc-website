@@ -1,0 +1,16 @@
+import assert from "node:assert/strict";
+import {buildSyntheticResearchCandidates as build} from "../scripts/research-seo-candidate.mjs";
+const now="2026-11-28T00:00:00Z";
+const make=(n,over={})=>({synthetic:true,approved_public:true,id:"00000000-0000-4000-8000-"+String(n).padStart(12,"0"),kind:"research",status:"published",published_at:"2026-11-01T00:00:00Z",deleted_at:null,scheduled_at:null,title:"TEST <script>alert(1)</script>",excerpt:'TEST "><img src=x>',...over});
+const rows=[make(1),make(2,{status:"draft",title:"PRIVATE-TEST"}),make(3,{deleted_at:now,title:"DELETED-TEST"}),make(4,{scheduled_at:"2026-12-01T00:00:00Z",title:"FUTURE-TEST"}),make(5,{approved_public:false,title:"UNAPPROVED-TEST"}),make(6,{published_at:"invalid"}),make(7,{kind:"activity"}),make(8,{published_at:"2027-01-01"}),make(9,{scheduled_at:"invalid"})];
+const result=build(rows,{now});
+assert.equal(result.pages.length,1);assert.equal(result.synthetic,true);
+const p=result.pages[0];assert.match(p.canonical,/research\/report-00000000-0000-4000-8000-000000000001\/$/);
+assert.match(p.existing,/#post-/);assert.match(p.html,/noindex,nofollow/);assert.match(p.html,/&lt;script&gt;/);assert.ok(!p.html.includes("<script>"));assert.ok(!p.html.includes("<img src=x>"));assert.ok(!/PRIVATE-TEST|DELETED-TEST|FUTURE-TEST|UNAPPROVED-TEST/.test(JSON.stringify(result)));assert.equal((result.sitemap.match(/<loc>/g)||[]).length,1);
+assert.equal(build([make(1,{title:"Renamed"})],{now}).pages[0].slug,p.slug);
+assert.throws(()=>build([make(1),make(1)],{now}),/Duplicate/);
+assert.throws(()=>build([make(1,{synthetic:false})],{now}),/Synthetic/);
+assert.throws(()=>build([make(1)],{now:"invalid"}),/cutoff/);
+assert.throws(()=>build([make(1)],{now,base:"http://example.invalid/"}),/base/);
+assert.equal(build([make(1,{status:"draft"})],{now}).pages.length,0);
+console.log("PASS synthetic-only SEO candidate: stable URL, approval/time/visibility, escaping, no output files");
