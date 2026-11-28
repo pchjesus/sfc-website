@@ -1,6 +1,6 @@
 # SFC 2.0 — Codex verification handoff
 
-**Current handoff (2026-11-27):** [CURRENT_BASELINE.md](CURRENT_BASELINE.md) is the source for latest Readiness QA; [V3_READINESS_PLAN.md](V3_READINESS_PLAN.md) defines R0–R8. PR #20 merged; 97 mock cases PASS; R8 verification pending (see exact runs in baseline), live Auth/RLS/Storage NOT RUN, D1 SQL candidate unapplied and real accounts deferred. Below is the historical 2.0 checklist, not evidence of real execution; apply current preflight and file-publication restrictions.
+**Current handoff (2026-11-28):** [CURRENT_BASELINE.md](CURRENT_BASELINE.md) is the source for latest Readiness QA; [V3_READINESS_PLAN.md](V3_READINESS_PLAN.md) defines R0–R8. PR #21 merged; 98 mock cases PASS; preflight audit candidate pending (see exact runs in baseline), live Auth/RLS/Storage NOT RUN, D1 SQL candidate unapplied and real accounts deferred. [Release preparation](V3_RELEASE_PREPARATION.md) and [independent audit request](V3_FULL_AUDIT.md) specify current scope. Below is the historical 2.0 checklist, not evidence of real execution; apply current preflight and file-publication restrictions.
 
 **Target:** https://pchjesus.github.io/sfc-website/  
 **Private Studio:** https://pchjesus.github.io/sfc-website/admin.html  

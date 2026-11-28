@@ -1,6 +1,6 @@
 # SFC Research Importer — AI 문서 분석·게시 초안 하네스
 
-2026-11-27 최신 상태: [현재 구현/QA 기준선](CURRENT_BASELINE.md) · [통합 R0–R8 실행 계획](V3_READINESS_PLAN.md). 실제 코드 js/research-importer.js: schema 0.1; source는 filename/type/written_date/data_date만, 해시는 아직 미지원. evidence/references/issues를 검사하고 표시하나 서버 영구 저장하지 않음. JSON 파일/붙여넣기, prompt 복사, 신규 draft 적용, 첫 수동저장 게이트 구현. Reader parity, 필드 선택/검토 export 및 원문 검증은 잔여 R1/R3. 기존 parser 단위 및 통합 mock 테스트 통과; I-08/I-09 NOT RUN.
+2026-11-28 최신 상태: [현재 구현/QA 기준선](CURRENT_BASELINE.md) · [통합 R0–R8 실행 계획](V3_READINESS_PLAN.md). 실제 코드 js/research-importer.js: schema 0.1; source는 filename/type/written_date/data_date만, 해시는 아직 미지원. evidence/references/issues를 검사하고 표시하나 서버 영구 저장하지 않음. JSON 파일/붙여넣기, prompt 복사, 신규 draft 적용, 첫 수동저장 게이트 구현. R1 공용 의미 렌더러, R3 유형별 프롬프트/필드 선택/검토 export/날짜·단위·기간 경고 구현. 실제 원문 검증과 evidence 영구 저장, 일반 계산 검증은 잔여. 기존 parser 단위 및 통합 mock 테스트 통과; I-08/I-09 NOT RUN.
 
 2026-11-27 · RI 0.1~0.3 기반 병합 / 후속 명세.
 [전체 로드맵](V3_ROADMAP.md) · [Studio UX](STUDIO_UX_ROADMAP.md) · [v3.0 사전 검증](V3.0_PREFLIGHT.md)

@@ -4,6 +4,8 @@
 코드 기준: main a50a0f380a270a5a2200f7273f16a5f6ac4cbf37 (PR #13 D3.1).
 [현행 기준선](CURRENT_BASELINE.md) · [정식 출시 로드맵](V3_ROADMAP.md) · [Studio](STUDIO_UX_ROADMAP.md) · [Importer](RESEARCH_IMPORTER_ROADMAP.md) · [실환경 발행 게이트](V3.0_PREFLIGHT.md).
 
+2026-11-28 실행 결과: R0–R8 병합 완료, 98 mock 브라우저 시나리오 통과. 정확한 증거와 잔여 범위는 [CURRENT_BASELINE.md](CURRENT_BASELINE.md); 아래는 역사적 실행 명세이며 실제 운영 활성화 결과가 아님.
+
 ## 1. 목적과 경계
 Readiness는 정식 v3.0~v3.4의 기술적 선행 작업 묶음이며 새 버전 출시를 의미하지 않는다. R0~R8은 보고서 없이 진행할 수 있다. 실제 자료에 의존하는 편집·분류·시각화·학회 정보·발행·인덱싱은 후속으로 남긴다. 사용자 요청으로 실제 개발자/관리자 계정 생성과 운영 DB 변경은 보류. 모든 코드 구현은 별도 브랜치, 모의 데이터, 검증, 소유자 확인, 명시적 병합 승인 순서. 실제 파일/인물/수치/이메일/비밀/미승인 보고서를 공개 브랜치, artifact, 미리보기, 테스트 로그에 넣지 않는다. 외부 API/유료 서비스/새 프로젝트 및 운영 DB·Storage·Auth 변경은 별도 승인. 기존 디자인·7개 탭 고유 모션·사진·About 문구·학교 마크·People/Recruitment 정보 즉시 표시 유지. 필요성이 확인되지 않은 기능과 복잡한 UI는 추가하지 않는다.
 

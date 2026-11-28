@@ -3,7 +3,7 @@
 **실행 순서:** R0~R8 선행 개발 → 실제 보고서·계정·공개 승인 게이트 → v3.0 정식 발행 → v3.1~v3.4 자료 의존 기능. 아래 정식 버전 목표는 유지하며 중복 구현하지 않는다.
 
 - 합의일: 2026-11-26 (KST)
-- 최신화: 2026-11-27 · 코드 기준 D3.1 main `a50a0f380a270a5a2200f7273f16a5f6ac4cbf37`
+- 최신화: 2026-11-28 · R0–R8 main `b3aa5edeba1f768b03ae7a8a002e416947a63319` (98 mock 통과)
 - [현재 구현/QA 기준선](CURRENT_BASELINE.md) · [통합 선행 개발 R0–R8](V3_READINESS_PLAN.md)
 - [PR #8](https://github.com/pchjesus/sfc-website/pull/8) · [v2.9 QA](V2.9_QA_REPORT.md)
 - 상태: 소유자와 개발 방향 합의. 개별 구현·DB 변경·main 병합·콘텐츠 발행은 별도 승인.
@@ -93,4 +93,4 @@ Studio S2/S3 중심: 검수 체크리스트/검수 상태(초안→검수→승�
 
 ## 8. 보고서 수령 전 통합 선행 개발 (2026-11-27)
 
-[상세 R0–R8 명세](V3_READINESS_PLAN.md): R0 기준선, R1 편집·Reader, R2 검수·파일, R3 Importer, R4 운영·Developer, R5 도움말·E2E, R6 Library(검색/링크/관련 연구 로직), R7 Society Identity(편집/공개/상태 검증), R8 Public Reach(SEO 후보/접근성/성능/RC). v3.1~v3.4에서 데이터 독립적 기능만 앞당긴다. 실제 분류·차트·공식 인물/일정·보고서별 검색 노출 및 모든 운영 권한/DB 변경은 별도 게이트. R0 기술 실행부터 순차 개발; 계정 생성은 보류.
+[상세 R0–R8 명세](V3_READINESS_PLAN.md): R0 기준선, R1 편집·Reader, R2 검수·파일, R3 Importer, R4 운영·Developer, R5 도움말·E2E, R6 Library(검색/링크/관련 연구 로직), R7 Society Identity(편집/공개/상태 검증), R8 Public Reach(SEO 후보/접근성/성능/RC). v3.1~v3.4에서 데이터 독립적 기능만 앞당긴다. 실제 분류·차트·공식 인물/일정·보고서별 검색 노출 및 모든 운영 권한/DB 변경은 별도 게이트. R0–R8 main 병합 완료; 실제 출시 전 [정비 계획](V3_RELEASE_PREPARATION.md) 진행. 계정 생성은 보류.

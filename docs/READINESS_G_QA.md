@@ -1,7 +1,10 @@
-# Readiness G candidate — R8 / RC
+# Readiness G — R8 / RC
 
 Dependent on R7 candidate c38bfb3cd4f26542bec6d39da902f8d5f77f3eb7. Synthetic-only stable report URL/canonical/OG/sitemap generator returns memory values, not published files. No real report output or sitemap change. Keyboard skip navigation, PDF dialog focus restoration and cleanup, async image decoding. Existing root canonical/OG and approved images/motion preserved. Test: synthetic visibility/approval/time/escaping, keyboard/Escape/360px, lab-only layout metrics with mock network. No real Lighthouse baseline, field performance, WCAG full audit or actual search visibility claim. RC requires green CI and independent Codex review. Live Auth/RLS/Storage, report data, page deployment HTTP and real SEO NOT RUN. Rollback: revert PR, leave live data/schema untouched.
 
 Initial quality 46024254667: npm/static PASS, 63 browser cases PASS; integrated new skip-link test failed because opening a fragment can shift the native sequential focus starting point. Corrected test to use plain root URL for first Tab, keeping direct hash route and PDF focus tests. No production code changed after Codex no-findings receipt on 4387634. Full rerun pending.
 
 Second run 46024797816: npm and 63 browser cases passed, but the root first-Tab assertion still failed; Preview QA passed. Root startup previously added #home even from the plain root. Preserve a fragment-free root, keep existing hash routes, change the visually hidden skip link to clipping rather than off-screen transform, and verify genuine keyboard traversal and activation with recorded focus path. First-Tab position remains a separately reported observation, not guaranteed by this revised test. Re-run full CI. Codex d4e0574 had no findings; new production changes require review.
+
+## Final receipt
+Candidate 25e76dc: [quality](https://github.com/pchjesus/sfc-website/actions/runs/46120373593) and [preview](https://github.com/pchjesus/sfc-website/actions/runs/46120373600) success; 98 mock browser cases, first Tab skipMain, synthetic local LCP 236ms/CLS 0. [Codex](https://github.com/pchjesus/sfc-website/pull/21#issuecomment-7235836656) no findings. Main merge b3aa5edeba1f768b03ae7a8a002e416947a63319. Actual Pages HTTP, actual report and live Auth/RLS/Storage NOT RUN; no full WCAG or field-performance claim.
