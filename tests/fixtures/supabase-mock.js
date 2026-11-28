@@ -7,6 +7,7 @@
  window.supabase={createClient:(url,key,options)=>{
   m.clients.push(options);
   const db={storage:{from:bucket=>({upload:async(path,file,options)=>{m.uploads.push({bucket,path,name:file.name,type:file.type,size:file.size});return {error:m.uploadFailAt===m.uploads.length?{message:"simulated upload failure"}:null};},getPublicUrl:path=>({data:{publicUrl:"https://example.invalid/"+path}})})},auth:{getUser:async()=>({data:{user:m.mode==='anonymous'?null:{id:m.mode==='developer'?'developer-test':'test-user',email:m.mode==='developer'?'developer@example.invalid':'test@example.invalid'}}}),onAuthStateChange:cb=>{m.authEvent=cb;},signOut:async()=>{m.authEvent('SIGNED_OUT');return {}; }},from:table=>{
+   if(m.throwConnection)throw Error("synthetic connection failure");
    const q={table,op:'select',filters:[],payload:null,one:false};
    q.sorts=[];q.maxRows=null;q.rangeRows=null;q.orFilters=[];
    q.order=(key,opt={})=>{q.sorts.push([key,opt.ascending!==false]);return q;};

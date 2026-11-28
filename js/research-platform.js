@@ -149,7 +149,7 @@
     paint(rows.slice((state.page-1)*limit,state.page*limit),rows.length);
   }
   async function liveResults(){
-    if(!client)return;
+    if(!client){unavailable();return;}
     const version=++requestVersion;
     results.setAttribute("aria-busy","true");
     $("archiveCount").textContent="공개 연구를 불러오는 중…";
@@ -238,9 +238,13 @@
     sectors=[...new Set(demos.map(item=>item.category))];
     activate(false);refresh();
   }
+  function unavailable(){
+    results.replaceChildren(node("p","archive-error","공개 연구 조회에 실패했습니다. 다시 시도해 주세요."));$("archiveCount").textContent="RESEARCH / UNAVAILABLE";pager.hidden=true;results.setAttribute("aria-busy","false");
+    const retry=node("button","","다시 시도");retry.type="button";retry.addEventListener("click",()=>window.SFC_PUBLIC?.load());results.append(retry);
+  }
   async function connect(db){
-    if(!db)return;
     client=db;const version=++connectVersion;requestVersion++;
+    if(!db){if(mode==="live"){sectors=[];groups=[];controls();unavailable();}else $("archiveDisclosure").textContent="DEMO / 공개 연구 연결 확인에 실패했습니다. 아래 내용은 시연 자료입니다.";return;}
     const now=new Date().toISOString(),active=()=>version===connectVersion;
     try{
       const probe=await db.from("cms_posts").select("id",{count:"exact"})
