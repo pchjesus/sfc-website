@@ -9,6 +9,7 @@
   let peopleError=false,sessionsError=false,settingsError=false;
   const orderRows=(a,b)=>Number(a.sort_order||0)-Number(b.sort_order||0)||String(a.id).localeCompare(String(b.id));
   const recruitmentDefaults=new Map(["recruitTitle","recruitMessage","recruitAudiencePublic","recruitCapacityPublic","recruitMeetingPublic","recruitMethodPublic"].map(id=>[id,$(id)?.innerHTML||""]));
+  const siteDefaults=new Map([".about-photo-panel h2",".about-photo-panel [data-about-intro]",".about-end p"].map(selector=>[selector,document.querySelector(selector)?.innerHTML||""]));
   let showRevision=0,loadRevision=0;
   const element=(tag,cls,text)=>{
     const el=document.createElement(tag);
@@ -162,7 +163,7 @@
       if(article)window.SFC_READER?.render(article,cms);
       else window.SFC_READER?.status("게시글을 찾을 수 없습니다.","삭제되었거나 공개되지 않은 글입니다.");
     }catch(_error){
-      if(revision===showRevision)window.SFC_READER?.status(
+      if(revision===showRevision&&location.hash.slice(1)==="post-"+id)window.SFC_READER?.status(
         "게시글을 불러오지 못했습니다.","연결 상태를 확인하고 다시 시도해 주세요.");
     }
   }
@@ -173,7 +174,8 @@
   }
   function applySiteSettings(v){
     siteConfig=v||{};
-    if(v?.hero_description)window.SFC_HERO_EDIT?.(v.hero_description);
+    window.SFC_HERO_EDIT?.(v?.hero_description);
+    for(const [selector,html] of siteDefaults){const el=document.querySelector(selector);if(el&&el.innerHTML!==html)el.innerHTML=html;}
     setText(".about-photo-panel h2",v?.about_heading);
     // Studio can override a genuinely customized introduction.
     // A stored *legacy default* must not silently overwrite the owner-approved
@@ -350,6 +352,8 @@
       doc.hidden=!editable;
       if(editable)doc.href=editable;else doc.removeAttribute("href");
     }
+    const dialog=$("applicationDialog"),frame=$("applicationFrame");
+    if(dialog?.open){const expected=pdf?pdf+"#toolbar=0":null;if(settingsError||frame?.getAttribute("src")!==expected||dialog.dataset.docx!==(editable||"")){modalTransition?.cancel();delete dialog.dataset.closing;dialog.close();frame?.removeAttribute("src");}}
     window.SFC_PEOPLE_RECRUITMENT?.syncRecruitment();
     if(settingsError){const message=$("recruitMessage");if(message)message.textContent="모집 설정을 불러오지 못했습니다. 공식 공고를 확인해 주세요.";}
 
@@ -368,6 +372,7 @@
       :"공식 지원서가 아직 등록되지 않았습니다. 모집 공고 이후 다시 확인해 주세요.";
     if(status){status.hidden=!pdf;status.textContent=pdf?"미리보기를 불러오는 중…":"";}
     if(pdf){frame.src=pdf+"#toolbar=0";}else{frame.removeAttribute("src");}
+    dialog.dataset.docx=docx||"";
     dialog.showModal();
     modalTransition=motion.play(dialog,[{opacity:0,transform:"translateY(10px) scale(.98)"},{opacity:1,transform:"none"}],{duration:motion.timing.modal});
     $("applicationClose").focus({preventScroll:true});
@@ -391,13 +396,14 @@
   $("applicationDialog")?.addEventListener("cancel",event=>{event.preventDefault();closeApplicationDialog();});
   $("applicationDialog")?.addEventListener("close",()=>{
     $("applicationFrame").removeAttribute("src");
-    $("applicationTrigger").focus({preventScroll:true});
+    const trigger=$("applicationTrigger");if(trigger?.getClientRects().length&&!trigger.closest("[inert]"))trigger.focus({preventScroll:true});
   });
   $("applicationDialog")?.addEventListener("click",event=>{
     if(event.target!==$("applicationDialog"))return;
     const r=event.target.getBoundingClientRect();
     if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)closeApplicationDialog();
   });
+  function clearUnavailable(){publicDb=null;posts=[];allPeople=[];allSessions=[];peopleError=true;sessionsError=true;settingsError=true;recruitConfig={status:"planned"};applySiteSettings({});}
   async function load(){
     if(!cms)return;
     const revision=++loadRevision;showRevision++;
@@ -405,7 +411,7 @@
       const db=await cms.getPublicClient();
       if(revision!==loadRevision)return;
       publicDb=db;
-      if(!db){loadError="공개 게시글 연결을 확인할 수 없습니다.";loaded=true;renderUpdates();return;}
+      if(!db)throw Error("공개 게시글 연결을 확인할 수 없습니다.");
       const results=await Promise.allSettled([
         db.from("cms_posts").select(
           "id,kind,title,excerpt,published_at,research_sector,research_company,research_author"
@@ -422,19 +428,17 @@
       if(results[1].status==="fulfilled"&&!results[1].value.error){
         settingsError=false;recruitConfig={status:"planned"};
         const settings=results[1].value.data||[];
-        for(const row of settings){
-          if(row.key==="site")applySiteSettings(row.value||{});
-          if(row.key==="recruitment")recruitConfig=row.value||{};
-        }
+        applySiteSettings(settings.find(row=>row.key==="site")?.value||{});
+        recruitConfig=settings.find(row=>row.key==="recruitment")?.value||{status:"planned"};
       }
       else{settingsError=true;recruitConfig={status:"planned"};applySiteSettings({});}
       peopleError=results[2].status!=="fulfilled"||Boolean(results[2].value?.error);allPeople=peopleError?[]:results[2].value.data||[];
       sessionsError=results[3].status!=="fulfilled"||Boolean(results[3].value?.error);allSessions=sessionsError?[]:results[3].value.data||[];
-    }catch(e){if(revision!==loadRevision)return;posts=[];loadError=String(e.message||e);}
+    }catch(e){if(revision!==loadRevision)return;clearUnavailable();loadError="공개 데이터 연결 실패";}
     if(revision!==loadRevision)return;
     loaded=true;
     renderHome();renderHomeUpdates();renderResearch();renderUpdates();publicPeople();publicSessions();renderRecruitment();motion.reveal();
-    if(publicDb)void window.SFC_PLATFORM?.connect(publicDb);
+    void window.SFC_PLATFORM?.connect(publicDb);
     const route=/^post-([0-9a-f-]{36})$/.exec(location.hash.slice(1));
     if(route)show(route[1]);
     clearInterval(refreshClock);

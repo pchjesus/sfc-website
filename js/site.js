@@ -144,9 +144,9 @@ let heroPaused=false,heroInView=true,heroProgress=null,heroHovered=false;
 let heroRemaining=10000,heroStarted=null;
 const heroDuration=10000;
 const heroMotion=matchMedia("(prefers-reduced-motion: reduce)");
+const defaultHeroDescription=slides[0].description;
 window.SFC_HERO_EDIT = (description)=>{
-  if(typeof description!=="string"||!description.trim())return;
-  slides[0].description=description.trim();
+  slides[0].description=typeof description==="string"&&description.trim()?description.trim():defaultHeroDescription;
   if(currentSlide===0)$("heroDescription").textContent=slides[0].description;
 };
 function setSlide(index){
