@@ -41,3 +41,5 @@
 
 ## Next starting point
 R8, owner authorized each merge on green verification; R2–R7 merged. Verify corrected candidate before RC claim. After R8, satisfy actual v3.0–v3.4 release gates first; consider v4.x research intelligence, editorial intelligence, society operations and platform sustainability as provisional, evidence-driven themes, not approved implementations. No production migration, account creation, actual report analysis, real content publication, direct AI API, paid environment or separate staging provisioning authorized in this documentation update. Do not silently carry forward stale completion claims. Update this file at each merged package with source SHA, actual QA evidence, NOT RUN and open risks.
+
+R8 follow-up: second quality run 46024797816 failed the new keyboard initial-focus assertion while Preview QA 46024797830 succeeded; Codex d4e0574 no findings. Root hash initialization and skip-link styling changed; final verification pending.

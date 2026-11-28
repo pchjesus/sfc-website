@@ -493,5 +493,7 @@ renderRoles();
 renderFaqs();
 motion.accordion($("roleList"),".role-row",null);
 motion.accordion($("faqList"),".faq",null);
-if(!location.hash)history.replaceState({route:"home"},"","#home");
+// The root already resolves to home. Do not introduce a fragment during startup:
+// Chromium may use it as the sequential keyboard focus starting point.
+if(!location.hash)history.replaceState({route:"home"},"",location.pathname+location.search);
 renderRoute();

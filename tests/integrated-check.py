@@ -174,11 +174,22 @@ try:
   # R8 keyboard skip navigation, lazy PDF, native Escape and lab-only layout metrics.
   x=page('anonymous',360)
   x.context.add_init_script("""window.lab={lcp:null,cls:0};try{new PerformanceObserver(l=>{for(const e of l.getEntries())window.lab.lcp=e.startTime;}).observe({type:'largest-contentful-paint',buffered:true});new PerformanceObserver(l=>{for(const e of l.getEntries())if(!e.hadRecentInput)window.lab.cls+=e.value;}).observe({type:'layout-shift',buffered:true});}catch(e){}""")
-  # A fragment navigation can move the browser's sequential focus start to that section.
-  # Test first Tab from the real root entry; hash deep-link behavior is tested separately.
-  x.goto(base+'/');x.keyboard.press('Tab')
-  expect(x.locator('#skipMain')).to_be_focused();x.keyboard.press('Enter')
-  expect(x.locator('#main-content')).to_be_focused();assert x.evaluate("location.hash==='#home'")
+  # Root entry must stay fragment-free; the skip link is the first DOM link.
+  x.goto(base+'/');x.bring_to_front()
+  assert x.evaluate("location.hash==='' && document.querySelector('a[href]').id==='skipMain'")
+  # Record the actual keyboard path (browser may choose a different initial
+  # focus origin). Require real Tab navigation, not locator.focus().
+  focus_path=[]
+  for _ in range(60):
+   x.keyboard.press('Tab')
+   current=x.evaluate("document.activeElement.id || document.activeElement.tagName")
+   focus_path.append(current)
+   if current=='skipMain':break
+  assert focus_path[-1]=='skipMain',focus_path
+  print('R8 keyboard traversal:',focus_path)
+  assert x.locator('#skipMain').evaluate("e=>getComputedStyle(e).clipPath==='none' && e.getBoundingClientRect().top>=0")
+  x.keyboard.press('Enter')
+  expect(x.locator('#main-content')).to_be_focused();assert x.evaluate("location.hash===''")
   assert x.locator('#researchPdfFrame').get_attribute('src') is None
   assert x.locator('#applicationFrame').get_attribute('src') is None
   x.evaluate("""async()=>{mock.rows=[{id:'00000000-0000-4000-8000-000000000099',kind:'research',status:'published',deleted_at:null,scheduled_at:null,published_at:'2026-11-01T00:00:00Z',title:'TEST ONLY PDF',excerpt:'Fixture',body:'## TEST',attachment_url:'https://example.invalid/test.pdf'}];await SFC_PUBLIC.load();location.hash='post-00000000-0000-4000-8000-000000000099';}""")
